@@ -1,0 +1,58 @@
+Round 3 audit, 1 in 3 (Kiro, 2026-11-10; one checker, self-checked only, second: pending reviewer)
+Population over the five apps: judged rows 53, round 3 rule edges 116, new UNREACHABLE 4 (round 3 rule edges: P, K, R, Q, S and the showFragment hand-off; r3_judged rows other than NONE)
+Every third item (gates and rule edges, then UNREACHABLE entries) re-read from the cited source; 59 sampled in all, 6 in this app; 6 OK, 0 wrong.
+The rule R items are many because rule R re-sourced 85 MMEX edges; every third one is sampled like the rest.
+
+[15] gate (judged STATE) | AnkiDroid | E5bec9932 Reviewer.createWhiteboard -> Whiteboard.<init>
+    claim: anki/MetaDB.java; the whiteboard is made only when Enable whiteboard is on for the deck, a stored per-deck value in MetaDB (default false)
+    ref: anki/Reviewer.java:103-105,196-199,444-454
+      Reviewer.java:102 
+      Reviewer.java:103 mPrefWhiteboard = MetaDB.getWhiteboardState(this, getParentDid());
+      Reviewer.java:104 if (mPrefWhiteboard) {
+      Reviewer.java:105 setWhiteboardEnabledState(true);
+      Reviewer.java:106 setWhiteboardVisibility(true);
+    result: OK (the source supports the gate, the rule edge or the UNREACHABLE reason)
+
+[16] gate (judged STATE) | AnkiDroid | E337abb49 Reviewer.onCollectionLoaded -> Reviewer.setWhiteboardEnabledState
+    claim: anki/MetaDB.java; the whiteboard is set up at load only when Enable whiteboard is on for the deck (stored per-deck value, default false)
+    ref: anki/Reviewer.java:103-105
+      Reviewer.java:102 
+      Reviewer.java:103 mPrefWhiteboard = MetaDB.getWhiteboardState(this, getParentDid());
+      Reviewer.java:104 if (mPrefWhiteboard) {
+      Reviewer.java:105 setWhiteboardEnabledState(true);
+      Reviewer.java:106 setWhiteboardVisibility(true);
+    result: OK (the source supports the gate, the rule edge or the UNREACHABLE reason)
+
+[17] gate (judged STATE) | AnkiDroid | E7a434b65 AbstractFlashcardViewer.showLookupButtonIfNeeded -> AbstractFlashcardViewer.clipboardGetText
+    claim: the clipboard is read for the lookup button only with a dictionary set (default none)
+    ref: anki/AbstractFlashcardViewer.java:1218,1719
+      AbstractFlashcardViewer.java:1217 private void showLookupButtonIfNeeded() {
+      AbstractFlashcardViewer.java:1218 if (!mDisableClipboard && mClipboard != null) {
+      AbstractFlashcardViewer.java:1219 if (clipboardGetText().length() != 0 && Lookup.isAvailable() && mLookUpIcon.getVisibility() != View.VISIBLE) {
+    result: OK (the source supports the gate, the rule edge or the UNREACHABLE reason)
+    also read AbstractFlashcardViewer.java:1719: mDisableClipboard = dictionary equals "0" (default "0")
+
+[18] gate (judged STATE) | AnkiDroid | E379ed760 AbstractFlashcardViewer.showLookupButtonIfNeeded -> Lookup.isAvailable
+    claim: as for E7a434b65
+    ref: anki/AbstractFlashcardViewer.java:1218-1219,1719
+      AbstractFlashcardViewer.java:1217 private void showLookupButtonIfNeeded() {
+      AbstractFlashcardViewer.java:1218 if (!mDisableClipboard && mClipboard != null) {
+      AbstractFlashcardViewer.java:1219 if (clipboardGetText().length() != 0 && Lookup.isAvailable() && mLookUpIcon.getVisibility() != View.VISIBLE) {
+      AbstractFlashcardViewer.java:1220 mLookUpIcon.setVisibility(View.VISIBLE);
+    result: OK (the source supports the gate, the rule edge or the UNREACHABLE reason)
+
+[19] gate (judged STATE) | AnkiDroid | E76f8bfdc S_DLG_MEDIA_CHECK -> MediaCheckDialog$3.onPositive
+    claim: the delete-unused button runs only when the media check found unused files in collection.media; the sample deck has no media, so a media file is added and its note changed first
+    ref: anki/dialogs/MediaCheckDialog.java:116
+      MediaCheckDialog.java:115 // needs to acknowledge the results, so show only an OK dialog.
+      MediaCheckDialog.java:116 if (unused.size() > 0) {
+      MediaCheckDialog.java:117 builder.positiveText(res().getString(R.string.dialog_ok))
+    result: OK (the source supports the gate, the rule edge or the UNREACHABLE reason)
+
+[20] gate (judged STATE) | AnkiDroid | E9cd18591 AbstractFlashcardViewer$MyGestureDetector.onSingleTapConfirmed -> CompatV19.isImmersiveSystemUiVisible
+    claim: the immersive check runs only with a full-screen mode set (fullscreenMode, default 0)
+    ref: anki/AbstractFlashcardViewer.java:1723,2732-2733
+      AbstractFlashcardViewer.java:1722 mNightMode = preferences.getBoolean("invertedColors", false);
+      AbstractFlashcardViewer.java:1723 mPrefFullscreenReview = Integer.parseInt(preferences.getString("fullscreenMode", "0"));
+      AbstractFlashcardViewer.java:1724 mCardZoom = preferences.getInt("cardZoom", 100);
+    result: OK (the source supports the gate, the rule edge or the UNREACHABLE reason)

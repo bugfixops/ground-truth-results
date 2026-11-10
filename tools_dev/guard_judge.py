@@ -21,7 +21,15 @@ S = 'graphs/%s/scratch/reaudit/' % app
 steps = {r['edge_id']: r for r in csv.DictReader(open(S + 'guard_steps.csv', encoding='utf-8'))}
 pre = {e['id']: e for e in json.load(open(S + 'pre_w7_edges.json', encoding='utf-8'))}
 path = S + 'w7_judged.csv'
-if '--r2' in sys.argv:
+if '--r3' in sys.argv:
+    # Round 3 (2026-11-10): steps of guard_prescreen_r2.py --r3 (guard_steps_r3.csv) or any edge of the current build,
+    # judged into r3_judged.csv; graph_def.py applies its STATE and ENV rows (tools_dev/round3_rules.py).
+    import glob as _g
+    _p3 = S + 'guard_steps_r3.csv'
+    steps = {r['step']: r for r in csv.DictReader(open(_p3, encoding='utf-8'))} if os.path.exists(_p3) else {}
+    pre = {e['id']: e for e in json.load(open(_g.glob('graphs/%s/out/*_trigger_graph.json' % app)[0], encoding='utf-8'))['edges']}
+    path = S + 'r3_judged.csv'
+elif '--r2' in sys.argv:
     # Round 2 (2026-11-10): steps of tools_dev/guard_prescreen_r2.py (guard_steps_r2.csv) or any edge of the current
     # build, judged into r2_judged.csv; graph_def.py applies its STATE and ENV rows like w7_judged.csv.
     import glob as _g

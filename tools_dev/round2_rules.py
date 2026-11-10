@@ -51,8 +51,11 @@ _R2_STATE_TO_ENV = {
     # emulator network has no SSH server. The same holds for every step that reads a saved SFTP connection, and for
     # the cloud/SMB/SFTP drawer entries (a cloud account or an SMB host is outside data too).
     'AmazeFileManager': [
-        (r'saved SFTP connection|SFTP entry|ssh:/ entry|cloud, SMB or SFTP entry',
-         'a saved SFTP connection (or cloud or SMB entry) exists only after a connect to a real outside server '
+        # Round 3 (reviewer): SMB is not in this gate. A saved SMB entry is made without any server
+        # (SmbConnectDialog.java:220-281; MainActivity.addConnection :1679-1687), so a step that a saved SMB entry
+        # satisfies (the cloud/SMB/SFTP drawer entry) keeps its state gate.
+        (r'^(?!.*\bSMB\b).*(saved SFTP connection|SFTP entry|ssh:/ entry)',
+         'a saved SFTP connection exists only after a connect to a real SSH server '
          '(SftpConnectDialog.java:343-354; SshConnectionPool.java:146); the emulator network has none', ['network']),
         # D for the same app: a storage-permission denial is a GUI action on the system prompt
     ],

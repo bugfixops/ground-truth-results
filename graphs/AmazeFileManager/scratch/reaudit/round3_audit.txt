@@ -1,0 +1,32 @@
+Round 3 audit, 1 in 3 (Kiro, 2026-11-10; one checker, self-checked only, second: pending reviewer)
+Population over the five apps: judged rows 53, round 3 rule edges 116, new UNREACHABLE 4 (round 3 rule edges: P, K, R, Q, S and the showFragment hand-off; r3_judged rows other than NONE)
+Every third item (gates and rule edges, then UNREACHABLE entries) re-read from the cited source; 59 sampled in all, 3 in this app; 3 OK, 0 wrong.
+The rule R items are many because rule R re-sourced 85 MMEX edges; every third one is sampled like the rest.
+
+[13] gate (judged STATE) | AmazeFileManager | E9e8ebc4f MainFragment.reloadListElements -> MainFragment.getBackElement
+    claim: res/xml/preferences.xml:95-99; the back row is added only with Show back button on (goBack_checkbox, default false)
+    ref: ui/fragments/MainFragment.java:1087-1093
+      MainFragment.java:1086 
+      MainFragment.java:1087 if (getBoolean(PREFERENCE_SHOW_GOBACK_BUTTON) && !CURRENT_PATH.equals("/")
+      MainFragment.java:1088 && (openMode == OpenMode.FILE || openMode == OpenMode.ROOT) && !isOtg && !isOnTheCloud
+      MainFragment.java:1089 && (LIST_ELEMENTS.size() == 0 || !LIST_ELEMENTS.get(0).size.equals(getString(R.string.goback)))) {
+      MainFragment.java:1090 LIST_ELEMENTS.add(0, getBackElement());
+      MainFragment.java:1091 }
+      MainFragment.java:1092 
+      MainFragment.java:1093 if (LIST_ELEMENTS.size() == 0 && !results) {
+    result: OK (the source supports the gate, the rule edge or the UNREACHABLE reason)
+
+[14] edge (round 3 rule) | AmazeFileManager | E97e67839 MainActivity.onConfigurationChanged -> Drawer.onConfigurationChanged REGISTER
+    claim: round 3: never runs, kept as a REGISTER record: called only from MainActivity.onConfigurationChanged, which the framework never calls (no android:configChanges in the manifest)
+    ref: SRC MainActivity.java:1070 shows drawer.onConfigurationChanged(newConfig)
+      MainActivity.java:1069 // Pass any configuration change to the drawer toggls
+      MainActivity.java:1070 drawer.onConfigurationChanged(newConfig);
+      MainActivity.java:1071 }
+    result: OK (the source supports the gate, the rule edge or the UNREACHABLE reason)
+    also checked: no AndroidManifest.xml in the AmazeFileManager tree has android:configChanges
+
+[59] UNREACHABLE (round 3) | AmazeFileManager | MainActivity.onConfigurationChanged
+    claim: round 3: the activity declares no android:configChanges in the manifest, so a configuration change recreates it and the framework never calls onConfigurationChanged
+    ref: SRC AndroidManifest.xml (no android:configChanges); FW-SRC core/java/android/app/ActivityThread.java:4868-4900 (performActivityConfigurationChanged calls onConfigurationChanged only when every changed
+    result: OK (the source supports the gate, the rule edge or the UNREACHABLE reason)
+    also checked: no AndroidManifest.xml in the AmazeFileManager tree has android:configChanges

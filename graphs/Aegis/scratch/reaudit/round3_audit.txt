@@ -1,0 +1,106 @@
+Round 3 audit, 1 in 3 (Kiro, 2026-11-10; one checker, self-checked only, second: pending reviewer)
+Population over the five apps: judged rows 53, round 3 rule edges 116, new UNREACHABLE 4 (round 3 rule edges: P, K, R, Q, S and the showFragment hand-off; r3_judged rows other than NONE)
+Every third item (gates and rule edges, then UNREACHABLE entries) re-read from the cited source; 59 sampled in all, 13 in this app; 13 OK, 0 wrong.
+The rule R items are many because rule R re-sourced 85 MMEX edges; every third one is sampled like the rest.
+
+[1] gate (judged ENV) | Aegis | E3b983286 EditEntryActivity.parseEntry -> IconType.fromMimeType
+    claim: a custom icon was set in this session (_hasChangedIcon and _hasCustomIcon): only a picked image (system picker), an SVG file or an icon pack icon sets it (EditEntryActivity.java:147,255,609-611,650,806-807); all come from outside the app
+    ref: ui/EditEntryActivity.java:147,609-611,650,806-829
+      EditEntryActivity.java:146 }
+      EditEntryActivity.java:147 _pickedMimeType = SafHelper.getMimeType(this, data.getData());
+      EditEntryActivity.java:148 if (_pickedMimeType != null && _pickedMimeType.equals(IconType.SVG.toMimeType())) {
+    result: OK (the source supports the gate, the rule edge or the UNREACHABLE reason)
+
+[2] gate (judged ENV) | Aegis | E82180a21 EditEntryActivity.parseEntry -> IconPack$Icon.getFile
+    claim: a custom icon was set in this session (_hasChangedIcon and _hasCustomIcon): only a picked image (system picker), an SVG file or an icon pack icon sets it (EditEntryActivity.java:147,255,609-611,650,806-807); all come from outside the app
+    ref: ui/EditEntryActivity.java:147,609-611,650,806-829
+      EditEntryActivity.java:146 }
+      EditEntryActivity.java:147 _pickedMimeType = SafHelper.getMimeType(this, data.getData());
+      EditEntryActivity.java:148 if (_pickedMimeType != null && _pickedMimeType.equals(IconType.SVG.toMimeType())) {
+    result: OK (the source supports the gate, the rule edge or the UNREACHABLE reason)
+
+[3] gate (judged ENV) | Aegis | E540b076d EditEntryActivity.parseEntry -> EditEntryActivity$CustomSvgIcon.getIconType
+    claim: a custom icon was set in this session (_hasChangedIcon and _hasCustomIcon): only a picked image (system picker), an SVG file or an icon pack icon sets it (EditEntryActivity.java:147,255,609-611,650,806-807); all come from outside the app
+    ref: ui/EditEntryActivity.java:147,609-611,650,806-829
+      EditEntryActivity.java:146 }
+      EditEntryActivity.java:147 _pickedMimeType = SafHelper.getMimeType(this, data.getData());
+      EditEntryActivity.java:148 if (_pickedMimeType != null && _pickedMimeType.equals(IconType.SVG.toMimeType())) {
+    result: OK (the source supports the gate, the rule edge or the UNREACHABLE reason)
+
+[4] gate (judged ENV) | Aegis | Ee125167c EditEntryActivity.parseEntry -> VaultEntry.setIcon
+    claim: a custom icon was set in this session (_hasChangedIcon and _hasCustomIcon): only a picked image (system picker), an SVG file or an icon pack icon sets it (EditEntryActivity.java:147,255,609-611,650,806-807); all come from outside the app
+    ref: ui/EditEntryActivity.java:147,609-611,650,806-829
+      EditEntryActivity.java:146 }
+      EditEntryActivity.java:147 _pickedMimeType = SafHelper.getMimeType(this, data.getData());
+      EditEntryActivity.java:148 if (_pickedMimeType != null && _pickedMimeType.equals(IconType.SVG.toMimeType())) {
+    result: OK (the source supports the gate, the rule edge or the UNREACHABLE reason)
+
+[5] gate (judged STATE) | Aegis | E1baf6aa9 EditEntryActivity.showGroupSelectionDialog -> VaultGroupModel.<init>(VaultGroup)
+    claim: the group chips are made per group of the vault; the baseline vault has no group, so one is added first
+    ref: ui/EditEntryActivity.java:399-400
+      EditEntryActivity.java:398 
+      EditEntryActivity.java:399 for (VaultGroup group : _groups) {
+      EditEntryActivity.java:400 addChipTo(chipGroup, new VaultGroupModel(group), false);
+      EditEntryActivity.java:401 }
+    result: OK (the source supports the gate, the rule edge or the UNREACHABLE reason)
+
+[6] edge (round 3 rule) | Aegis | E40470b9c GoogleAuthProtos$MigrationPayload.parseFrom(byte[]) -> GoogleAuthProtos$MigrationPayload.parser REGISTER
+    claim: round 3: never runs, kept as a REGISTER record: no app code calls the static parser() accessor (grep of the app tree; otp/GoogleAuthInfo.java:195-460 uses parseFrom, newBuilder and the getters), and the protobuf-lite runtime parses through dynamicMethod of the default instance, not through this acce
+    ref: INFERRED protobuf-lite runtime (its source is not read; the generated GoogleAuthProtos classes are in the dataset, not the source tree); SRC otp/GoogleAuthInfo.java:198
+      GoogleAuthInfo.java:197 byte[] bytes = Base64.decode(data);
+      GoogleAuthInfo.java:198 payload = GoogleAuthProtos.MigrationPayload.parseFrom(bytes);
+      GoogleAuthInfo.java:199 } catch (EncodingException | InvalidProtocolBufferException e) {
+    result: OK (the source supports the gate, the rule edge or the UNREACHABLE reason)
+    also grepped the Aegis tree: no .parser() call outside GoogleAuthProtos.java
+
+[7] edge (round 3 rule) | Aegis | E0cc0718a GoogleAuthProtos$MigrationPayload.dynamicMethod -> GoogleAuthProtos$MigrationPayload$OtpParameters.dynamicMethod FRAMEWORK
+    claim: round 3: the protobuf-lite runtime makes this call (library)
+    ref: INFERRED protobuf-lite runtime (its source is not read; the generated GoogleAuthProtos classes are in the dataset, not the source tree)
+    result: OK (the source supports the gate, the rule edge or the UNREACHABLE reason)
+
+[8] edge (round 3 rule) | Aegis | E04e493fb GoogleAuthProtos$MigrationPayload$OtpParameters.dynamicMethod -> GoogleAuthProtos$MigrationPayload$Algorithm.internalGetValueMap FRAMEWORK
+    claim: round 3: the protobuf-lite runtime makes this call (library)
+    ref: INFERRED protobuf-lite runtime (its source is not read; the generated GoogleAuthProtos classes are in the dataset, not the source tree)
+    result: OK (the source supports the gate, the rule edge or the UNREACHABLE reason)
+
+[9] edge (round 3 rule) | Aegis | E7134c1ef GoogleAuthProtos$MigrationPayload$OtpParameters.dynamicMethod -> GoogleAuthProtos$MigrationPayload$Algorithm$AlgorithmVerifier.isInRange FRAMEWORK
+    claim: round 3: the protobuf-lite runtime makes this call (library)
+    ref: INFERRED protobuf-lite runtime (its source is not read; the generated GoogleAuthProtos classes are in the dataset, not the source tree)
+    result: OK (the source supports the gate, the rule edge or the UNREACHABLE reason)
+
+[10] edge (round 3 rule) | Aegis | E955bbf39 GoogleAuthProtos$MigrationPayload$OtpParameters.dynamicMethod -> GoogleAuthProtos$MigrationPayload$DigitCount$1.findValueByNumber FRAMEWORK
+    claim: round 3: the protobuf-lite runtime makes this call (library)
+    ref: INFERRED protobuf-lite runtime (its source is not read; the generated GoogleAuthProtos classes are in the dataset, not the source tree)
+    result: OK (the source supports the gate, the rule edge or the UNREACHABLE reason)
+
+[11] edge (round 3 rule) | Aegis | Ee80ab499 GoogleAuthProtos$MigrationPayload$OtpParameters.dynamicMethod -> GoogleAuthProtos$MigrationPayload$OtpType.internalGetVerifier FRAMEWORK
+    claim: round 3: the protobuf-lite runtime makes this call (library)
+    ref: INFERRED protobuf-lite runtime (its source is not read; the generated GoogleAuthProtos classes are in the dataset, not the source tree)
+    result: OK (the source supports the gate, the rule edge or the UNREACHABLE reason)
+
+[12] edge (round 3 rule) | Aegis | E69e61c20 S_SCANNER@CAMERA_READY -> ScannerActivity.onOptionsItemSelected GUI
+    claim: round 3: a device fact, not a UI session (was: The camera provider is ready and a lens exists: the camera switch icon is set (ScannerActivity.java:70, 79-88))
+    ref: INFERRED androidx.appcompat: a tap on a toolbar menu item calls onOptionsItemSelected (source not read); SRC ui/ScannerActivity.java:107-118,134-150
+      ScannerActivity.java:106 @Override
+      ScannerActivity.java:107 public boolean onOptionsItemSelected(MenuItem item) {
+      ScannerActivity.java:108 if (_cameraProvider == null) {
+      ScannerActivity.java:109 return false;
+      ScannerActivity.java:110 }
+      ScannerActivity.java:111 
+      ScannerActivity.java:112 if (item.getItemId() == R.id.action_camera) {
+      ScannerActivity.java:113 unbindPreview(_cameraProvider);
+    result: OK (the source supports the gate, the rule edge or the UNREACHABLE reason)
+
+[58] UNREACHABLE (round 3) | Aegis | GoogleAuthProtos$MigrationPayload$OtpParameters.parser
+    claim: round 3: no app code calls the static parser() accessor (grep of the app tree; otp/GoogleAuthInfo.java:195-460 uses parseFrom, newBuilder and the getters), and the protobuf-lite runtime parses through dynamicMethod of the default instance, not through this accessor
+    ref: SRC com/beemdevelopment/aegis/otp/GoogleAuthInfo.java:195-460
+      GoogleAuthInfo.java:194 
+      GoogleAuthInfo.java:195 GoogleAuthProtos.MigrationPayload payload;
+      GoogleAuthInfo.java:196 try {
+      GoogleAuthInfo.java:197 byte[] bytes = Base64.decode(data);
+      GoogleAuthInfo.java:198 payload = GoogleAuthProtos.MigrationPayload.parseFrom(bytes);
+      GoogleAuthInfo.java:199 } catch (EncodingException | InvalidProtocolBufferException e) {
+      GoogleAuthInfo.java:200 throw new GoogleAuthInfoException(uri, e);
+      GoogleAuthInfo.java:201 }
+    result: OK (the source supports the gate, the rule edge or the UNREACHABLE reason)
+    also grepped the Aegis tree: no .parser() call outside GoogleAuthProtos.java

@@ -7978,3 +7978,7 @@ def EDIT(x):
 R2_APP = 'AnkiDroid'
 R2_DIALOG_RULE = False  # cause E (the dialog rule), switched on as a separate step
 exec(compile(open(__import__("os").path.join(GDIR, "..", "..", "tools_dev", "round2_rules.py"), encoding="utf-8").read(), "tools_dev/round2_rules.py", "exec"))
+
+# ---- ROUND 3 (Kiro, 2026-11-10): causes of the round-3 check findings; the rules are in tools_dev/round3_rules.py ----
+R3_APP = 'AnkiDroid'
+exec(compile(open(__import__("os").path.join(GDIR, "..", "..", "tools_dev", "round3_rules.py"), encoding="utf-8").read(), "tools_dev/round3_rules.py", "exec"))

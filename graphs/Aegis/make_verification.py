@@ -177,11 +177,16 @@ for _line in _table_lines:
     _tedges = _edge_ids.split()
     assert int(_steps) == len(_tedges), ('table steps != edge count', _method, _steps, len(_tedges))
     assert _method in rows, ('table method missing from methods.csv', _method)
-    assert rows[_method]['verdict'] == 'REACHABLE', ('table method not reachable', _method)
-    assert int(rows[_method]['steps_from_launch']) == int(_steps), \
-        ('table steps != methods.csv steps', _method, _steps, rows[_method]['steps_from_launch'])
-    assert rows[_method]['route_edge_ids'].split() == _tedges, \
-        ('table edge ids != methods.csv route_edge_ids', _method)
+    # Round 3 (2026-11-10): a sampled method that a later round found dead keeps its table row with 0 steps and
+    # verdict WRONG (the drawn route never runs); its path row is written as wrong with no edges.
+    if rows[_method]['verdict'] == 'UNREACHABLE':
+        assert int(_steps) == 0 and not _tedges and _vtok == 'wrong', ('dead sampled method needs 0 steps and WRONG', _method)
+    else:
+        assert rows[_method]['verdict'] == 'REACHABLE', ('table method not reachable', _method)
+        assert int(rows[_method]['steps_from_launch']) == int(_steps), \
+            ('table steps != methods.csv steps', _method, _steps, rows[_method]['steps_from_launch'])
+        assert rows[_method]['route_edge_ids'].split() == _tedges, \
+            ('table edge ids != methods.csv route_edge_ids', _method)
     VERDICT[_method] = _vtok
     # review 6 fix 2: a 'CORRECT (fixed)' row is written with result=fixed on its path row
     PATH_RESULT[_method] = 'fixed' if _verdict_raw.endswith(' (fixed)') else _vtok
@@ -272,6 +277,9 @@ for _eid in ('E0fac12e7', 'E631e6e57', 'E53060425', 'Ea0308cd4', 'E94c0e46e',
 out = [['type', 'item', 'result', 'confirmed_by', 'ref', 'edges', 'note']]
 for m in sample:
     r = rows.get(m)
+    if r is not None and r['verdict'] == 'UNREACHABLE':
+        out.append(['path', m, 'wrong', 'SOURCE', g['labels'][m]['source_ref'] or '', '', NOTE[m]])
+        continue
     assert r is not None and r['verdict'] == 'REACHABLE', ('path row not reachable', m)
     assert all(i in E for i in r['route_edge_ids'].split()), ('path edge missing from fresh graph', m)
     ref = route_ref(m)
@@ -290,6 +298,8 @@ for m in U:
     label_rows.append(['label', m, 'correct', cb, ref, '', note])
 for m in sample:
     r = rows[m]
+    if r['verdict'] != 'REACHABLE':
+        continue  # its UNREACHABLE label row is written above (U)
     label_rows.append(['label', m, VERDICT[m], 'SOURCE' if sourced(m) else 'INFERRED',
                        route_ref(m).split(';')[0], '',
                        'REACHABLE confirmed: the route was read step by step (see the path row and ROUTE_TABLE_NEW.md); gates read: env=%s state=%s'

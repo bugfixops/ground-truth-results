@@ -1,0 +1,43 @@
+Round 3 audit, 1 in 3 (Kiro, 2026-11-10; one checker, self-checked only, second: pending reviewer)
+Population over the five apps: judged rows 53, round 3 rule edges 116, new UNREACHABLE 4 (round 3 rule edges: P, K, R, Q, S and the showFragment hand-off; r3_judged rows other than NONE)
+Every third item (gates and rule edges, then UNREACHABLE entries) re-read from the cited source; 59 sampled in all, 3 in this app; 3 OK, 0 wrong.
+The rule R items are many because rule R re-sourced 85 MMEX edges; every third one is sampled like the rest.
+
+[21] gate (judged STATE) | LibreTorrent | Ec0957255 TorrentFilterCollection.dateAddedToday -> DateUtils.endOfToday
+    claim: the date filter returned here is a per-torrent lambda (TorrentFilterCollection.java:47-93): its body runs only for a torrent in the list, and the baseline has none, so a torrent is added first
+    ref: core/filter/TorrentFilterCollection.java:47-93
+      TorrentFilterCollection.java:46 
+      TorrentFilterCollection.java:47 public static TorrentFilter dateAddedToday() {
+      TorrentFilterCollection.java:48 return (state) -> {
+      TorrentFilterCollection.java:49 long dateAdded = state.dateAdded;
+      TorrentFilterCollection.java:50 long timeMillis = System.currentTimeMillis();
+      TorrentFilterCollection.java:51 
+      TorrentFilterCollection.java:52 return dateAdded >= DateUtils.startOfToday(timeMillis) &&
+      TorrentFilterCollection.java:53 dateAdded <= DateUtils.endOfToday(timeMillis);
+    result: OK (the source supports the gate, the rule edge or the UNREACHABLE reason)
+
+[22] gate (judged STATE) | LibreTorrent | E01ab5120 TorrentFilterCollection.dateAddedYesterday -> DateUtils.endOfYesterday
+    claim: the date filter returned here is a per-torrent lambda (TorrentFilterCollection.java:47-93): its body runs only for a torrent in the list, and the baseline has none, so a torrent is added first
+    ref: core/filter/TorrentFilterCollection.java:47-93
+      TorrentFilterCollection.java:46 
+      TorrentFilterCollection.java:47 public static TorrentFilter dateAddedToday() {
+      TorrentFilterCollection.java:48 return (state) -> {
+      TorrentFilterCollection.java:49 long dateAdded = state.dateAdded;
+      TorrentFilterCollection.java:50 long timeMillis = System.currentTimeMillis();
+      TorrentFilterCollection.java:51 
+      TorrentFilterCollection.java:52 return dateAdded >= DateUtils.startOfToday(timeMillis) &&
+      TorrentFilterCollection.java:53 dateAdded <= DateUtils.endOfToday(timeMillis);
+    result: OK (the source supports the gate, the rule edge or the UNREACHABLE reason)
+
+[23] gate (judged STATE) | LibreTorrent | Eae0176d6 TorrentFilterCollection.dateAddedWeek -> DateUtils.startOfWeek
+    claim: the date filter returned here is a per-torrent lambda (TorrentFilterCollection.java:47-93): its body runs only for a torrent in the list, and the baseline has none, so a torrent is added first
+    ref: core/filter/TorrentFilterCollection.java:47-93
+      TorrentFilterCollection.java:46 
+      TorrentFilterCollection.java:47 public static TorrentFilter dateAddedToday() {
+      TorrentFilterCollection.java:48 return (state) -> {
+      TorrentFilterCollection.java:49 long dateAdded = state.dateAdded;
+      TorrentFilterCollection.java:50 long timeMillis = System.currentTimeMillis();
+      TorrentFilterCollection.java:51 
+      TorrentFilterCollection.java:52 return dateAdded >= DateUtils.startOfToday(timeMillis) &&
+      TorrentFilterCollection.java:53 dateAdded <= DateUtils.endOfToday(timeMillis);
+    result: OK (the source supports the gate, the rule edge or the UNREACHABLE reason)

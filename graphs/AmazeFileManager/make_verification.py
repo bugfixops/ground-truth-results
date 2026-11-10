@@ -168,6 +168,18 @@ for _m, _s in R2.items():
     _res, _ref, _note = P[_m]
     P[_m] = (_res, _ref, _note + ' Round 2 (2026-11-10): the same steps; %s now carry env network instead of the saved-SFTP state (new edge ids, re-checked from the source; cause B).' % _s)
 
+# Round 3 (Kiro, 2026-11-10; graphs/AmazeFileManager/scratch/reaudit/round3_route_changes.txt).
+R3 = {
+    'CloudIconDataFetcher.cancel': 'Round 3: the same 14 steps; step 12 (CloudIconModelLoader.buildLoadData) is state again: a saved SMB entry, which needs no server (SmbConnectDialog.java:220-281; MainActivity.addConnection :1679-1687), satisfies it; new edge id only.',
+    'SshAuthenticationTask$1.getPublic': 'Round 3: the Recent files list now needs a stored history (state, LoadFilesListTask.java:393-398), so the best route opens the storage Properties item of the drawer (Drawer.java:612 -> GeneralDialogCreation.showPropertiesDialogForStorage :368 -> showPropertiesDialog :491 -> HybridFile.getUsableSpace -> its SFTP branch, HybridFile.java:651). Wrong as drawn: the Properties item belongs to a local storage entry, whose mode is never SFTP; HybridFile.getUsableSpace is one node for every mode (Q-R6-2). The class does not change (a saved SFTP connection, network).',
+    'UtilsHandler.getSshAuthPrivateKeyColumn': 'Round 3: as for SshAuthenticationTask$1.getPublic, the route now goes through the drawer storage Properties item and HybridFile.getUsableSpace (Drawer.java:612; GeneralDialogCreation.java:368,491; HybridFile.java:651); wrong as drawn for the same reason (one HybridFile node for every mode). The class does not change.',
+}
+for _m, _s in R3.items():
+    _res, _ref, _note = P[_m]
+    if _m != 'CloudIconDataFetcher.cancel':
+        _ref = 'Drawer.java:612'
+    P[_m] = (_res, _ref, _note + ' ' + _s)
+
 # ---- edge rows: the B6 added/rewired edges, each checked to exist in the built graph.
 EDGE_NOTES = {}
 def edge_note(src, dst, res, ref, note):

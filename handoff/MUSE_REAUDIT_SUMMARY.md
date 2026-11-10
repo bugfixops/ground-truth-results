@@ -294,3 +294,68 @@ Class shares over never-run methods, before `e0866b9c`, after this build (dead /
 | LibreTorrent | 28.2 / 1.0 / 15.8 / 38.5 / 14.3 / 2.3 |
 | MMEX | 20.8 / 0.3 / 6.0 / 16.0 / 13.7 / 43.2 |
 | weighted | 28.4 / 1.4 / 18.8 / 20.6 / 7.7 / 23.1 (before: 27.3 / 1.1 / 20.4 / 20.4 / 2.9 / 27.8) |
+
+### Round 3: the 8 named defects and the hidden-guard sweep (Kiro, 2026-11-10)
+
+Input: the reviewer's round 3 list. Each fix is a rule in `tools_dev/round3_rules.py` (run at the end of each `graphs/<App>/graph_def.py`, after the round 2 block) or a judged row in `graphs/<App>/scratch/reaudit/r3_judged.csv`, not a row edit. `R2_DIALOG_RULE` stays off.
+
+- **Named defects, class before -> after (against f5eb13ac).**
+  1. Aegis `EditEntryActivity.parseEntry` icon calls (10 steps): env other_app, because only a picked image, an SVG file or an icon pack icon sets `_hasCustomIcon` (`EditEntryActivity.java:147,255,609-611,650,806-807`). `IconType.fromMimeType` gui -> env; `VaultEntryIcon.<init>(byte[],IconType)` gui -> state data. The OTP type constructors (`YandexInfo.<init>(byte[],String)` and the others) stay gui: the type is chosen in the form's dropdown.
+  2. Aegis protobuf (rule P): the two `parser()` edges become REGISTER records, because no app code calls `parser()` and the runtime parses through `dynamicMethod`. Edges whose evidence starts "INFERRED protobuf-lite runtime" are non_standard, so the members only the runtime reaches are library. `MigrationPayload.parser` env -> dead, `OtpParameters.parser` gui -> dead. `MigrationPayload.<init>` stays gui (explicit route through QrDecodeTask -> parseExportUri). The other four apps have no protobuf classes (0 `dynamicMethod`).
+  3. AmazeFileManager:
+     - (a) `ColorAdapter.getColorResAt` gui -> state settings. The colour prefs are enabled only with the Custom colour config. The screen now reads `findPreference` and `case` constant keys and every cited range.
+     - (b) Rule K: `onConfigurationChanged` is dead unless the manifest entry of the activity or an ancestor declares `android:configChanges`. AmazeFileManager declares none, so `MainActivity.onConfigurationChanged` and `Drawer.onConfigurationChanged` go gui -> dead. AnkiDroid activities declare it, so theirs stay.
+     - (c) SMB is out of the "saved SFTP connection" env gate. See Known problems: this changed 7 classes.
+  4. AnkiDroid `Whiteboard.touchUp` gui -> state settings (per-deck MetaDB whiteboard value, default false; 4 steps).
+  5. Empty data is state data against the stated baselines. MMEX `ValuePieEntry.setValue` gui -> state data (9 chart steps: `showChart` returns on an empty report cursor). LibreTorrent `DateUtils.startOfMonth` -> state data (11 `TorrentFilterCollection.dateAdded*` steps: the filter lambda runs only for a torrent in the list).
+  6. MMEX `RecurringTransaction.getStatus` (rule R): the shared editor helper's calls into `RecurringTransaction.*` are re-sourced to `RecurringTransactionEditActivity.onCreate` (85 edges), and the `showFragment(Class)` hand-off is non_standard. getStatus stays gui (Known problems).
+  7. Aegis `ScannerActivity.lambda$onQrCodeDetected$1`: env hardware, "an invalid or unsupported QR code is shown to the camera". Rule S drops the session tag "camera provider ready". The class stays env.
+  8. MMEX launch query (rule Q): FRAMEWORK edges `ContentResolver.query -> MmxContentProvider.query` from `MainActivity.populateScheduledTransactions`, `RecurringTransactionNotifications.notifyRepeatingTransaction_Internal` (`:68-72`) and `MmxCursorLoader.loadInBackground` (HomeFragment `:222-247`). `prepareQuery` stays gui with a 6-step route through the launch query.
+     - Why `sanity_check.csv` shows 0 monkey/ape hits for `populateScheduledTransactions`: those runs hit `MainActivity.onCreate`, `showPrerequisite`, `isTutorialNeeded`, `showTutorial`, `showSelectDatabaseActivity` and `isDatabaseAvailable`, but not `initHomeFragment`, `populateScheduledTransactions` or `MmxContentProvider.query_internal`. The tutorial or the database chooser finished the activity before `MainActivity.java:244` (`:184-187`, `:1478-1500`). Their baseline had no finished first-run setup and no database. The graph's baseline has a database with one account. This does not contradict the graph.
+- **Part 2, the hidden-guard sweep.**
+  - `tools_dev/guard_prescreen_r2.py --r3` adds five detectors over the best routes of never-run gui methods:
+    - a non-default setting read (not arguments, saved state, intent or JSON);
+    - an empty list or cursor;
+    - an early return on a cursor or collection check;
+    - a boolean field set only by an earlier gated action;
+    - a reflection edge (`.class.newInstance()`, `Class.forName`, `getDeclaredConstructor`, `getConstructor`).
+  - Steps were judged in order of uses until at least 90% per app:
+
+| App | Flagged steps | Judged | Unjudged | Uses judged |
+|---|---|---|---|---|
+| Aegis | 66 | 45 | 21 | 91.2% |
+| AmazeFileManager | 22 | 16 | 6 | 96.0% |
+| AnkiDroid | 54 | 41 | 13 | 92.3% |
+| LibreTorrent | 13 | 12 | 1 | 99.2% |
+| MMEX | 139 | 41 | 98 | 90.4% |
+
+- **Agreement on `review/sample_tune`:** 115 of 136 (84.6%) before and after.
+- **Sampled routes:** 6 changed (limit 10), each in `graphs/<App>/scratch/reaudit/round3_route_changes.txt`, with its path row rewritten and its ROUTES.csv entry marked.
+  - Aegis: the ScannerActivity lambda (edge ids only); `MigrationPayload.parser`, now dead, so its path row is WRONG with no edges.
+  - AmazeFileManager: `CloudIconDataFetcher.cancel` (edge ids only); `SshAuthenticationTask$1.getPublic` and `UtilsHandler.getSshAuthPrivateKeyColumn` (new route through the drawer's storage Properties, wrong as drawn, class env unchanged).
+  - MMEX: `prepareQuery` (CORRECT).
+  - DEVICE rows unchanged: 24, 30, 30, 29, 27.
+- **Audit, 1 in 3.** The population is 53 judged rows other than NONE, 116 round 3 rule edges and 4 new UNREACHABLE entries. 59 items were re-read from the source, all OK (`graphs/<App>/scratch/reaudit/round3_audit.txt`).
+- **Methods whose class changed** against f5eb13ac (named defects included):
+  - Aegis 20: gui->state 8, library->env 4 (icon pack and SVG icon types), gui->env 3, gui->library 3 (protobuf runtime members), env->dead 1, gui->dead 1.
+  - AmazeFileManager 25: gui->state 16, env->state 7, gui->dead 2.
+  - AnkiDroid 22: gui->state 22.
+  - LibreTorrent 10: gui->state 10.
+  - MMEX 53: gui->state 38, gui->library 15.
+
+Class shares over never-run methods after round 3 (dead / config / env / state / library / gui, %; before `e0866b9c`):
+
+| App | after round 3 |
+|---|---|
+| Aegis | 21.0 / 0.2 / 33.5 / 10.7 / 5.4 / 29.1 |
+| AmazeFileManager | 25.9 / 2.1 / 27.8 / 19.6 / 2.7 / 22.0 |
+| AnkiDroid | 41.3 / 3.0 / 19.4 / 16.4 / 0.5 / 19.3 |
+| LibreTorrent | 28.2 / 1.0 / 15.8 / 38.8 / 14.3 / 1.9 |
+| MMEX | 20.8 / 0.3 / 6.0 / 16.9 / 14.1 / 41.9 |
+| weighted | 28.4 / 1.4 / 18.8 / 21.4 / 7.8 / 22.2 |
+
+#### Known problems (round 3)
+- **SMB revert changed classes.** The reviewer expected none. Taking SMB out of the SFTP gate moved 7 AmazeFileManager methods env -> state (`CloudIconDataFetcher.<init>`, `.cancel`, `.cleanup`, `.getDataClass`, `.getDataSource`, `.loadData`, `CloudIconModelLoader.buildLoadData`). Their gate, "a cloud, SMB or SFTP entry is shown", is met by an SMB entry, which the app stores itself.
+- **getStatus tie (Q-R7-7).** `RecurringTransaction.getStatus` has an explicit standard route with a state gate (`populateScheduledTransactions`, "a recurring transaction is due"). Its best route goes through the reflection hand-off with no gate. Not every route runs through the reflection edge, so it is not library. Under the Q-R7-7 tie rule it stays gui.
+- **Unjudged steps:** 139 flagged steps were not judged (Aegis 21, AmazeFileManager 6, AnkiDroid 13, LibreTorrent 1, MMEX 98). Each is a low-use step under the 90% line.
+- **One checker.** The round 3 judgments and the audit are self-checked only (second: pending reviewer).

@@ -226,8 +226,13 @@ def screen(app):
                 for l in win:
                     ids |= set(re.findall(r'R\.id\.(\w+)', l))
                     ids |= set(re.findall(r'findPreference\(\s*(?:getString\()?\s*(?:R\.string\.)?"?(\w+)', l))
+                    # round 3 (AmazeFileManager-colour finding): a key named by a constant of another class
+                    # (findPreference(PreferencesConstants.PREFERENCE_SKIN), case PreferencesConstants.PREFERENCE_SKIN:)
+                    ids |= set(re.findall(r'findPreference\(\s*(?:getString\()?\s*(?:[\w$]+\.)+([A-Z][A-Z0-9_]{2,})', l))
+                    ids |= set(re.findall(r'\bcase\s+(?:[\w$]+\.)*([A-Z][A-Z0-9_]{2,})\s*:', l))
                     ids |= set(re.findall(r'"(pref_\w+)"', l))
-                for ident in sorted(ids - seen_ids)[:6]:
+                ids -= {'PreferencesConstants', 'PreferenceConstants', 'R'}
+                for ident in sorted(ids - seen_ids)[:10]:
                     seen_ids.add(ident)
                     h = res.visibility(ident, p)
                     if h:
@@ -263,5 +268,224 @@ def screen(app):
         sum(o[8] for o in out), sum(use.values())))
 
 
+# ======================================================================== round 3
+# Round 3 (Kiro, 2026-11-10): a blind check of 40 random gui-labelled never-run methods found about 1 in 5 with a gate
+# the graph lacks: a setting that must be non-default, an empty list or cursor, an early return on empty data, a boolean
+# field that only an earlier gated action sets, a reflection edge. --r3 screens the best routes of every never-run
+# method labelled gui for these kinds (general rules over the source):
+#   setting      the step's condition, or a setVisible/setEnabled/setVisibility of its trigger, depends on a stored
+#                setting: a preference read, or a local or field computed from one (its default is printed)
+#   empty_data   the cited call runs inside a loop over a collection or cursor (for (x : c), while (moveToNext/hasNext),
+#                forEach), inside a per-item callback (adapter binding, item lookup), after a non-empty check
+#                (getCount() > 0, !isEmpty(), size() > 0, moveToFirst()), or after an early return on empty data
+#   flag_field   the step's condition reads a boolean field whose declaration is false (or unset) and that only other
+#                methods set true (the assignments are printed: the earlier action that sets it)
+#   reflection   the cited lines create the callee by reflection (newInstance, Class.forName, getDeclaredConstructor,
+#                a Class<?> argument), or the edge is non_standard
+# Baselines (review/TASK_NOTE.md): Aegis a vault with 2 entries; MMEX one account and nothing else; AnkiDroid the
+# sample deck; LibreTorrent and AmazeFileManager nothing. The flagged steps are judged into r3_judged.csv.
+LOOP = re.compile(r'\bfor\s*\([^;]*:\s*[^)]+\)|\bwhile\s*\([^)]*(moveToNext|hasNext|moveToPosition)|\.forEach\s*\(|'
+                  r'\.stream\(\)|\bfor\s*\(\s*int\s+\w+\s*=\s*0\s*;\s*\w+\s*<\s*[\w.]+\.(size|length|getCount)\(')
+NONEMPTY = re.compile(r'getCount\(\)\s*(>|!=)\s*0|!\s*[\w.()]+\.isEmpty\(\)|\.size\(\)\s*(>|!=)\s*0|moveToFirst\(\)|'
+                      r'length\s*>\s*0|\.size\(\)\s*>=\s*1')
+EMPTYRET = re.compile(r'(isEmpty\(\)|getCount\(\)\s*(==|<=)\s*0|\.size\(\)\s*(==|<=|<)\s*[01]|\b[cC]ursor\w*\s*==\s*null|'
+                      r'!\s*\w*[cC]ursor\w*\.moveToFirst\(\))[^;{]*\)\s*(\{\s*)?return\b')
+# newInstance() on a Class object (X.class.newInstance(), cls.newInstance()), not a static factory newInstance(...)
+REFLECT = re.compile(r'\.class\s*\.\s*newInstance\s*\(|\b\w*(?:[Cc]lass|clazz|cls)\w*\s*\.\s*newInstance\s*\(\s*\)|'
+                     r'Class\.forName\s*\(|getDeclaredConstructor\s*\(|\.getConstructor\s*\(')
+NOT_SETTING = re.compile(r'getArguments\(\)|savedInstanceState|getIntent\(\)|getExtras\(\)|\bobj\.|\bjson\w*\.|getJSON')
+PREF_READ = re.compile(r'getBoolean\(|getString\(|getInt\(|getLong\(|getStringSet\(|getSharedPreferences|'
+                       r'PreferenceManager|sharedPref|mPrefs?\b|_prefs\b|Settings\(\)|\bget\w*Settings\(\)')
+
+
+def method_of(L, n):
+    """(start, end) of the method around line n: the nearest header above n with its brace-matched end."""
+    for s in range(n, max(0, n - 400), -1):
+        l = strip_code(L[s - 1])
+        if re.search(r'^\s*(public|protected|private|static|final|synchronized|@\w+|\s)*[\w<>\[\],.? ]+\s+\w+\s*\([^;]*\)?\s*'
+                     r'(throws [\w.,\s]+)?\{?\s*$', l) and not re.search(r'\b(if|for|while|switch|catch|return|new|else)\b', l):
+            depth, seen = 0, False
+            for j in range(s, min(len(L), s + 2000) + 1):
+                t = strip_code(L[j - 1])
+                depth += t.count('{') - t.count('}')
+                seen = seen or '{' in t
+                if seen and depth <= 0:
+                    return (s, j) if j >= n else None
+            return None
+    return None
+
+
+def setting_arg(L, line):
+    """Names in the argument of a setter line that the file computes from a stored setting."""
+    arg = line.split('(', 1)[-1]
+    hits = []
+    here = method_of(L, next((k for k, x in enumerate(L, 1) if x == line), 1))
+    lo, hi = (here if here else (1, len(L)))
+    for name in set(re.findall(r'\b([a-z_]\w*)\b', arg)) - {'true', 'false', 'null', 'view', 'menu', 'item', 'id'}:
+        for i, l in enumerate(L[lo - 1:hi], lo):
+            c = strip_code(l)
+            if re.search(r'\b%s\s*=(?!=)' % re.escape(name), c):
+                blk = ' '.join(strip_code(x) for x in L[i - 1:i + 2])
+                if PREF_READ.search(blk) and not NOT_SETTING.search(blk):
+                    d = re.search(r'get(?:Boolean|Int|String)\([^,]+,\s*([\w.]+)\)', blk)
+                    hits.append('%s computed from a setting at :%d%s' % (name, i, ' (default %s)' % d.group(1) if d else ''))
+                    break
+    return hits
+
+
+def flag_fields(L, cond, here):
+    """Boolean fields read in cond that are false by default and set true only outside the method range here."""
+    out = []
+    for f in set(re.findall(r'\b(_[a-z]\w*|m[A-Z]\w*|is[A-Z]\w*)\b', cond)):
+        decl = [i for i, l in enumerate(L, 1) if re.search(r'\bboolean\s+%s\s*(=\s*false\s*)?;' % re.escape(f), strip_code(l))]
+        if not decl:
+            continue
+        sets = [i for i, l in enumerate(L, 1) if re.search(r'\b%s\s*=\s*(true|[^=;][^;]*)\s*;' % re.escape(f), strip_code(l))
+                and not re.search(r'\bboolean\s+%s' % re.escape(f), l)]
+        outside = [i for i in sets if not (here and here[0] <= i <= here[1])]
+        if outside:
+            out.append('%s (boolean, false by default at :%d) is set at :%s' % (f, decl[0], ','.join(map(str, outside[:6]))))
+    return out
+
+
+def screen_r3(app):
+    g = json.load(open(glob.glob('graphs/%s/out/*_trigger_graph.json' % app)[0], encoding='utf-8'))
+    E = {e['id']: e for e in g['edges']}
+    sanity = {r['method']: r for r in csv.DictReader(open('graphs/%s/out/sanity_check.csv' % app, encoding='utf-8'))}
+    S = 'graphs/%s/scratch/reaudit/' % app
+    done = {}
+    for fn in ('w7_judged.csv', 'r2_judged.csv', 'r3_judged.csv'):
+        if os.path.exists(S + fn):
+            for r in csv.DictReader(open(S + fn, encoding='utf-8')):
+                done.setdefault((r['src'], r['dst'], r['kind']), '%s:%s' % (fn.split('_')[0], r['decision']))
+    use = collections.Counter()
+    ntarget = 0
+    for r in csv.DictReader(open('graphs/%s/out/methods.csv' % app, encoding='utf-8')):
+        s = sanity.get(r['method'])
+        if s is None or str(s.get('monkey_hit', '0')) not in ('0', '') or str(s.get('ape_hit', '0')) not in ('0', ''):
+            continue
+        if class_of(r) != 'gui':
+            continue
+        ntarget += 1
+        for i in (r['route_edge_ids'] or '').split():
+            use[i] += 1
+    src = Sources(app)
+    res = Res(app)
+    out = []
+    for i, n in use.most_common():
+        e = E[i]
+        if e['src'] == 'S_ENTRY' or e['kind'] in ('LIFECYCLE', 'ENTERS'):
+            continue
+        flags, ev = [], []
+        if e.get('edge_class') == 'non_standard':
+            flags.append('reflection')
+            ev.append('non_standard edge (%s)' % (e.get('via') or ''))
+        refs = refs_of(e.get('evidence'))[:3]
+        cited = '%s:%d' % refs[0][:2] if refs else ''
+        callee = e['dst'].split('@')[0].split('(')[0].split('.')[-1]
+        callee = '' if callee.startswith(('<', 'lambda$')) else callee
+        for k, (f, ln, ln2) in enumerate(refs[:1]):
+            p = src.find(f)
+            if not p:
+                continue
+            L = src.lines(p)
+            if ln > len(L):
+                continue
+            here = method_of(L, ln)
+            gflag, _r, _gl, gt = G['screen_line'](L, ln)
+            guard = gt if gflag == 'yes' else ''
+            c = cond_at(L, ln, callee)
+            cond = (c[1] if c else '') + ' ' + guard
+            body_before = ' '.join(strip_code(x) for x in L[(here[0] if here else max(1, ln - 30)) - 1:ln - 1])
+            # a call inside a lambda body that the method returns or passes on (a per-item filter, comparator or
+            # callback, LibreTorrent TorrentFilterCollection finding): the body runs only for the items it gets
+            lam = None
+            for s0 in range(ln, (here[0] if here else max(1, ln - 30)) - 1, -1):
+                t0 = strip_code(L[s0 - 1])
+                if '->' in t0:
+                    depth = 0
+                    for s1 in range(s0, ln):
+                        tt = strip_code(L[s1 - 1])
+                        depth += tt.count('{') - tt.count('}')
+                    if depth > 0 or (s0 == ln and re.search(r'->.*\b%s\s*\(' % re.escape(callee or 'x\x00'), t0)):
+                        lam = s0
+                    break
+            if lam and re.search(r'\breturn\s*\(?\s*\w+\s*\)?\s*->|\.(filter|map|flatMap|forEach|sort|removeIf|anyMatch|allMatch|noneMatch|collect|reduce|comparing)\s*\(|Comparator', strip_code(L[lam - 1])):
+                flags.append('empty_data')
+                ev.append('inside a lambda body (from :%d): it runs per item it is called with: %s' % (lam, L[lam - 1].strip()[:120]))
+            # empty_data
+            if LOOP.search(guard) or NONEMPTY.search(cond):
+                flags.append('empty_data')
+                ev.append('loop or non-empty check: %s' % (guard or cond)[:250])
+            elif EMPTYRET.search(body_before):
+                flags.append('empty_data')
+                ev.append('early return on empty data before :%d: %s' % (ln, EMPTYRET.search(body_before).group(0)[:160]))
+            # setting
+            if PREF_READ.search(cond) and not NOT_SETTING.search(cond):
+                flags.append('setting')
+                ev.append('setting read in the condition: %s' % cond.strip()[:200])
+            else:
+                sf = [x for x in setting_fields(L, cond) if not NOT_SETTING.search(x)]
+                if sf:
+                    flags.append('setting')
+                    ev.extend(sf[:2])
+            # flag_field
+            ff = flag_fields(L, cond, here)
+            if ff:
+                flags.append('flag_field')
+                ev.extend(ff[:3])
+            # reflection in the cited lines
+            win = ' '.join(strip_code(x) for x in L[max(0, ln - 2):min(len(L), ln2 + 1)])
+            if REFLECT.search(win) and 'reflection' not in flags:
+                flags.append('reflection')
+                ev.append('reflection in the cited lines: %s' % REFLECT.search(win).group(0))
+            # trigger visibility depending on a setting (every cited range of the same file, not only the first line)
+            if e['kind'] in ('GUI', 'FRAMEWORK', 'SYSTEM') or re.search(r'\.(onOptionsItemSelected|onPreference\w*|onClick)$', e['src'].split('@')[0]):
+                ids = set()
+                wins = []
+                for (f2, a2, b2) in refs:
+                    if src.find(f2) == p:
+                        wins.extend(L[max(0, a2 - 16):min(len(L), b2 + 15)])
+                for l in wins:
+                    ids |= set(re.findall(r'R\.id\.(\w+)', l))
+                    ids |= set(re.findall(r'findPreference\(\s*(?:getString\()?\s*(?:[\w$]+\.)*"?(\w+)', l))
+                    ids |= set(re.findall(r'\bcase\s+(?:[\w$]+\.)*([A-Z][A-Z0-9_]{2,})\s*:', l))
+                    ids |= set(re.findall(r'"(pref_\w+)"', l))
+                ids -= {'PreferencesConstants', 'PreferenceConstants', 'R', 'string'}
+                for ident in sorted(ids)[:10]:
+                    for h in res.visibility(ident, p):
+                        fname, _, rest = h.partition(':')
+                        try:
+                            hl = int(rest.split(':')[0])
+                        except ValueError:
+                            continue
+                        hp = res.java and [q for q in res.java if os.path.basename(q) == fname]
+                        HL = res.text(hp[0]) if hp else L
+                        sa = setting_arg(HL, HL[hl - 1]) if hl <= len(HL) else []
+                        if sa:
+                            if 'setting' not in flags:
+                                flags.append('setting')
+                            ev.append('%s: %s; %s' % (ident, h[:120], sa[0]))
+        if ITEM_CB.search(e['dst']) and 'empty_data' not in flags:
+            flags.append('empty_data')
+            ev.append('per-item callback of a list')
+        if not flags:
+            continue
+        out.append([i, e['kind'], e['src'], e['dst'], cited, '+'.join(dict.fromkeys(flags)), ' || '.join(ev)[:900],
+                    done.get((e['src'], e['dst'], e['kind']), ''), n])
+    path = S + 'guard_steps_r3.csv'
+    with open(path, 'w', newline='', encoding='utf-8') as f:
+        w = csv.writer(f)
+        w.writerow(['step', 'kind', 'src', 'dst', 'cited', 'flags', 'evidence', 'judged_before', 'targets'])
+        w.writerows(out)
+    c = collections.Counter(k for o in out for k in o[5].split('+'))
+    print('%s: gui targets %d, route steps %d, flagged %d (%s); flagged uses %d of %d' % (
+        app, ntarget, len(use), len(out), ', '.join('%s %d' % kv for kv in sorted(c.items())),
+        sum(o[8] for o in out), sum(use.values())))
+
+
 if __name__ == '__main__':
-    screen(sys.argv[1])
+    if sys.argv[1] == '--r3':
+        screen_r3(sys.argv[2])
+    else:
+        screen(sys.argv[1])

@@ -1,0 +1,43 @@
+Round 3 (Kiro, 2026-11-10): sampled routes whose best route changed against the round-2 CI build f5eb13ac. Every new step was re-read from the source; new steps are marked + in the listing.
+
+CloudIconDataFetcher.cancel
+  old 14 steps -> new 14 steps
+  verdict: verdict kept (fixed), same steps
+  evidence: item 3c: buildLoadData back to state (a saved SMB entry needs no server; SmbConnectDialog.java:220-281; MainActivity.java:1679-1687); edge id only
+
+### AmazeFileManager CloudIconDataFetcher.cancel (old verdict fixed) old 14 steps -> new 14 steps; SAME STEPS (edge ids only)
+   12 Ebde26bb5 CloudIconModelLoader.<init> -> CloudIconModelLoader.buildLoadData [FRAMEWORK] env=- | st=a cloud, SMB or SFTP entry is shown (CloudIconModelLoader handles only | INFERRED Glide source not read
+SshAuthenticationTask$1.getPublic
+  old 16 steps -> new 17 steps
+  verdict: verdict kept (first: fixed); re-check WRONG as drawn
+  evidence: Recent files now needs a stored history (LoadFilesListTask.java:393-398, round 3 sweep), so the route uses the drawer storage Properties item (Drawer.java:612; GeneralDialogCreation.java:368,491) and HybridFile.getUsableSpace SFTP branch (HybridFile.java:651), which a local storage entry never takes (one HybridFile node, Q-R6-2); class unchanged (env network)
+
+### AmazeFileManager SshAuthenticationTask$1.getPublic (old verdict fixed) old 16 steps -> new 17 steps; STEPS CHANGED
+  + 1 E393625fa S_ENTRY -> MainActivity.onResume [LIFECYCLE] env=- | st=- | FW-SRC Activity.java onResume lifecycle
+  + 2 E88f218aa MainActivity.onResume -> Drawer.refreshDrawer [CALL] env=- | st=- | SRC MainActivity.java:1112 shows drawer.refreshDrawer()
+  + 3 E51ddec28 Drawer.refreshDrawer -> Drawer.lambda$addNewItem$5 [CALL] env=- | st=- | SRC Drawer.java:402-439 addNewItem calls create MenuMetadata with lambda Runnables for FTP/Apps/Settings menu 
+  + 4 Eba2f1368 Drawer.lambda$addNewItem$5 -> Drawer.onNavigationItemActionClick [CALL] env=- | st=- | SRC Drawer.java:494 (bytecode)
+  + 5 Ec6f4d0a6 Drawer.onNavigationItemActionClick -> GeneralDialogCreation.showPropertiesDialogForStorage [CALL] env=- | st=- | SRC Drawer.java:612 (bytecode)
+  + 6 Ec80342ea GeneralDialogCreation.showPropertiesDialogForStorage -> GeneralDialogCreation.showPropertiesDialog [CALL] env=- | st=- | SRC GeneralDialogCreation.java:368, GeneralDialogCreation.java:371-585
+  + 7 E10cd3ee6 GeneralDialogCreation.showPropertiesDialog -> HybridFile.getUsableSpace [CALL] env=- | st=- | SRC GeneralDialogCreation.java:491 (bytecode)
+  + 8 Ea9e3675d HybridFile.getUsableSpace -> SshClientUtils.execute(SFtpClientTemplate) [CALL] env=- | st=- | SRC HybridFile.java:651 (bytecode)
+   10 Ed4f4ba37 SshClientUtils.execute(SshClientTemplate) -> SshConnectionPool.getConnection(String) [CALL] env=a saved SFTP connection exists only after a connect to a real SSH serv | st=- | SRC filesystem/ssh/SshClientUtils.java:72 client = SshConnectionPool.getInstance().getConnection(template.url)
+   12 Ec63f535f SshConnectionPool.create(String) -> SshConnectionPool.create(String,int,String,String,String,KeyPair) [CALL] env=a saved SFTP connection exists only after a connect to a real SSH serv | st=- | SRC SshConnectionPool.java:213 (bytecode)
+   15 E11eb6ef3 SshAuthenticationTask.doInBackground -> SshAuthenticationTask$1.<init> [CALL] env=a saved SFTP connection exists only after a connect to a real SSH serv | st=- | SRC SshAuthenticationTask.java:131: sshClient.authPublickey(username, new KeyProvider() {...});
+  dropped: S_ENTRY -> Drawer$1.onDrawerClosed; Drawer$1.onDrawerClosed -> Drawer.onDrawerClosed; Drawer.onDrawerClosed -> MainFragment.loadlist; MainFragment.loadlist -> LoadFilesListTask.doInBackground; LoadFilesListTask.doInBackground -> LoadFilesListTask.listRecent; LoadFilesListTask.listRecent -> HybridFile.exists(); HybridFile.exists() -> SshClientUtils.execute(SFtpClientTemplate)
+UtilsHandler.getSshAuthPrivateKeyColumn
+  old 12 steps -> new 13 steps
+  verdict: verdict kept (wrong as drawn)
+  evidence: as for getPublic: Drawer.java:612; GeneralDialogCreation.java:368,491; HybridFile.java:651
+
+### AmazeFileManager UtilsHandler.getSshAuthPrivateKeyColumn (old verdict wrong) old 12 steps -> new 13 steps; STEPS CHANGED
+  + 1 E393625fa S_ENTRY -> MainActivity.onResume [LIFECYCLE] env=- | st=- | FW-SRC Activity.java onResume lifecycle
+  + 2 E88f218aa MainActivity.onResume -> Drawer.refreshDrawer [CALL] env=- | st=- | SRC MainActivity.java:1112 shows drawer.refreshDrawer()
+  + 3 E51ddec28 Drawer.refreshDrawer -> Drawer.lambda$addNewItem$5 [CALL] env=- | st=- | SRC Drawer.java:402-439 addNewItem calls create MenuMetadata with lambda Runnables for FTP/Apps/Settings menu 
+  + 4 Eba2f1368 Drawer.lambda$addNewItem$5 -> Drawer.onNavigationItemActionClick [CALL] env=- | st=- | SRC Drawer.java:494 (bytecode)
+  + 5 Ec6f4d0a6 Drawer.onNavigationItemActionClick -> GeneralDialogCreation.showPropertiesDialogForStorage [CALL] env=- | st=- | SRC Drawer.java:612 (bytecode)
+  + 6 Ec80342ea GeneralDialogCreation.showPropertiesDialogForStorage -> GeneralDialogCreation.showPropertiesDialog [CALL] env=- | st=- | SRC GeneralDialogCreation.java:368, GeneralDialogCreation.java:371-585
+  + 7 E10cd3ee6 GeneralDialogCreation.showPropertiesDialog -> HybridFile.getUsableSpace [CALL] env=- | st=- | SRC GeneralDialogCreation.java:491 (bytecode)
+  + 8 Ea9e3675d HybridFile.getUsableSpace -> SshClientUtils.execute(SFtpClientTemplate) [CALL] env=- | st=- | SRC HybridFile.java:651 (bytecode)
+   10 Ed4f4ba37 SshClientUtils.execute(SshClientTemplate) -> SshConnectionPool.getConnection(String) [CALL] env=a saved SFTP connection exists only after a connect to a real SSH serv | st=- | SRC filesystem/ssh/SshClientUtils.java:72 client = SshConnectionPool.getInstance().getConnection(template.url)
+  dropped: S_ENTRY -> Drawer$1.onDrawerClosed; Drawer$1.onDrawerClosed -> Drawer.onDrawerClosed; Drawer.onDrawerClosed -> MainFragment.loadlist; MainFragment.loadlist -> LoadFilesListTask.doInBackground; LoadFilesListTask.doInBackground -> LoadFilesListTask.listRecent; LoadFilesListTask.listRecent -> HybridFile.exists(); HybridFile.exists() -> SshClientUtils.execute(SFtpClientTemplate)

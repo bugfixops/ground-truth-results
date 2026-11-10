@@ -1,0 +1,302 @@
+Round 3 audit, 1 in 3 (Kiro, 2026-11-10; one checker, self-checked only, second: pending reviewer)
+Population over the five apps: judged rows 53, round 3 rule edges 116, new UNREACHABLE 4 (round 3 rule edges: P, K, R, Q, S and the showFragment hand-off; r3_judged rows other than NONE)
+Every third item (gates and rule edges, then UNREACHABLE entries) re-read from the cited source; 59 sampled in all, 34 in this app; 34 OK, 0 wrong.
+The rule R items are many because rule R re-sourced 85 MMEX edges; every third one is sampled like the rest.
+
+[24] gate (judged STATE) | MMEX | E21a6a1bf CategoriesReportFragment.onOptionsItemSelected -> CategoriesReportFragment.showChart
+    claim: the chart is drawn only when the report cursor has rows (showChart returns on an empty cursor); the baseline database has no transaction, so one is entered first
+    ref: reports/CategoriesReportFragment.java:296-309
+      CategoriesReportFragment.java:295 
+      CategoriesReportFragment.java:296 public void showChart() {
+      CategoriesReportFragment.java:297 CategoriesReportAdapter adapter = (CategoriesReportAdapter) getListAdapter();
+      CategoriesReportFragment.java:298 if (adapter == null) return;
+      CategoriesReportFragment.java:299 Cursor cursor = adapter.getCursor();
+      CategoriesReportFragment.java:300 if (cursor == null) return;
+      CategoriesReportFragment.java:301 if (cursor.getCount() <= 0) return;
+      CategoriesReportFragment.java:302
+    result: OK (the source supports the gate, the rule edge or the UNREACHABLE reason)
+
+[25] gate (judged STATE) | MMEX | E254f9992 PayeeReportFragment.showChart -> ValuePieEntry.<clinit>
+    claim: the chart is drawn only when the report cursor has rows (showChart returns on an empty cursor); the baseline database has no transaction, so one is entered first
+    ref: reports/PayeeReportFragment.java:216-224
+      PayeeReportFragment.java:215 
+      PayeeReportFragment.java:216 public void showChart() {
+      PayeeReportFragment.java:217 PayeeReportAdapter adapter = (PayeeReportAdapter) getListAdapter();
+      PayeeReportFragment.java:218 if (adapter == null) return;
+      PayeeReportFragment.java:219 Cursor cursor = adapter.getCursor();
+      PayeeReportFragment.java:220 if (cursor == null) return;
+      PayeeReportFragment.java:221 if (!cursor.moveToFirst()) return;
+      PayeeReportFragment.java:222
+    result: OK (the source supports the gate, the rule edge or the UNREACHABLE reason)
+
+[26] gate (judged STATE) | MMEX | Edb0d51b5 CategoriesReportFragment.showChart -> PieChartFragment.setChartArguments
+    claim: the chart is drawn only when the report cursor has rows (showChart returns on an empty cursor); the baseline database has no transaction, so one is entered first
+    ref: reports/CategoriesReportFragment.java:296-309
+      CategoriesReportFragment.java:295 
+      CategoriesReportFragment.java:296 public void showChart() {
+      CategoriesReportFragment.java:297 CategoriesReportAdapter adapter = (CategoriesReportAdapter) getListAdapter();
+      CategoriesReportFragment.java:298 if (adapter == null) return;
+      CategoriesReportFragment.java:299 Cursor cursor = adapter.getCursor();
+      CategoriesReportFragment.java:300 if (cursor == null) return;
+      CategoriesReportFragment.java:301 if (cursor.getCount() <= 0) return;
+      CategoriesReportFragment.java:302
+    result: OK (the source supports the gate, the rule edge or the UNREACHABLE reason)
+
+[27] edge (round 3 rule) | MMEX | E26b2d52c MainActivity.showFragment(Class)@RECURRING -> MainActivity.showFragment(Fragment)@RECURRING CALL
+    claim: round 3: the fragment handed on was made by Class.newInstance (MainActivity.java:734-751)
+    ref: SRC home/MainActivity.java:734-752 (null guard 735; newInstance 743; showFragment(fragment) 751)
+      MainActivity.java:733 */
+      MainActivity.java:734 public void showFragment(Class<?> fragmentClass) {
+      MainActivity.java:735 if (fragmentClass == null) return;
+      MainActivity.java:736 
+      MainActivity.java:737 Fragment fragment = getSupportFragmentManager().findFragmentByTag(fragmentClass.getName());
+      MainActivity.java:738 if (fragment == null || fragment.getId() != getContentId()) {
+      MainActivity.java:739 ClassLoader loader = getClassLoader();
+      MainActivity.java:740 if (loader != null) {
+    result: OK (the source supports the gate, the rule edge or the UNREACHABLE reason)
+
+[28] edge (round 3 rule) | MMEX | E43b63ec4 MainActivity.populateScheduledTransactions -> MmxContentProvider.query FRAMEWORK
+    claim: round 3 Q: the query runs before the per-row loop, so it needs no stored row
+    ref: SRC home/MainActivity.java:1231-1258; FW-SRC core/java/android/content/ContentResolver.java:753-755; FW-SRC core/java/android/content/ContentProvider.java:228-229, 240-241; SRC database/Dataset.java:7
+      MainActivity.java:1230 
+      MainActivity.java:1231 private void populateScheduledTransactions() {
+      MainActivity.java:1232 // start notification for recurring transaction
+      MainActivity.java:1233 boolean showNotification = false;
+      MainActivity.java:1234 if (!isScheduledTransactionStarted) {
+      MainActivity.java:1235 AppSettings settings = new AppSettings(this);
+      MainActivity.java:1236 showNotification = settings.getBehaviourSettings().getNotificationRecurringTransaction();
+      MainActivity.java:1237 if (showNotification) {
+    result: OK (the source supports the gate, the rule edge or the UNREACHABLE reason)
+
+[29] edge (round 3 rule) | MMEX | E4d4996cc RecurringTransactionEditActivity.onCreate -> RecurringTransaction.getDate CALL
+    claim: round 3 R: was EditTransactionCommonFunctions$7.onClick -> RecurringTransaction.getDate; the shared editor helper holds the editor's own entity, a RecurringTransaction only in RecurringTransactionEditActivity (RecurringTransactionEditActivity.java:103,442,604; the checking editor holds an AccountTra
+    ref: SRC EditTransactionCommonFunctions.java:522 (bytecode)
+      EditTransactionCommonFunctions.java:521 public void onClick(View view) {
+      EditTransactionCommonFunctions.java:522 Date dateTime = new MmxDate(transactionEntity.getDate()).plusDays(1).toDate();
+      EditTransactionCommonFunctions.java:523 setDate(dateTime);
+    result: OK (the source supports the gate, the rule edge or the UNREACHABLE reason)
+    also read: EditTransactionCommonFunctions is made in CheckingTransactionEditActivity, SmsReceiverTransactions and RecurringTransactionEditActivity; only the last stores a RecurringTransaction (RecurringTransactionEditActivity.java:442,549,604; the others store AccountTransaction, CheckingTransactionEditActivity.java:776, SmsReceiverTransactions.java:1043)
+
+[30] edge (round 3 rule) | MMEX | Eaf59955b RecurringTransactionEditActivity.onCreate -> RecurringTransaction.setAmount CALL
+    claim: round 3 R: was EditTransactionCommonFunctions$1.onItemSelected -> RecurringTransaction.setAmount; the shared editor helper holds the editor's own entity, a RecurringTransaction only in RecurringTransactionEditActivity (RecurringTransactionEditActivity.java:103,442,604; the checking editor holds an A
+    ref: SRC EditTransactionCommonFunctions.java:353 (bytecode)
+      EditTransactionCommonFunctions.java:352 Money convertedAmount = calculateAmountFrom();
+      EditTransactionCommonFunctions.java:353 transactionEntity.setAmount(convertedAmount);
+      EditTransactionCommonFunctions.java:354 displayAmountFrom();
+    result: OK (the source supports the gate, the rule edge or the UNREACHABLE reason)
+
+[31] edge (round 3 rule) | MMEX | E97bb8541 RecurringTransactionEditActivity.onCreate -> RecurringTransaction.getAmountTo CALL
+    claim: round 3 R: was EditTransactionCommonFunctions$1.onItemSelected -> RecurringTransaction.getAmountTo; the shared editor helper holds the editor's own entity, a RecurringTransaction only in RecurringTransactionEditActivity (RecurringTransactionEditActivity.java:103,442,604; the checking editor holds an
+    ref: SRC EditTransactionCommonFunctions.java:330 (bytecode)
+      EditTransactionCommonFunctions.java:329 // calculate the exchange amount if it is 0.
+      EditTransactionCommonFunctions.java:330 if (transactionEntity.getAmountTo().isZero()) {
+      EditTransactionCommonFunctions.java:331 Money convertedAmount = calculateAmountTo();
+    result: OK (the source supports the gate, the rule edge or the UNREACHABLE reason)
+
+[32] edge (round 3 rule) | MMEX | E5a6b6732 RecurringTransactionEditActivity.onCreate -> RecurringTransaction.getAmountTo CALL
+    claim: round 3 R: was EditTransactionCommonFunctions$3.onClick -> RecurringTransaction.getAmountTo; the shared editor helper holds the editor's own entity, a RecurringTransaction only in RecurringTransactionEditActivity (RecurringTransactionEditActivity.java:103,442,604; the checking editor holds an Accoun
+    ref: SRC EditTransactionCommonFunctions.java:440 (bytecode)
+      EditTransactionCommonFunctions.java:439 int currencyId = getDestinationCurrencyId();
+      EditTransactionCommonFunctions.java:440 Money amount = transactionEntity.getAmountTo();
+      EditTransactionCommonFunctions.java:441
+    result: OK (the source supports the gate, the rule edge or the UNREACHABLE reason)
+
+[33] edge (round 3 rule) | MMEX | Ed75dff7b RecurringTransactionEditActivity.onCreate -> RecurringTransaction.setTransactionNumber CALL
+    claim: round 3 R: was EditTransactionCommonFunctions$13.afterTextChanged -> RecurringTransaction.setTransactionNumber; the shared editor helper holds the editor's own entity, a RecurringTransaction only in RecurringTransactionEditActivity (RecurringTransactionEditActivity.java:103,442,604; the checking edi
+    ref: SRC EditTransactionCommonFunctions.java:687 (bytecode)
+      EditTransactionCommonFunctions.java:686 
+      EditTransactionCommonFunctions.java:687 transactionEntity.setTransactionNumber(editable.toString());
+      EditTransactionCommonFunctions.java:688 }
+    result: OK (the source supports the gate, the rule edge or the UNREACHABLE reason)
+
+[34] edge (round 3 rule) | MMEX | E36db5ee8 RecurringTransactionEditActivity.onCreate -> RecurringTransaction.getAccountToId CALL
+    claim: round 3 R: was EditTransactionCommonFunctions.getDestinationCurrencyId -> RecurringTransaction.getAccountToId; the shared editor helper holds the editor's own entity, a RecurringTransaction only in RecurringTransactionEditActivity (RecurringTransactionEditActivity.java:103,442,604; the checking edit
+    ref: SRC EditTransactionCommonFunctions.java:208 (bytecode)
+      EditTransactionCommonFunctions.java:207 public Integer getDestinationCurrencyId() {
+      EditTransactionCommonFunctions.java:208 Integer accountId = this.transactionEntity.getAccountToId();
+      EditTransactionCommonFunctions.java:209 // The destination account/currency is hidden by default and may be uninitialized.
+    result: OK (the source supports the gate, the rule edge or the UNREACHABLE reason)
+
+[35] edge (round 3 rule) | MMEX | Ecc603a87 RecurringTransactionEditActivity.onCreate -> RecurringTransaction.getAccountToId CALL
+    claim: round 3 R: was EditTransactionCommonFunctions.initAccountSelectors -> RecurringTransaction.getAccountToId; the shared editor helper holds the editor's own entity, a RecurringTransaction only in RecurringTransactionEditActivity (RecurringTransactionEditActivity.java:103,442,604; the checking editor h
+    ref: SRC EditTransactionCommonFunctions.java:386 (bytecode)
+      EditTransactionCommonFunctions.java:385 if (transactionEntity.hasAccountTo() && mAccountIdList.contains(transactionEntity.getAccountToId())) {
+      EditTransactionCommonFunctions.java:386 viewHolder.spinAccountTo.setSelection(mAccountIdList.indexOf(transactionEntity.getAccountToId()), true);
+      EditTransactionCommonFunctions.java:387 }
+    result: OK (the source supports the gate, the rule edge or the UNREACHABLE reason)
+
+[36] edge (round 3 rule) | MMEX | Ed6990c4a RecurringTransactionEditActivity.onCreate -> RecurringTransaction.getAccountId CALL
+    claim: round 3 R: was EditTransactionCommonFunctions.initAccountSelectors -> RecurringTransaction.getAccountId; the shared editor helper holds the editor's own entity, a RecurringTransaction only in RecurringTransactionEditActivity (RecurringTransactionEditActivity.java:103,442,604; the checking editor hol
+    ref: SRC EditTransactionCommonFunctions.java:284 (bytecode)
+      EditTransactionCommonFunctions.java:283 AccountRepository accountRepository = new AccountRepository(getContext());
+      EditTransactionCommonFunctions.java:284 Integer accountId = transactionEntity.getAccountId();
+      EditTransactionCommonFunctions.java:285 if (accountId != null) {
+    result: OK (the source supports the gate, the rule edge or the UNREACHABLE reason)
+
+[37] edge (round 3 rule) | MMEX | Efdd0e510 RecurringTransactionEditActivity.onCreate -> RecurringTransaction.getNotes CALL
+    claim: round 3 R: was EditTransactionCommonFunctions.initNotesControls -> RecurringTransaction.getNotes; the shared editor helper holds the editor's own entity, a RecurringTransaction only in RecurringTransactionEditActivity (RecurringTransactionEditActivity.java:103,442,604; the checking editor holds an A
+    ref: SRC EditTransactionCommonFunctions.java:548 (bytecode)
+      EditTransactionCommonFunctions.java:547 if (!(TextUtils.isEmpty(transactionEntity.getNotes()))) {
+      EditTransactionCommonFunctions.java:548 viewHolder.edtNotes.setText(transactionEntity.getNotes());
+      EditTransactionCommonFunctions.java:549 }
+    result: OK (the source supports the gate, the rule edge or the UNREACHABLE reason)
+
+[38] edge (round 3 rule) | MMEX | E9c2c992e RecurringTransactionEditActivity.onCreate -> RecurringTransaction.hasId CALL
+    claim: round 3 R: was EditTransactionCommonFunctions.initTransactionNumberControls -> RecurringTransaction.hasId; the shared editor helper holds the editor's own entity, a RecurringTransaction only in RecurringTransactionEditActivity (RecurringTransactionEditActivity.java:103,442,604; the checking editor h
+    ref: SRC EditTransactionCommonFunctions.java:724 (bytecode)
+      EditTransactionCommonFunctions.java:723 
+      EditTransactionCommonFunctions.java:724 if (!transactionEntity.hasId() && (new BehaviourSettings(getContext()).getAutoTransactionNumber())) {
+      EditTransactionCommonFunctions.java:725 viewHolder.btnTransNumber.callOnClick();
+    result: OK (the source supports the gate, the rule edge or the UNREACHABLE reason)
+
+[39] edge (round 3 rule) | MMEX | Efbb0de87 RecurringTransactionEditActivity.onCreate -> RecurringTransaction.getCategoryId CALL
+    claim: round 3 R: was EditTransactionCommonFunctions.loadCategoryName -> RecurringTransaction.getCategoryId; the shared editor helper holds the editor's own entity, a RecurringTransaction only in RecurringTransactionEditActivity (RecurringTransactionEditActivity.java:103,442,604; the checking editor holds 
+    ref: SRC EditTransactionCommonFunctions.java:805 (bytecode)
+      EditTransactionCommonFunctions.java:804 CategoryRepository categoryRepository = new CategoryRepository(getContext());
+      EditTransactionCommonFunctions.java:805 Category category = categoryRepository.load(this.transactionEntity.getCategoryId());
+      EditTransactionCommonFunctions.java:806 if (category != null) {
+    result: OK (the source supports the gate, the rule edge or the UNREACHABLE reason)
+
+[40] edge (round 3 rule) | MMEX | E307b2918 RecurringTransactionEditActivity.onCreate -> RecurringTransaction.setAccountToId CALL
+    claim: round 3 R: was EditTransactionCommonFunctions.onActivityResult -> RecurringTransaction.setAccountToId; the shared editor helper holds the editor's own entity, a RecurringTransaction only in RecurringTransactionEditActivity (RecurringTransactionEditActivity.java:103,442,604; the checking editor holds
+    ref: SRC EditTransactionCommonFunctions.java:870 (bytecode)
+      EditTransactionCommonFunctions.java:869 case RequestCodes.ACCOUNT:
+      EditTransactionCommonFunctions.java:870 transactionEntity.setAccountToId(data.getIntExtra(AccountListActivity.INTENT_RESULT_ACCOUNTID, Constants.NOT_SET));
+      EditTransactionCommonFunctions.java:871 mToAccountName = data.getStringExtra(AccountListActivity.INTENT_RESULT_ACCOUNTNAME);
+    result: OK (the source supports the gate, the rule edge or the UNREACHABLE reason)
+
+[41] edge (round 3 rule) | MMEX | E0a5bfddd RecurringTransactionEditActivity.onCreate -> RecurringTransaction.setPayeeId CALL
+    claim: round 3 R: was EditTransactionCommonFunctions.onActivityResult -> RecurringTransaction.setPayeeId; the shared editor helper holds the editor's own entity, a RecurringTransaction only in RecurringTransactionEditActivity (RecurringTransactionEditActivity.java:103,442,604; the checking editor holds an 
+    ref: SRC EditTransactionCommonFunctions.java:857 (bytecode)
+      EditTransactionCommonFunctions.java:856 case RequestCodes.PAYEE:
+      EditTransactionCommonFunctions.java:857 this.transactionEntity.setPayeeId(data.getIntExtra(PayeeActivity.INTENT_RESULT_PAYEEID, Constants.NOT_SET));
+      EditTransactionCommonFunctions.java:858 payeeName = data.getStringExtra(PayeeActivity.INTENT_RESULT_PAYEENAME);
+    result: OK (the source supports the gate, the rule edge or the UNREACHABLE reason)
+
+[42] edge (round 3 rule) | MMEX | E7df09da6 RecurringTransactionEditActivity.onCreate -> RecurringTransaction.getAmount CALL
+    claim: round 3 R: was EditTransactionCommonFunctions.onFinishedInputAmountDialog -> RecurringTransaction.getAmount; the shared editor helper holds the editor's own entity, a RecurringTransaction only in RecurringTransactionEditActivity (RecurringTransactionEditActivity.java:103,442,604; the checking editor
+    ref: SRC EditTransactionCommonFunctions.java:941 (bytecode)
+      EditTransactionCommonFunctions.java:940 ? transactionEntity.getAmountTo().isZero()
+      EditTransactionCommonFunctions.java:941 : transactionEntity.getAmount().isZero();
+      EditTransactionCommonFunctions.java:942 if (shouldConvert){
+    result: OK (the source supports the gate, the rule edge or the UNREACHABLE reason)
+
+[43] edge (round 3 rule) | MMEX | Ef1275119 RecurringTransactionEditActivity.onCreate -> RecurringTransaction.setTransactionType CALL
+    claim: round 3 R: was EditTransactionCommonFunctions.onTransactionTypeChanged -> RecurringTransaction.setTransactionType; the shared editor helper holds the editor's own entity, a RecurringTransaction only in RecurringTransactionEditActivity (RecurringTransactionEditActivity.java:103,442,604; the checking 
+    ref: SRC EditTransactionCommonFunctions.java:976 (bytecode)
+      EditTransactionCommonFunctions.java:975 public void onTransactionTypeChanged(TransactionTypes transactionType) {
+      EditTransactionCommonFunctions.java:976 transactionEntity.setTransactionType(transactionType);
+      EditTransactionCommonFunctions.java:977
+    result: OK (the source supports the gate, the rule edge or the UNREACHABLE reason)
+
+[44] edge (round 3 rule) | MMEX | Ebc7b158d RecurringTransactionEditActivity.onCreate -> RecurringTransaction.getTransactionType CALL
+    claim: round 3 R: was EditTransactionCommonFunctions.refreshControlTitles -> RecurringTransaction.getTransactionType; the shared editor helper holds the editor's own entity, a RecurringTransaction only in RecurringTransactionEditActivity (RecurringTransactionEditActivity.java:103,442,604; the checking edit
+    ref: SRC EditTransactionCommonFunctions.java:1003 (bytecode)
+      EditTransactionCommonFunctions.java:1002 
+      EditTransactionCommonFunctions.java:1003 boolean isTransfer = transactionEntity.getTransactionType().equals(TransactionTypes.Transfer);
+      EditTransactionCommonFunctions.java:1004
+    result: OK (the source supports the gate, the rule edge or the UNREACHABLE reason)
+
+[45] edge (round 3 rule) | MMEX | Ef6106a12 RecurringTransactionEditActivity.onCreate -> RecurringTransaction.setCategoryId CALL
+    claim: round 3 R: was EditTransactionCommonFunctions.setCategoryFromPayee -> RecurringTransaction.setCategoryId; the shared editor helper holds the editor's own entity, a RecurringTransaction only in RecurringTransactionEditActivity (RecurringTransactionEditActivity.java:103,442,604; the checking editor ho
+    ref: SRC EditTransactionCommonFunctions.java:1088 (bytecode)
+      EditTransactionCommonFunctions.java:1087 
+      EditTransactionCommonFunctions.java:1088 this.transactionEntity.setCategoryId(payee.getCategoryId());
+      EditTransactionCommonFunctions.java:1089
+    result: OK (the source supports the gate, the rule edge or the UNREACHABLE reason)
+
+[46] edge (round 3 rule) | MMEX | E738616c4 RecurringTransactionEditActivity.onCreate -> RecurringTransaction.hasCategory CALL
+    claim: round 3 R: was EditTransactionCommonFunctions.validateData -> RecurringTransaction.hasCategory; the shared editor helper holds the editor's own entity, a RecurringTransaction only in RecurringTransactionEditActivity (RecurringTransactionEditActivity.java:103,442,604; the checking editor holds an Acc
+    ref: SRC EditTransactionCommonFunctions.java:1181 (bytecode)
+      EditTransactionCommonFunctions.java:1180 // Category is required if tx is not a split or transfer.
+      EditTransactionCommonFunctions.java:1181 boolean hasCategory = transactionEntity.hasCategory();
+      EditTransactionCommonFunctions.java:1182 if (!hasCategory && (!isSplitSelected()) && !isTransfer) {
+    result: OK (the source supports the gate, the rule edge or the UNREACHABLE reason)
+
+[47] edge (round 3 rule) | MMEX | Eea00bd7f RecurringTransactionEditActivity.onCreate -> RecurringTransaction.getAmountTo CALL
+    claim: round 3 R: was EditTransactionCommonFunctions.validateData -> RecurringTransaction.getAmountTo; the shared editor helper holds the editor's own entity, a RecurringTransaction only in RecurringTransactionEditActivity (RecurringTransactionEditActivity.java:103,442,604; the checking editor holds an Acc
+    ref: SRC EditTransactionCommonFunctions.java:1161 (bytecode)
+      EditTransactionCommonFunctions.java:1160 // Amount To is required and has to be positive.
+      EditTransactionCommonFunctions.java:1161 if (this.transactionEntity.getAmountTo().toDouble() < 0) {
+      EditTransactionCommonFunctions.java:1162 core.alert(R.string.error_amount_must_be_positive);
+    result: OK (the source supports the gate, the rule edge or the UNREACHABLE reason)
+
+[48] edge (round 3 rule) | MMEX | E027ea166 RecurringTransactionEditActivity.onCreate -> RecurringTransaction.getTransactionType CALL
+    claim: round 3 R: was EditTransactionCommonFunctions.validateData -> RecurringTransaction.getTransactionType; the shared editor helper holds the editor's own entity, a RecurringTransaction only in RecurringTransactionEditActivity (RecurringTransactionEditActivity.java:103,442,604; the checking editor holds
+    ref: SRC EditTransactionCommonFunctions.java:1147 (bytecode)
+      EditTransactionCommonFunctions.java:1146 public boolean validateData() {
+      EditTransactionCommonFunctions.java:1147 boolean isTransfer = transactionEntity.getTransactionType().equals(TransactionTypes.Transfer);
+      EditTransactionCommonFunctions.java:1148 Core core = new Core(getContext());
+    result: OK (the source supports the gate, the rule edge or the UNREACHABLE reason)
+
+[49] edge (round 3 rule) | MMEX | Eb51ab9a6 RecurringTransactionEditActivity.onCreate -> RecurringTransaction.setAmount CALL
+    claim: round 3 R: was EditTransactionCommonFunctions.convertOneSplitIntoRegularTransaction -> RecurringTransaction.setAmount; the shared editor helper holds the editor's own entity, a RecurringTransaction only in RecurringTransactionEditActivity (RecurringTransactionEditActivity.java:103,442,604; the check
+    ref: SRC EditTransactionCommonFunctions.java:1259 (bytecode)
+      EditTransactionCommonFunctions.java:1258 // reuse the amount & category
+      EditTransactionCommonFunctions.java:1259 transactionEntity.setAmount(splitTransaction.getAmount());
+      EditTransactionCommonFunctions.java:1260 displayAmountFrom();
+    result: OK (the source supports the gate, the rule edge or the UNREACHABLE reason)
+
+[50] edge (round 3 rule) | MMEX | E23b64296 RecurringTransactionEditActivity.onCreate -> RecurringTransaction.getAmountTo CALL
+    claim: round 3 R: was EditTransactionCommonFunctions.calculateAmountFrom -> RecurringTransaction.getAmountTo; the shared editor helper holds the editor's own entity, a RecurringTransaction only in RecurringTransactionEditActivity (RecurringTransactionEditActivity.java:103,442,604; the checking editor holds
+    ref: SRC EditTransactionCommonFunctions.java:1316 (bytecode)
+      EditTransactionCommonFunctions.java:1315 
+      EditTransactionCommonFunctions.java:1316 return currencyService.doCurrencyExchange(getSourceCurrencyId(), transactionEntity.getAmountTo(),
+      EditTransactionCommonFunctions.java:1317 getDestinationCurrencyId());
+    result: OK (the source supports the gate, the rule edge or the UNREACHABLE reason)
+
+[51] edge (round 3 rule) | MMEX | Ea7f529fd RecurringTransactionEditActivity.onCreate -> RecurringTransaction.hasCategory CALL
+    claim: round 3 R: was EditTransactionCommonFunctions.createSplitFromTransaction -> RecurringTransaction.hasCategory; the shared editor helper holds the editor's own entity, a RecurringTransaction only in RecurringTransactionEditActivity (RecurringTransactionEditActivity.java:103,442,604; the checking edito
+    ref: SRC EditTransactionCommonFunctions.java:1343 (bytecode)
+      EditTransactionCommonFunctions.java:1342 
+      EditTransactionCommonFunctions.java:1343 if (this.transactionEntity.hasCategory()) {
+      EditTransactionCommonFunctions.java:1344 entity.setCategoryId(this.transactionEntity.getCategoryId());
+    result: OK (the source supports the gate, the rule edge or the UNREACHABLE reason)
+
+[52] edge (round 3 rule) | MMEX | Ebb46868a RecurringTransactionEditActivity.onCreate -> RecurringTransaction.getAmount CALL
+    claim: round 3 R: was EditTransactionCommonFunctions.displayAmountFrom -> RecurringTransaction.getAmount; the shared editor helper holds the editor's own entity, a RecurringTransaction only in RecurringTransactionEditActivity (RecurringTransactionEditActivity.java:103,442,604; the checking editor holds an 
+    ref: SRC EditTransactionCommonFunctions.java:1353 (bytecode)
+      EditTransactionCommonFunctions.java:1352 ? MoneyFactory.fromDouble(0)
+      EditTransactionCommonFunctions.java:1353 : transactionEntity.getAmount();
+      EditTransactionCommonFunctions.java:1354
+    result: OK (the source supports the gate, the rule edge or the UNREACHABLE reason)
+
+[53] edge (round 3 rule) | MMEX | Ee73558e7 RecurringTransactionEditActivity.onCreate -> RecurringTransaction.setAmountTo CALL
+    claim: round 3 R: was EditTransactionCommonFunctions.onTransferSelected -> RecurringTransaction.setAmountTo; the shared editor helper holds the editor's own entity, a RecurringTransaction only in RecurringTransactionEditActivity (RecurringTransactionEditActivity.java:103,442,604; the checking editor holds 
+    ref: SRC EditTransactionCommonFunctions.java:1493 (bytecode)
+      EditTransactionCommonFunctions.java:1492 Money amountTo = calculateAmountTo();
+      EditTransactionCommonFunctions.java:1493 transactionEntity.setAmountTo(amountTo);
+      EditTransactionCommonFunctions.java:1494 }
+    result: OK (the source supports the gate, the rule edge or the UNREACHABLE reason)
+
+[54] edge (round 3 rule) | MMEX | Ea51a8ba4 RecurringTransactionEditActivity.onCreate -> RecurringTransaction.getAccountToId CALL
+    claim: round 3 R: was EditTransactionCommonFunctions.onTransferSelected -> RecurringTransaction.getAccountToId; the shared editor helper holds the editor's own entity, a RecurringTransaction only in RecurringTransactionEditActivity (RecurringTransactionEditActivity.java:103,442,604; the checking editor hol
+    ref: SRC EditTransactionCommonFunctions.java:1470 (bytecode)
+      EditTransactionCommonFunctions.java:1469 // Set the destination account, if not already.
+      EditTransactionCommonFunctions.java:1470 if (transactionEntity.getAccountToId() == null || transactionEntity.getAccountToId().equals(Constants.NOT_SET)) {
+      EditTransactionCommonFunctions.java:1471 if (mAccountIdList.size() == 0) {
+    result: OK (the source supports the gate, the rule edge or the UNREACHABLE reason)
+
+[55] edge (round 3 rule) | MMEX | Ed2b19d6c-2 RecurringTransactionEditActivity.onCreate -> RecurringTransaction.getTransactionType CALL
+    claim: round 3 R: was EditTransactionCommonFunctions.showSplitCategoriesForm@CHECKING -> RecurringTransaction.getTransactionType; the shared editor helper holds the editor's own entity, a RecurringTransaction only in RecurringTransactionEditActivity (RecurringTransactionEditActivity.java:103,442,604; the c
+    ref: SRC EditTransactionCommonFunctions.java:1521 (bytecode)
+      EditTransactionCommonFunctions.java:1520 intent.putExtra(SplitCategoriesActivity.KEY_DATASET_TYPE, datasetName);
+      EditTransactionCommonFunctions.java:1521 intent.putExtra(SplitCategoriesActivity.KEY_TRANSACTION_TYPE, transactionEntity.getTransactionType().getCode());
+      EditTransactionCommonFunctions.java:1522 intent.putExtra(SplitCategoriesActivity.KEY_SPLIT_TRANSACTION, Parcels.wrap(splitsToShow));
+    result: OK (the source supports the gate, the rule edge or the UNREACHABLE reason)
+
+[56] edge (round 3 rule) | MMEX | E810c41cd RecurringTransactionEditActivity.onCreate -> RecurringTransaction.getAccountId CALL
+    claim: round 3 R: was EditTransactionCommonFunctions$14.onClick -> RecurringTransaction.getAccountId; the shared editor helper holds the editor's own entity, a RecurringTransaction only in RecurringTransactionEditActivity (RecurringTransactionEditActivity.java:103,442,604; the checking editor holds an Acco
+    ref: SRC EditTransactionCommonFunctions.java:700 (bytecode)
+      EditTransactionCommonFunctions.java:699 
+      EditTransactionCommonFunctions.java:700 String accountId = transactionEntity.getAccountId().toString();
+      EditTransactionCommonFunctions.java:701 Cursor cursor = mDatabase.query(sql, accountId);
+    result: OK (the source supports the gate, the rule edge or the UNREACHABLE reason)
+
+[57] edge (round 3 rule) | MMEX | E5f9f3a46 RecurringTransactionEditActivity.onCreate -> RecurringTransaction.getStatus CALL
+    claim: round 3 R: was EditTransactionCommonFunctions$12.onItemSelected -> RecurringTransaction.getStatus; the shared editor helper holds the editor's own entity, a RecurringTransaction only in RecurringTransactionEditActivity (RecurringTransactionEditActivity.java:103,442,604; the checking editor holds an 
+    ref: SRC EditTransactionCommonFunctions.java:652 (bytecode)
+      EditTransactionCommonFunctions.java:651 // If Status has been changed manually, mark data as dirty.
+      EditTransactionCommonFunctions.java:652 if (!selectedStatus.equalsIgnoreCase(transactionEntity.getStatus())) {
+      EditTransactionCommonFunctions.java:653 setDirty(true);
+    result: OK (the source supports the gate, the rule edge or the UNREACHABLE reason)
