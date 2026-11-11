@@ -16,9 +16,9 @@ How every method of **Aegis** is triggered, in the standard configuration: the i
 
 - **2995 methods**, **12 pages** (including pseudo pages), **6362 edges**. Verdicts: **2519 REACHABLE**, **476 UNREACHABLE**.
 - UNREACHABLE by reason: branch_never_taken 3, closed_by_api_level 1, closed_by_configuration 3, framework_never_calls 33, no_trigger_in_app 436.
-- ENV gates (methods): hardware 78, other 243, other_app 550, system_event 18, time 7. STATE gates (methods): data 148, file 16, session 77, settings 100. Methods with no gate: 1441.
-- Edge classes: explicit 5215, non_standard 116, page 22, standard 1009. Non-standard edges: 116 (Dagger / Hilt dependency injection: the library makes the link to the generated component; JDK library: HashSet.removeAll (AbstractSet.removeAll) reaches equals through its contains branch (JDK source not on disk); intent resolved by action name: the system matches the panic app action info.guardian).
-- 299 reachable methods have a non-standard edge on their best route; 541 have no explicit-or-standard-only route at all.
+- ENV gates (methods): hardware 80, other 246, other_app 636, system_event 23, time 7. STATE gates (methods): data 91, file 1, session 71, settings 81. Methods with no gate: 1417.
+- Edge classes: explicit 5213, non_standard 116, page 22, standard 1011. Non-standard edges: 116 (Dagger / Hilt dependency injection: the library makes the link to the generated component; JDK library: HashSet.removeAll (AbstractSet.removeAll) reaches equals through its contains branch (JDK source not on disk); intent resolved by action name: the system matches the panic app action info.guardian).
+- 286 reachable methods have a non-standard edge on their best route; 539 have no explicit-or-standard-only route at all.
 - Labels confirmed by: INFERRED 2693, SOURCE 302 (SOURCE: every edge of the best route cites a source line, in the app or in the Android 8.1 / library source; INFERRED: some edge rests on inference or on another app).
 
 ## How much to trust it
@@ -27,7 +27,7 @@ Verification log (`verification.csv`), counts of what was checked and found:
 
 | Checked | Rows | Correct | Errors found (fixed) | Unclear |
 |---|---:|---:|---:|---:|
-| labels | 559 | 543 | 13 | 3 |
+| labels | 559 | 544 | 12 | 3 |
 | edges (framework and other claims read against source) | 26 | 26 | 0 | 0 |
 | paths (stratified sample, read step by step) | 25 | 13 | 9 | 3 |
 

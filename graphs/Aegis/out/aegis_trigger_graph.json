@@ -11001,21 +11001,15 @@
    "path_status": "UNCHECKED"
   },
   "Preferences.setBackupsVersionCount": {
-   "env": [],
-   "state": [
+   "env": [
     {
      "kinds": [
-      "settings"
+      "other_app"
      ],
-     "text": "automatic backups are on (pref_backups, default off, Preferences.java:401) with a versioning strategy other than single backup, so the versions row is shown (BackupsPreferencesFragment.java:210)"
-    },
-    {
-     "kinds": [
-      "settings"
-     ],
-     "text": "settings: the versions preference is shown only when backups are on (off by default, BackupsPreferencesFragment.java:210), so the picker saves the count (:165)"
+     "text": "automatic backups are turned on only in the result of the system folder picker (ACTION_OPEN_DOCUMENT_TREE, BackupsPreferencesFragment.java:79-89,175-189,263-264), and an Android backup result is written by the system backup service; either needs the system first"
     }
    ],
+   "state": [],
    "route_edge_classes": [
     "explicit",
     "standard"
@@ -11376,53 +11370,53 @@
    "path_status": "UNCHECKED"
   },
   "Preferences$BackupResult.<init>(Exception)": {
-   "env": [],
-   "state": [
+   "env": [
     {
      "kinds": [
-      "settings"
+      "system_event"
      ],
-     "text": "automatic backups are on (pref_backups, default off, Preferences.java:401); the vault is encrypted (baseline)"
+     "text": "the system runs a full backup of the app data (AegisBackupAgent.onFullBackup, AegisBackupAgent.java:43-71)"
     }
    ],
+   "state": [],
    "route_edge_classes": [
     "explicit",
     "standard"
    ],
    "explicit_standard_route": true,
    "confirmed_by": "INFERRED",
-   "source_ref": "VaultBackupManager.java:65",
+   "source_ref": "AegisBackupAgent.java:66",
    "path_status": "UNCHECKED"
   },
   "Preferences$BackupResult.<init>(Date,String,boolean)": {
-   "env": [],
-   "state": [
+   "env": [
     {
      "kinds": [
-      "settings"
+      "system_event"
      ],
-     "text": "automatic backups are on (default off) and a backup ran, so a stored result exists to parse (Preferences.java:519-524)"
+     "text": "the system runs a full backup of the app data (AegisBackupAgent.onFullBackup, AegisBackupAgent.java:43-71)"
     }
    ],
+   "state": [],
    "route_edge_classes": [
     "explicit",
     "standard"
    ],
    "explicit_standard_route": true,
    "confirmed_by": "INFERRED",
-   "source_ref": "Preferences.java:687",
+   "source_ref": "Preferences.java:630",
    "path_status": "UNCHECKED"
   },
   "Preferences$BackupResult.fromJson": {
-   "env": [],
-   "state": [
+   "env": [
     {
      "kinds": [
-      "settings"
+      "other_app"
      ],
-     "text": "automatic backups are on (default off) and a backup ran, so a stored result exists to parse (Preferences.java:519-524)"
+     "text": "automatic backups are turned on only in the result of the system folder picker (ACTION_OPEN_DOCUMENT_TREE, BackupsPreferencesFragment.java:79-89,175-189,263-264), and an Android backup result is written by the system backup service; either needs the system first"
     }
    ],
+   "state": [],
    "route_edge_classes": [
     "explicit",
     "standard"
@@ -11433,7 +11427,14 @@
    "path_status": "UNCHECKED"
   },
   "Preferences$BackupResult.getElapsedSince": {
-   "env": [],
+   "env": [
+    {
+     "kinds": [
+      "system_event"
+     ],
+     "text": "an object of Preferences$BackupResult is made in the app only on a route with an env gate (no <init> of the class is reachable without one), so the env action comes first"
+    }
+   ],
    "state": [
     {
      "kinds": [
@@ -11446,7 +11447,7 @@
     "explicit",
     "standard"
    ],
-   "explicit_standard_route": true,
+   "explicit_standard_route": false,
    "confirmed_by": "INFERRED",
    "source_ref": "BackupsPreferencesFragment.java:245",
    "path_status": "UNCHECKED"
@@ -11471,19 +11472,20 @@
    "path_status": "UNCHECKED"
   },
   "Preferences$BackupResult.getTime": {
-   "env": [],
+   "env": [
+    {
+     "kinds": [
+      "other_app"
+     ],
+     "text": "automatic backups are turned on only in the result of the system folder picker (ACTION_OPEN_DOCUMENT_TREE, BackupsPreferencesFragment.java:79-89,175-189,263-264), and an Android backup result is written by the system backup service; either needs the system first"
+    }
+   ],
    "state": [
     {
      "kinds": [
       "data"
      ],
      "text": "a backup reminder is due: the error card reads the latest backup time only when the vault changed since the last backup or export and the reminder is on (MainActivity.java:1172-1175); the change is made in the app"
-    },
-    {
-     "kinds": [
-      "settings"
-     ],
-     "text": "settings: an Android backup result exists only after Android backups were turned on (off by default, Preferences.java:392), so its time is added (:454)"
     }
    ],
    "route_edge_classes": [
@@ -11534,46 +11536,60 @@
    "path_status": "UNCHECKED"
   },
   "Preferences$BackupResult.isSuccessful": {
-   "env": [],
+   "env": [
+    {
+     "kinds": [
+      "system_event"
+     ],
+     "text": "an object of Preferences$BackupResult is made in the app only on a route with an env gate (no <init> of the class is reachable without one), so the env action comes first"
+    }
+   ],
    "state": [
     {
      "kinds": [
       "settings"
      ],
-     "text": "settings: an Android backup result exists only after Android backups were turned on (off by default, Preferences.java:392), so it is checked for success (:501)"
+     "text": "Android backups are on (pref_android_backups default false, Preferences.java:391-392), so their status is shown (BackupsPreferencesFragment.java:214-215)"
     }
    ],
    "route_edge_classes": [
     "explicit",
     "standard"
    ],
-   "explicit_standard_route": true,
+   "explicit_standard_route": false,
    "confirmed_by": "INFERRED",
-   "source_ref": "Preferences.java:501",
+   "source_ref": "BackupsPreferencesFragment.java:222",
    "path_status": "UNCHECKED"
   },
   "Preferences$BackupResult.setIsBuiltIn": {
-   "env": [],
+   "env": [
+    {
+     "kinds": [
+      "system_event"
+     ],
+     "text": "an object of Preferences$BackupResult is made in the app only on a route with an env gate (no <init> of the class is reachable without one), so the env action comes first"
+    }
+   ],
    "state": [],
    "route_edge_classes": [
     "explicit",
     "standard"
    ],
-   "explicit_standard_route": true,
+   "explicit_standard_route": false,
    "confirmed_by": "INFERRED",
    "source_ref": "Preferences.java:510",
    "path_status": "UNCHECKED"
   },
   "Preferences$BackupResult.toJson": {
-   "env": [],
-   "state": [
+   "env": [
     {
      "kinds": [
-      "settings"
+      "other_app"
      ],
-     "text": "settings: a non-null backup result is saved only after a backup ran (VaultManager.java:146-149), which needs backups turned on (off by default), so it is written as JSON (Preferences.java:509-511)"
+     "text": "automatic backups are turned on only in the result of the system folder picker (ACTION_OPEN_DOCUMENT_TREE, BackupsPreferencesFragment.java:79-89,175-189,263-264), and an Android backup result is written by the system backup service; either needs the system first"
     }
    ],
+   "state": [],
    "route_edge_classes": [
     "explicit",
     "standard"
@@ -13340,15 +13356,15 @@
    "path_status": "UNCHECKED"
   },
   "AuditLogRepository.addBackupCreatedEvent": {
-   "env": [],
-   "state": [
+   "env": [
     {
      "kinds": [
-      "settings"
+      "other_app"
      ],
-     "text": "automatic backups are on (pref_backups, default off, Preferences.java:401); the vault is encrypted (baseline)"
+     "text": "automatic backups are turned on only in the result of the system folder picker (ACTION_OPEN_DOCUMENT_TREE, BackupsPreferencesFragment.java:79-89,175-189,263-264), and an Android backup result is written by the system backup service; either needs the system first"
     }
    ],
+   "state": [],
    "route_edge_classes": [
     "explicit",
     "standard"
@@ -14029,15 +14045,15 @@
    "path_status": null
   },
   "BitmapHelper.isVaultEntryIconOptimized": {
-   "env": [],
-   "state": [
+   "env": [
     {
      "kinds": [
-      "data"
+      "other_app"
      ],
-     "text": "the vault icons are not marked optimised: each entry icon is checked (MainActivity.java:767-771), as for Ea226ffdc"
+     "text": "an entry icon that is not optimised yet: no baseline entry has an icon, and an icon comes only from a picked image or an icon pack (system picker, another app; IconPacksManagerFragment, EditEntryActivity.java:147-158) or from the vault of an older app version (Vault.java:92-93)"
     }
    ],
+   "state": [],
    "route_edge_classes": [
     "explicit",
     "non_standard",
@@ -14068,28 +14084,22 @@
    "path_status": "UNCHECKED"
   },
   "BitmapHelper.toVaultEntryIcon": {
-   "env": [],
-   "state": [
+   "env": [
     {
      "kinds": [
-      "data"
+      "other_app"
      ],
-     "text": "The vault icons are not marked optimised yet: Vault.areIconsOptimized is false (MainActivity.java:767)"
-    },
-    {
-     "kinds": [
-      "data"
-     ],
-     "text": "the vault has an icon that is not optimised yet, so the task converts it (IconOptimizationTask.java:31-46), as for Ea226ffdc"
+     "text": "a custom icon was set in this session (_hasChangedIcon and _hasCustomIcon): only a picked image (system picker), an SVG file or an icon pack icon sets it (EditEntryActivity.java:147,255,609-611,650,806-807); all come from outside the app"
     }
    ],
+   "state": [],
    "route_edge_classes": [
     "explicit",
     "standard"
    ],
    "explicit_standard_route": true,
    "confirmed_by": "INFERRED",
-   "source_ref": "IconOptimizationTask.java:46",
+   "source_ref": "EditEntryActivity.java:816",
    "path_status": "UNCHECKED"
   },
   "CenterVerticalSpan.<init>": {
@@ -16502,16 +16512,15 @@
       "other_app"
      ],
      "text": "the system document picker of another app returns a file (ACTION_GET_CONTENT, ImportExportPreferencesFragment.java:110-112)"
-    }
-   ],
-   "state": [
+    },
     {
      "kinds": [
-      "file"
+      "other_app"
      ],
-     "text": "a plaintext Aegis export (made with the app's own export) is imported, so its content is read directly (AegisImporter.java:49-52)"
+     "text": "a file comes back from the system document picker (ACTION_GET_CONTENT; ImportExportPreferencesFragment.java:146-158, WelcomeSlide, EditEntryActivity.java:147-158): an import file or icon exists in the app only after that pick"
     }
    ],
+   "state": [],
    "route_edge_classes": [
     "explicit",
     "standard"
@@ -16528,16 +16537,15 @@
       "other_app"
      ],
      "text": "the system document picker of another app returns a file (ACTION_GET_CONTENT, ImportExportPreferencesFragment.java:110-112)"
-    }
-   ],
-   "state": [
+    },
     {
      "kinds": [
-      "file"
+      "other_app"
      ],
-     "text": "a plaintext Aegis export (made with the app's own export) is imported, so its content is read directly (AegisImporter.java:49-52)"
+     "text": "a file comes back from the system document picker (ACTION_GET_CONTENT; ImportExportPreferencesFragment.java:146-158, WelcomeSlide, EditEntryActivity.java:147-158): an import file or icon exists in the app only after that pick"
     }
    ],
+   "state": [],
    "route_edge_classes": [
     "explicit",
     "standard"
@@ -16573,16 +16581,15 @@
       "other"
      ],
      "text": "the device grants Aegis root access, so the root shell opens and reports root (ImportEntriesActivity.java:149-153; RootShellTask.java:17-20)"
-    }
-   ],
-   "state": [
+    },
     {
      "kinds": [
-      "file"
+      "other_app"
      ],
-     "text": "app state: an Aegis export (made with the app's own export) is imported, so each entry is converted (AegisImporter.java:153-156), as for E2936b7b5"
+     "text": "a file comes back from the system document picker (ACTION_GET_CONTENT; ImportExportPreferencesFragment.java:146-158, WelcomeSlide, EditEntryActivity.java:147-158): an import file or icon exists in the app only after that pick"
     }
    ],
+   "state": [],
    "route_edge_classes": [
     "explicit",
     "standard"
@@ -16599,16 +16606,15 @@
       "other"
      ],
      "text": "the device grants Aegis root access, so the root shell opens and reports root (ImportEntriesActivity.java:149-153; RootShellTask.java:17-20)"
-    }
-   ],
-   "state": [
+    },
     {
      "kinds": [
-      "file"
+      "other_app"
      ],
-     "text": "app state: an Aegis export with groups (the app's own export has the groups field) is imported, so each group is converted (AegisImporter.java:137-142)"
+     "text": "a file comes back from the system document picker (ACTION_GET_CONTENT; ImportExportPreferencesFragment.java:146-158, WelcomeSlide, EditEntryActivity.java:147-158): an import file or icon exists in the app only after that pick"
     }
    ],
+   "state": [],
    "route_edge_classes": [
     "explicit",
     "standard"
@@ -16650,16 +16656,15 @@
       "other_app"
      ],
      "text": "the system document picker of another app returns a file (ACTION_GET_CONTENT, ImportExportPreferencesFragment.java:110-112)"
-    }
-   ],
-   "state": [
+    },
     {
      "kinds": [
-      "file"
+      "other_app"
      ],
-     "text": "app state: an encrypted Aegis export (made with the app's own encrypted export) is imported (AegisImporter.java:49-50)"
+     "text": "a file comes back from the system document picker (ACTION_GET_CONTENT; ImportExportPreferencesFragment.java:146-158, WelcomeSlide, EditEntryActivity.java:147-158): an import file or icon exists in the app only after that pick"
     }
    ],
+   "state": [],
    "route_edge_classes": [
     "explicit",
     "standard"
@@ -16676,16 +16681,15 @@
       "other_app"
      ],
      "text": "the system document picker of another app returns a file (ACTION_GET_CONTENT, ImportExportPreferencesFragment.java:110-112)"
-    }
-   ],
-   "state": [
+    },
     {
      "kinds": [
-      "session"
+      "other_app"
      ],
-     "text": "The Settings import picker returned a file and its import task was started (ImportExportPreferencesFragment.java:146-158)"
+     "text": "a file comes back from the system document picker (ACTION_GET_CONTENT; ImportExportPreferencesFragment.java:146-158, WelcomeSlide, EditEntryActivity.java:147-158): an import file or icon exists in the app only after that pick"
     }
    ],
+   "state": [],
    "route_edge_classes": [
     "explicit",
     "standard"
@@ -16702,16 +16706,15 @@
       "other_app"
      ],
      "text": "the system document picker of another app returns a file (ACTION_GET_CONTENT, ImportExportPreferencesFragment.java:110-112)"
-    }
-   ],
-   "state": [
+    },
     {
      "kinds": [
-      "session"
+      "other_app"
      ],
-     "text": "The Settings import picker returned a file and its import task was started (ImportExportPreferencesFragment.java:146-158)"
+     "text": "a file comes back from the system document picker (ACTION_GET_CONTENT; ImportExportPreferencesFragment.java:146-158, WelcomeSlide, EditEntryActivity.java:147-158): an import file or icon exists in the app only after that pick"
     }
    ],
+   "state": [],
    "route_edge_classes": [
     "explicit",
     "standard"
@@ -16737,16 +16740,15 @@
       "other_app"
      ],
      "text": "the system document picker of another app returns a file (ACTION_GET_CONTENT, ImportExportPreferencesFragment.java:110-112)"
-    }
-   ],
-   "state": [
+    },
     {
      "kinds": [
-      "session"
+      "other_app"
      ],
-     "text": "The Settings import picker returned a file and its import task was started (ImportExportPreferencesFragment.java:146-158)"
+     "text": "a file comes back from the system document picker (ACTION_GET_CONTENT; ImportExportPreferencesFragment.java:146-158, WelcomeSlide, EditEntryActivity.java:147-158): an import file or icon exists in the app only after that pick"
     }
    ],
+   "state": [],
    "route_edge_classes": [
     "explicit",
     "standard"
@@ -16763,16 +16765,15 @@
       "other_app"
      ],
      "text": "the system document picker of another app returns a file (ACTION_GET_CONTENT, ImportExportPreferencesFragment.java:110-112)"
-    }
-   ],
-   "state": [
+    },
     {
      "kinds": [
-      "session"
+      "other_app"
      ],
-     "text": "The Settings import picker returned a file and its import task was started (ImportExportPreferencesFragment.java:146-158)"
+     "text": "a file comes back from the system document picker (ACTION_GET_CONTENT; ImportExportPreferencesFragment.java:146-158, WelcomeSlide, EditEntryActivity.java:147-158): an import file or icon exists in the app only after that pick"
     }
    ],
+   "state": [],
    "route_edge_classes": [
     "explicit",
     "standard"
@@ -16789,16 +16790,15 @@
       "other_app"
      ],
      "text": "the system document picker of another app returns a file (ACTION_GET_CONTENT, ImportExportPreferencesFragment.java:110-112)"
-    }
-   ],
-   "state": [
+    },
     {
      "kinds": [
-      "session"
+      "other_app"
      ],
-     "text": "The Settings import picker returned a file and its import task was started (ImportExportPreferencesFragment.java:146-158)"
+     "text": "a file comes back from the system document picker (ACTION_GET_CONTENT; ImportExportPreferencesFragment.java:146-158, WelcomeSlide, EditEntryActivity.java:147-158): an import file or icon exists in the app only after that pick"
     }
    ],
+   "state": [],
    "route_edge_classes": [
     "explicit",
     "standard"
@@ -16809,15 +16809,15 @@
    "path_status": "UNCHECKED"
   },
   "AegisImporter$EncryptedState.lambda$decrypt$2": {
-   "env": [],
-   "state": [
+   "env": [
     {
      "kinds": [
-      "file"
+      "other_app"
      ],
-     "text": "app state: the password dialog of an encrypted Aegis export import is cancelled (Dialogs.java:217), as for Ed482f1f4"
+     "text": "a file comes back from the system document picker (ACTION_GET_CONTENT; ImportExportPreferencesFragment.java:146-158, WelcomeSlide, EditEntryActivity.java:147-158): an import file or icon exists in the app only after that pick"
     }
    ],
+   "state": [],
    "route_edge_classes": [
     "explicit",
     "standard"
@@ -18100,16 +18100,15 @@
       "other"
      ],
      "text": "the device grants Aegis root access, so the root shell opens and reports root (ImportEntriesActivity.java:149-153; RootShellTask.java:17-20)"
-    }
-   ],
-   "state": [
+    },
     {
      "kinds": [
-      "file"
+      "other_app"
      ],
-     "text": "an encrypted import file (e.g. the app's own encrypted export) is chosen, so the decrypt listener is made (ImportEntriesActivity.java:178-179), as for Ee1503195"
+     "text": "a file comes back from the system document picker (ACTION_GET_CONTENT; ImportExportPreferencesFragment.java:146-158, WelcomeSlide, EditEntryActivity.java:147-158): an import file or icon exists in the app only after that pick"
     }
    ],
+   "state": [],
    "route_edge_classes": [
     "explicit",
     "standard"
@@ -18243,16 +18242,15 @@
       "other"
      ],
      "text": "the device grants Aegis root access, so the root shell opens and reports root (ImportEntriesActivity.java:149-153; RootShellTask.java:17-20)"
-    }
-   ],
-   "state": [
+    },
     {
      "kinds": [
-      "file"
+      "other_app"
      ],
-     "text": "app state: an Aegis export with groups (the app's own export has the groups field) is imported, so each new group is added (AegisImporter.java:137-144), as for E578db68d"
+     "text": "a file comes back from the system document picker (ACTION_GET_CONTENT; ImportExportPreferencesFragment.java:146-158, WelcomeSlide, EditEntryActivity.java:147-158): an import file or icon exists in the app only after that pick"
     }
    ],
+   "state": [],
    "route_edge_classes": [
     "explicit",
     "standard"
@@ -18263,58 +18261,58 @@
    "path_status": "UNCHECKED"
   },
   "DatabaseImporter$Result.getEntries": {
-   "env": [],
-   "state": [
+   "env": [
     {
      "kinds": [
-      "data"
+      "other_app"
      ],
-     "text": "The vault icons are not marked optimised yet: Vault.areIconsOptimized is false (MainActivity.java:767)"
+     "text": "an entry icon that is not optimised yet: no baseline entry has an icon, and an icon comes only from a picked image or an icon pack (system picker, another app; IconPacksManagerFragment, EditEntryActivity.java:147-158) or from the vault of an older app version (Vault.java:92-93)"
     }
    ],
+   "state": [],
    "route_edge_classes": [
     "explicit",
     "standard"
    ],
-   "explicit_standard_route": false,
+   "explicit_standard_route": true,
    "confirmed_by": "INFERRED",
    "source_ref": "ImportEntriesActivity.java:237",
    "path_status": "UNCHECKED"
   },
   "DatabaseImporter$Result.getErrors": {
-   "env": [],
-   "state": [
+   "env": [
     {
      "kinds": [
-      "data"
+      "other_app"
      ],
-     "text": "The vault icons are not marked optimised yet: Vault.areIconsOptimized is false (MainActivity.java:767)"
+     "text": "an entry icon that is not optimised yet: no baseline entry has an icon, and an icon comes only from a picked image or an icon pack (system picker, another app; IconPacksManagerFragment, EditEntryActivity.java:147-158) or from the vault of an older app version (Vault.java:92-93)"
     }
    ],
+   "state": [],
    "route_edge_classes": [
     "explicit",
     "standard"
    ],
-   "explicit_standard_route": false,
+   "explicit_standard_route": true,
    "confirmed_by": "INFERRED",
    "source_ref": "ImportEntriesActivity.java:245",
    "path_status": "UNCHECKED"
   },
   "DatabaseImporter$Result.getGroups": {
-   "env": [],
-   "state": [
+   "env": [
     {
      "kinds": [
-      "data"
+      "other_app"
      ],
-     "text": "The vault icons are not marked optimised yet: Vault.areIconsOptimized is false (MainActivity.java:767)"
+     "text": "an entry icon that is not optimised yet: no baseline entry has an icon, and an icon comes only from a picked image or an icon pack (system picker, another app; IconPacksManagerFragment, EditEntryActivity.java:147-158) or from the vault of an older app version (Vault.java:92-93)"
     }
    ],
+   "state": [],
    "route_edge_classes": [
     "explicit",
     "standard"
    ],
-   "explicit_standard_route": false,
+   "explicit_standard_route": true,
    "confirmed_by": "INFERRED",
    "source_ref": "ImportEntriesActivity.java:243",
    "path_status": "UNCHECKED"
@@ -22325,7 +22323,14 @@
    "path_status": "UNCHECKED"
   },
   "GoogleAuthInfoException.getMessage": {
-   "env": [],
+   "env": [
+    {
+     "kinds": [
+      "other_app"
+     ],
+     "text": "an object of GoogleAuthInfoException is made in the app only on a route with an env gate (no <init> of the class is reachable without one), so the env action comes first"
+    }
+   ],
    "state": [],
    "route_edge_classes": [
     "explicit",
@@ -24267,17 +24272,16 @@
      "kinds": [
       "other_app"
      ],
+     "text": "a file comes back from the system document picker (ACTION_GET_CONTENT; ImportExportPreferencesFragment.java:146-158, WelcomeSlide, EditEntryActivity.java:147-158): an import file or icon exists in the app only after that pick"
+    },
+    {
+     "kinds": [
+      "other_app"
+     ],
      "text": "outside package: an icon pack is installed (imported in the app from its ZIP), so the assign icons page is shown after an import or from the selection menu; GUI: an icon of the pack is tapped there (IconAdapter.java:168-179)"
     }
    ],
-   "state": [
-    {
-     "kinds": [
-      "data"
-     ],
-     "text": "an icon pack is imported, so the icon list has icons to bind (loadIcons fills _icons, :87-89); the baseline has none"
-    }
-   ],
+   "state": [],
    "route_edge_classes": [
     "explicit",
     "standard"
@@ -24591,7 +24595,7 @@
    ],
    "explicit_standard_route": true,
    "confirmed_by": "INFERRED",
-   "source_ref": "core/java/android/view/View.java:6289-6296",
+   "source_ref": "AndroidManifest.xml:21-27 (android:name=\".AegisApplication\", backupAgent=\".AegisBackupAgent\")",
    "path_status": "WRONG"
   },
   "AuthActivity.lambda$onCreate$4": {
@@ -24627,6 +24631,12 @@
   },
   "AuthActivity.lambda$showPasswordReminder$5": {
    "env": [
+    {
+     "kinds": [
+      "hardware"
+     ],
+     "text": "round 3b: the password reminder is shown on attach only with a biometric key (_bioKey, set only when a fingerprint slot unlocks; biometric hardware) and the reminder due (AuthActivity.java:235-237)"
+    },
     {
      "kinds": [
       "time"
@@ -24748,7 +24758,14 @@
    "path_status": "UNCHECKED"
   },
   "AuthActivity.showPasswordReminder": {
-   "env": [],
+   "env": [
+    {
+     "kinds": [
+      "hardware"
+     ],
+     "text": "round 3b: the password reminder is shown on attach only with a biometric key (_bioKey, set only when a fingerprint slot unlocks; biometric hardware) and the reminder due (AuthActivity.java:235-237)"
+    }
+   ],
    "state": [],
    "route_edge_classes": [
     "explicit",
@@ -25065,16 +25082,15 @@
       "other_app"
      ],
      "text": "the user picks an image or a file in the chooser of another app (EditEntryActivity.startImageSelectionActivity, EditEntryActivity.java:568-577)"
-    }
-   ],
-   "state": [
+    },
     {
      "kinds": [
-      "session"
+      "other_app"
      ],
-     "text": "The icon picker returned an SVG file and its import task was started (EditEntryActivity.java:148-158)"
+     "text": "a file comes back from the system document picker (ACTION_GET_CONTENT; ImportExportPreferencesFragment.java:146-158, WelcomeSlide, EditEntryActivity.java:147-158): an import file or icon exists in the app only after that pick"
     }
    ],
+   "state": [],
    "route_edge_classes": [
     "explicit",
     "standard"
@@ -25825,16 +25841,15 @@
       "other_app"
      ],
      "text": "the user picks an image or a file in the chooser of another app (EditEntryActivity.startImageSelectionActivity, EditEntryActivity.java:568-577)"
-    }
-   ],
-   "state": [
+    },
     {
      "kinds": [
-      "session"
+      "other_app"
      ],
-     "text": "The icon picker returned an SVG file and its import task was started (EditEntryActivity.java:148-158)"
+     "text": "a file comes back from the system document picker (ACTION_GET_CONTENT; ImportExportPreferencesFragment.java:146-158, WelcomeSlide, EditEntryActivity.java:147-158): an import file or icon exists in the app only after that pick"
     }
    ],
+   "state": [],
    "route_edge_classes": [
     "explicit",
     "standard"
@@ -26492,15 +26507,15 @@
    "path_status": "UNCHECKED"
   },
   "ImportEntriesActivity.findDuplicates": {
-   "env": [],
-   "state": [
+   "env": [
     {
      "kinds": [
-      "data"
+      "other_app"
      ],
-     "text": "The vault icons are not marked optimised yet: Vault.areIconsOptimized is false (MainActivity.java:767)"
+     "text": "an entry icon that is not optimised yet: no baseline entry has an icon, and an icon comes only from a picked image or an icon pack (system picker, another app; IconPacksManagerFragment, EditEntryActivity.java:147-158) or from the vault of an older app version (Vault.java:92-93)"
     }
    ],
+   "state": [],
    "route_edge_classes": [
     "explicit",
     "standard"
@@ -26511,15 +26526,15 @@
    "path_status": "UNCHECKED"
   },
   "ImportEntriesActivity.lambda$findDuplicates$12": {
-   "env": [],
-   "state": [
+   "env": [
     {
      "kinds": [
-      "data"
+      "other_app"
      ],
-     "text": "The vault icons are not marked optimised yet: Vault.areIconsOptimized is false (MainActivity.java:767)"
+     "text": "an entry icon that is not optimised yet: no baseline entry has an icon, and an icon comes only from a picked image or an icon pack (system picker, another app; IconPacksManagerFragment, EditEntryActivity.java:147-158) or from the vault of an older app version (Vault.java:92-93)"
     }
    ],
+   "state": [],
    "route_edge_classes": [
     "explicit",
     "standard"
@@ -26579,15 +26594,15 @@
    "path_status": "UNCHECKED"
   },
   "ImportEntriesActivity.lambda$processDecryptedImporterState$9": {
-   "env": [],
-   "state": [
+   "env": [
     {
      "kinds": [
-      "data"
+      "other_app"
      ],
-     "text": "The vault icons are not marked optimised yet: Vault.areIconsOptimized is false (MainActivity.java:767)"
+     "text": "an entry icon that is not optimised yet: no baseline entry has an icon, and an icon comes only from a picked image or an icon pack (system picker, another app; IconPacksManagerFragment, EditEntryActivity.java:147-158) or from the vault of an older app version (Vault.java:92-93)"
     }
    ],
+   "state": [],
    "route_edge_classes": [
     "explicit",
     "standard"
@@ -26777,15 +26792,15 @@
    "path_status": "UNCHECKED"
   },
   "ImportEntriesActivity.processImporterResult": {
-   "env": [],
-   "state": [
+   "env": [
     {
      "kinds": [
-      "data"
+      "other_app"
      ],
-     "text": "The vault icons are not marked optimised yet: Vault.areIconsOptimized is false (MainActivity.java:767)"
+     "text": "an entry icon that is not optimised yet: no baseline entry has an icon, and an icon comes only from a picked image or an icon pack (system picker, another app; IconPacksManagerFragment, EditEntryActivity.java:147-158) or from the vault of an older app version (Vault.java:92-93)"
     }
    ],
+   "state": [],
    "route_edge_classes": [
     "explicit",
     "standard"
@@ -26827,15 +26842,15 @@
    "path_status": "UNCHECKED"
   },
   "ImportEntriesActivity.showWipeEntriesDialog": {
-   "env": [],
-   "state": [
+   "env": [
     {
      "kinds": [
-      "file"
+      "other_app"
      ],
-     "text": "an import file is read (an Aegis export made in the app, or another app's export) with the wipe option on and the vault holds entries, so Save asks to wipe them (ImportEntriesActivity.java:94-96)"
+     "text": "a file comes back from the system document picker (ACTION_GET_CONTENT; ImportExportPreferencesFragment.java:146-158, WelcomeSlide, EditEntryActivity.java:147-158): an import file or icon exists in the app only after that pick"
     }
    ],
+   "state": [],
    "route_edge_classes": [
     "explicit",
     "standard"
@@ -26901,15 +26916,15 @@
    "path_status": "UNCHECKED"
   },
   "ImportEntriesActivity$1.onScrolled": {
-   "env": [],
-   "state": [
+   "env": [
     {
      "kinds": [
-      "file"
+      "other_app"
      ],
-     "text": "an import file is read (an Aegis export made in the app, or another app's export) and the list of its entries is scrolled, as for E2936b7b5"
+     "text": "a file comes back from the system document picker (ACTION_GET_CONTENT; ImportExportPreferencesFragment.java:146-158, WelcomeSlide, EditEntryActivity.java:147-158): an import file or icon exists in the app only after that pick"
     }
    ],
+   "state": [],
    "route_edge_classes": [
     "explicit",
     "standard"
@@ -26939,7 +26954,14 @@
    "path_status": "UNCHECKED"
   },
   "ImportEntriesActivity$2.lambda$onError$0": {
-   "env": [],
+   "env": [
+    {
+     "kinds": [
+      "other"
+     ],
+     "text": "an object of ImportEntriesActivity$2 is made in the app only on a route with an env gate (no <init> of the class is reachable without one), so the env action comes first"
+    }
+   ],
    "state": [],
    "route_edge_classes": [
     "explicit",
@@ -26951,28 +26973,22 @@
    "path_status": "UNCHECKED"
   },
   "ImportEntriesActivity$2.onCanceled": {
-   "env": [],
-   "state": [
+   "env": [
     {
      "kinds": [
-      "file"
+      "other_app"
      ],
-     "text": "app state: the password dialog of an encrypted Aegis export import is cancelled (Dialogs.java:217), as for Ed482f1f4"
-    },
-    {
-     "kinds": [
-      "file"
-     ],
-     "text": "an encrypted Aegis export made in the app is imported in Import and export; GUI: cancel its password dialog (AegisImporter.java:95-109)"
+     "text": "outside package: the password dialog of an encrypted andOTP backup import is cancelled (Dialogs.java:217)"
     }
    ],
+   "state": [],
    "route_edge_classes": [
     "explicit",
     "standard"
    ],
-   "explicit_standard_route": false,
+   "explicit_standard_route": true,
    "confirmed_by": "INFERRED",
-   "source_ref": "AegisImporter.java:109",
+   "source_ref": "AndOtpImporter.java:197",
    "path_status": "UNCHECKED"
   },
   "ImportEntriesActivity$2.onError": {
@@ -27014,21 +27030,21 @@
    "path_status": "UNCHECKED"
   },
   "ImportEntriesActivity$3.<init>": {
-   "env": [],
-   "state": [
+   "env": [
     {
      "kinds": [
-      "data"
+      "other_app"
      ],
-     "text": "The vault icons are not marked optimised yet: Vault.areIconsOptimized is false (MainActivity.java:767)"
+     "text": "an entry icon that is not optimised yet: no baseline entry has an icon, and an icon comes only from a picked image or an icon pack (system picker, another app; IconPacksManagerFragment, EditEntryActivity.java:147-158) or from the vault of an older app version (Vault.java:92-93)"
     },
     {
      "kinds": [
-      "file"
+      "other_app"
      ],
-     "text": "an import file holds an entry already in the vault (for example the app's own export of the baseline vault), so the duplicate snackbar is made (ImportEntriesActivity.java:356-362)"
+     "text": "a file comes back from the system document picker (ACTION_GET_CONTENT; ImportExportPreferencesFragment.java:146-158, WelcomeSlide, EditEntryActivity.java:147-158): an import file or icon exists in the app only after that pick"
     }
    ],
+   "state": [],
    "route_edge_classes": [
     "explicit",
     "standard"
@@ -27039,15 +27055,15 @@
    "path_status": "UNCHECKED"
   },
   "ImportEntriesActivity$3.onDismissed": {
-   "env": [],
-   "state": [
+   "env": [
     {
      "kinds": [
-      "data"
+      "other_app"
      ],
-     "text": "The vault icons are not marked optimised yet: Vault.areIconsOptimized is false (MainActivity.java:767)"
+     "text": "an entry icon that is not optimised yet: no baseline entry has an icon, and an icon comes only from a picked image or an icon pack (system picker, another app; IconPacksManagerFragment, EditEntryActivity.java:147-158) or from the vault of an older app version (Vault.java:92-93)"
     }
    ],
+   "state": [],
    "route_edge_classes": [
     "explicit",
     "standard"
@@ -27058,21 +27074,21 @@
    "path_status": "UNCHECKED"
   },
   "ImportEntriesActivity$3.onShown": {
-   "env": [],
-   "state": [
+   "env": [
     {
      "kinds": [
-      "data"
+      "other_app"
      ],
-     "text": "The vault icons are not marked optimised yet: Vault.areIconsOptimized is false (MainActivity.java:767)"
+     "text": "an entry icon that is not optimised yet: no baseline entry has an icon, and an icon comes only from a picked image or an icon pack (system picker, another app; IconPacksManagerFragment, EditEntryActivity.java:147-158) or from the vault of an older app version (Vault.java:92-93)"
     },
     {
      "kinds": [
-      "file"
+      "other_app"
      ],
-     "text": "an import file holds an entry already in the vault (for example the app's own export of the baseline vault), so the duplicate snackbar is shown (ImportEntriesActivity.java:356-362)"
+     "text": "a file comes back from the system document picker (ACTION_GET_CONTENT; ImportExportPreferencesFragment.java:146-158, WelcomeSlide, EditEntryActivity.java:147-158): an import file or icon exists in the app only after that pick"
     }
    ],
+   "state": [],
    "route_edge_classes": [
     "explicit",
     "standard"
@@ -27083,15 +27099,15 @@
    "path_status": "UNCHECKED"
   },
   "ImportEntriesActivity$4.<init>": {
-   "env": [],
-   "state": [
+   "env": [
     {
      "kinds": [
-      "data"
+      "other_app"
      ],
-     "text": "The vault icons are not marked optimised yet: Vault.areIconsOptimized is false (MainActivity.java:767)"
+     "text": "an entry icon that is not optimised yet: no baseline entry has an icon, and an icon comes only from a picked image or an icon pack (system picker, another app; IconPacksManagerFragment, EditEntryActivity.java:147-158) or from the vault of an older app version (Vault.java:92-93)"
     }
    ],
+   "state": [],
    "route_edge_classes": [
     "explicit",
     "standard"
@@ -27102,21 +27118,21 @@
    "path_status": "UNCHECKED"
   },
   "ImportEntriesActivity$4.onClick": {
-   "env": [],
-   "state": [
+   "env": [
     {
      "kinds": [
-      "data"
+      "other_app"
      ],
-     "text": "The vault icons are not marked optimised yet: Vault.areIconsOptimized is false (MainActivity.java:767)"
+     "text": "an entry icon that is not optimised yet: no baseline entry has an icon, and an icon comes only from a picked image or an icon pack (system picker, another app; IconPacksManagerFragment, EditEntryActivity.java:147-158) or from the vault of an older app version (Vault.java:92-93)"
     },
     {
      "kinds": [
-      "file"
+      "other_app"
      ],
-     "text": "an import file holds an entry already in the vault, and Undo in the duplicate snackbar checks the duplicates again (ImportEntriesActivity.java:356-362)"
+     "text": "a file comes back from the system document picker (ACTION_GET_CONTENT; ImportExportPreferencesFragment.java:146-158, WelcomeSlide, EditEntryActivity.java:147-158): an import file or icon exists in the app only after that pick"
     }
    ],
+   "state": [],
    "route_edge_classes": [
     "explicit",
     "standard"
@@ -27786,19 +27802,20 @@
    "path_status": "UNCHECKED"
   },
   "MainActivity.lambda$showPlaintextExportWarningOptions$32": {
-   "env": [],
+   "env": [
+    {
+     "kinds": [
+      "other_app"
+     ],
+     "text": "an export file was saved in the system document creator (ACTION_CREATE_DOCUMENT, ImportExportPreferencesFragment.java:494-500): the export flag is set only after that"
+    }
+   ],
    "state": [
     {
      "kinds": [
       "settings"
      ],
      "text": "The main screen shows an error card (updateErrorCard set an ErrorCardInfo, MainActivity.java:1163-1197)"
-    },
-    {
-     "kinds": [
-      "data"
-     ],
-     "text": "a plaintext export was made (it sets the plaintext warning, ImportExportPreferencesFragment.java:494-500), so the error card offers the warning options (MainActivity.java:1192-1193)"
     }
    ],
    "route_edge_classes": [
@@ -28337,15 +28354,15 @@
    "path_status": "UNCHECKED"
   },
   "MainActivity.onIconsOptimized": {
-   "env": [],
-   "state": [
+   "env": [
     {
      "kinds": [
-      "data"
+      "other_app"
      ],
-     "text": "The vault icons are not marked optimised yet: Vault.areIconsOptimized is false (MainActivity.java:767)"
+     "text": "an entry icon that is not optimised yet: no baseline entry has an icon, and an icon comes only from a picked image or an icon pack (system picker, another app; IconPacksManagerFragment, EditEntryActivity.java:147-158) or from the vault of an older app version (Vault.java:92-93)"
     }
    ],
+   "state": [],
    "route_edge_classes": [
     "explicit",
     "standard"
@@ -28617,9 +28634,9 @@
    "state": [
     {
      "kinds": [
-      "data"
+      "session"
      ],
-     "text": "The vault icons are not marked optimised yet: Vault.areIconsOptimized is false (MainActivity.java:767)"
+     "text": "The assign-groups dialog is open (startAssignGroupsDialog ran; MainActivity.java:533-601)"
     }
    ],
    "route_edge_classes": [
@@ -28628,7 +28645,7 @@
    ],
    "explicit_standard_route": true,
    "confirmed_by": "INFERRED",
-   "source_ref": "MainActivity.java:790",
+   "source_ref": "MainActivity.java:594",
    "path_status": "UNCHECKED"
   },
   "MainActivity.setAssignIconsMenuItemVisibility": {
@@ -28699,19 +28716,20 @@
    "path_status": "UNCHECKED"
   },
   "MainActivity.showPlaintextExportWarningOptions": {
-   "env": [],
+   "env": [
+    {
+     "kinds": [
+      "other_app"
+     ],
+     "text": "an export file was saved in the system document creator (ACTION_CREATE_DOCUMENT, ImportExportPreferencesFragment.java:494-500): the export flag is set only after that"
+    }
+   ],
    "state": [
     {
      "kinds": [
       "settings"
      ],
      "text": "The main screen shows an error card (updateErrorCard set an ErrorCardInfo, MainActivity.java:1163-1197)"
-    },
-    {
-     "kinds": [
-      "data"
-     ],
-     "text": "a plaintext export was made (it sets the plaintext warning, ImportExportPreferencesFragment.java:494-500), so the error card offers the warning options (MainActivity.java:1192-1193)"
     }
    ],
    "route_edge_classes": [
@@ -30238,15 +30256,15 @@
    "path_status": "UNCHECKED"
   },
   "Dialogs.lambda$showBackupVersionsPickerDialog$14": {
-   "env": [],
-   "state": [
+   "env": [
     {
      "kinds": [
-      "settings"
+      "other_app"
      ],
-     "text": "automatic backups are on (pref_backups, default off, Preferences.java:401) with a versioning strategy other than single backup, so the versions row is shown (BackupsPreferencesFragment.java:210)"
+     "text": "automatic backups are turned on only in the result of the system folder picker (ACTION_OPEN_DOCUMENT_TREE, BackupsPreferencesFragment.java:79-89,175-189,263-264), and an Android backup result is written by the system backup service; either needs the system first"
     }
    ],
+   "state": [],
    "route_edge_classes": [
     "explicit",
     "standard"
@@ -30366,15 +30384,15 @@
    "path_status": "UNCHECKED"
   },
   "Dialogs.lambda$showDetailedMultiErrorDialog$21": {
-   "env": [],
-   "state": [
+   "env": [
     {
      "kinds": [
-      "data"
+      "other_app"
      ],
-     "text": "The vault icons are not marked optimised yet: Vault.areIconsOptimized is false (MainActivity.java:767)"
+     "text": "an entry icon that is not optimised yet: no baseline entry has an icon, and an icon comes only from a picked image or an icon pack (system picker, another app; IconPacksManagerFragment, EditEntryActivity.java:147-158) or from the vault of an older app version (Vault.java:92-93)"
     }
    ],
+   "state": [],
    "route_edge_classes": [
     "explicit",
     "standard"
@@ -30385,15 +30403,15 @@
    "path_status": "UNCHECKED"
   },
   "Dialogs.lambda$showDetailedMultiErrorDialog$22": {
-   "env": [],
-   "state": [
+   "env": [
     {
      "kinds": [
-      "data"
+      "other_app"
      ],
-     "text": "The vault icons are not marked optimised yet: Vault.areIconsOptimized is false (MainActivity.java:767)"
+     "text": "an entry icon that is not optimised yet: no baseline entry has an icon, and an icon comes only from a picked image or an icon pack (system picker, another app; IconPacksManagerFragment, EditEntryActivity.java:147-158) or from the vault of an older app version (Vault.java:92-93)"
     }
    ],
+   "state": [],
    "route_edge_classes": [
     "explicit",
     "standard"
@@ -30404,15 +30422,15 @@
    "path_status": "UNCHECKED"
   },
   "Dialogs.lambda$showDetailedMultiErrorDialog$23": {
-   "env": [],
-   "state": [
+   "env": [
     {
      "kinds": [
-      "data"
+      "other_app"
      ],
-     "text": "The vault icons are not marked optimised yet: Vault.areIconsOptimized is false (MainActivity.java:767)"
+     "text": "an entry icon that is not optimised yet: no baseline entry has an icon, and an icon comes only from a picked image or an icon pack (system picker, another app; IconPacksManagerFragment, EditEntryActivity.java:147-158) or from the vault of an older app version (Vault.java:92-93)"
     }
    ],
+   "state": [],
    "route_edge_classes": [
     "explicit",
     "standard"
@@ -30492,15 +30510,15 @@
    "path_status": "UNCHECKED"
   },
   "Dialogs.lambda$showMultiErrorDialog$19": {
-   "env": [],
-   "state": [
+   "env": [
     {
      "kinds": [
-      "data"
+      "other_app"
      ],
-     "text": "The vault icons are not marked optimised yet: Vault.areIconsOptimized is false (MainActivity.java:767)"
+     "text": "an entry icon that is not optimised yet: no baseline entry has an icon, and an icon comes only from a picked image or an icon pack (system picker, another app; IconPacksManagerFragment, EditEntryActivity.java:147-158) or from the vault of an older app version (Vault.java:92-93)"
     }
    ],
+   "state": [],
    "route_edge_classes": [
     "explicit",
     "standard"
@@ -30511,15 +30529,15 @@
    "path_status": "UNCHECKED"
   },
   "Dialogs.lambda$showMultiErrorDialog$20": {
-   "env": [],
-   "state": [
+   "env": [
     {
      "kinds": [
-      "data"
+      "other_app"
      ],
-     "text": "The vault icons are not marked optimised yet: Vault.areIconsOptimized is false (MainActivity.java:767)"
+     "text": "an entry icon that is not optimised yet: no baseline entry has an icon, and an icon comes only from a picked image or an icon pack (system picker, another app; IconPacksManagerFragment, EditEntryActivity.java:147-158) or from the vault of an older app version (Vault.java:92-93)"
     }
    ],
+   "state": [],
    "route_edge_classes": [
     "explicit",
     "standard"
@@ -30815,15 +30833,15 @@
    "path_status": "UNCHECKED"
   },
   "Dialogs.showBackupVersionsPickerDialog": {
-   "env": [],
-   "state": [
+   "env": [
     {
      "kinds": [
-      "settings"
+      "other_app"
      ],
-     "text": "automatic backups are on (pref_backups, default off, Preferences.java:401) with a versioning strategy other than single backup, so the versions row is shown (BackupsPreferencesFragment.java:210)"
+     "text": "automatic backups are turned on only in the result of the system folder picker (ACTION_OPEN_DOCUMENT_TREE, BackupsPreferencesFragment.java:79-89,175-189,263-264), and an Android backup result is written by the system backup service; either needs the system first"
     }
    ],
+   "state": [],
    "route_edge_classes": [
     "explicit",
     "standard"
@@ -30870,15 +30888,15 @@
    "path_status": "UNCHECKED"
   },
   "Dialogs.showDetailedMultiErrorDialog": {
-   "env": [],
-   "state": [
+   "env": [
     {
      "kinds": [
-      "data"
+      "other_app"
      ],
-     "text": "The vault icons are not marked optimised yet: Vault.areIconsOptimized is false (MainActivity.java:767)"
+     "text": "an entry icon that is not optimised yet: no baseline entry has an icon, and an icon comes only from a picked image or an icon pack (system picker, another app; IconPacksManagerFragment, EditEntryActivity.java:147-158) or from the vault of an older app version (Vault.java:92-93)"
     }
    ],
+   "state": [],
    "route_edge_classes": [
     "explicit",
     "standard"
@@ -30940,7 +30958,7 @@
    ],
    "explicit_standard_route": true,
    "confirmed_by": "INFERRED",
-   "source_ref": "ui/AuthActivity.java:295-307",
+   "source_ref": "VaultManager.java:252",
    "path_status": "UNCHECKED"
   },
   "Dialogs.showErrorDialog(Context,int,Exception,OnClickListener)": {
@@ -30998,15 +31016,15 @@
    "path_status": "UNCHECKED"
   },
   "Dialogs.showMultiErrorDialog": {
-   "env": [],
-   "state": [
+   "env": [
     {
      "kinds": [
-      "data"
+      "other_app"
      ],
-     "text": "The vault icons are not marked optimised yet: Vault.areIconsOptimized is false (MainActivity.java:767)"
+     "text": "an entry icon that is not optimised yet: no baseline entry has an icon, and an icon comes only from a picked image or an icon pack (system picker, another app; IconPacksManagerFragment, EditEntryActivity.java:147-158) or from the vault of an older app version (Vault.java:92-93)"
     }
    ],
+   "state": [],
    "route_edge_classes": [
     "explicit",
     "standard"
@@ -31017,15 +31035,15 @@
    "path_status": "UNCHECKED"
   },
   "Dialogs.showMultiExceptionDialog": {
-   "env": [],
-   "state": [
+   "env": [
     {
      "kinds": [
-      "data"
+      "other_app"
      ],
-     "text": "The vault icons are not marked optimised yet: Vault.areIconsOptimized is false (MainActivity.java:767)"
+     "text": "an entry icon that is not optimised yet: no baseline entry has an icon, and an icon comes only from a picked image or an icon pack (system picker, another app; IconPacksManagerFragment, EditEntryActivity.java:147-158) or from the vault of an older app version (Vault.java:92-93)"
     }
    ],
+   "state": [],
    "route_edge_classes": [
     "explicit",
     "standard"
@@ -32037,15 +32055,15 @@
    "path_status": "UNCHECKED"
   },
   "BackupsPreferencesFragment.lambda$onCreatePreferences$10": {
-   "env": [],
-   "state": [
+   "env": [
     {
      "kinds": [
-      "settings"
+      "other_app"
      ],
-     "text": "automatic backups are on (pref_backups, default off, Preferences.java:401), so the Backup trigger row is shown and its tap runs a backup (BackupsPreferencesFragment.java:153-158, 209)"
+     "text": "automatic backups are turned on only in the result of the system folder picker (ACTION_OPEN_DOCUMENT_TREE, BackupsPreferencesFragment.java:79-89,175-189,263-264), and an Android backup result is written by the system backup service; either needs the system first"
     }
    ],
+   "state": [],
    "route_edge_classes": [
     "explicit",
     "standard"
@@ -32056,15 +32074,15 @@
    "path_status": "UNCHECKED"
   },
   "BackupsPreferencesFragment.lambda$onCreatePreferences$11": {
-   "env": [],
-   "state": [
+   "env": [
     {
      "kinds": [
-      "settings"
+      "other_app"
      ],
-     "text": "automatic backups are on (pref_backups, default off, Preferences.java:401) with a versioning strategy other than single backup, so the versions row is shown (BackupsPreferencesFragment.java:210)"
+     "text": "automatic backups are turned on only in the result of the system folder picker (ACTION_OPEN_DOCUMENT_TREE, BackupsPreferencesFragment.java:79-89,175-189,263-264), and an Android backup result is written by the system backup service; either needs the system first"
     }
    ],
+   "state": [],
    "route_edge_classes": [
     "explicit",
     "standard"
@@ -32075,15 +32093,15 @@
    "path_status": "UNCHECKED"
   },
   "BackupsPreferencesFragment.lambda$onCreatePreferences$12": {
-   "env": [],
-   "state": [
+   "env": [
     {
      "kinds": [
-      "settings"
+      "other_app"
      ],
-     "text": "automatic backups are on (pref_backups, default off, Preferences.java:401) with a versioning strategy other than single backup, so the versions row is shown (BackupsPreferencesFragment.java:210)"
+     "text": "automatic backups are turned on only in the result of the system folder picker (ACTION_OPEN_DOCUMENT_TREE, BackupsPreferencesFragment.java:79-89,175-189,263-264), and an Android backup result is written by the system backup service; either needs the system first"
     }
    ],
+   "state": [],
    "route_edge_classes": [
     "explicit",
     "standard"
@@ -32161,15 +32179,15 @@
    "path_status": "UNCHECKED"
   },
   "BackupsPreferencesFragment.lambda$onCreatePreferences$7": {
-   "env": [],
-   "state": [
+   "env": [
     {
      "kinds": [
-      "settings"
+      "other_app"
      ],
-     "text": "automatic backups are on (pref_backups, default off, Preferences.java:401), so the versioning strategy row is shown (BackupsPreferencesFragment.java:207)"
+     "text": "automatic backups are turned on only in the result of the system folder picker (ACTION_OPEN_DOCUMENT_TREE, BackupsPreferencesFragment.java:79-89,175-189,263-264), and an Android backup result is written by the system backup service; either needs the system first"
     }
    ],
+   "state": [],
    "route_edge_classes": [
     "explicit",
     "standard"
@@ -32192,15 +32210,15 @@
    "path_status": "UNCHECKED"
   },
   "BackupsPreferencesFragment.lambda$onCreatePreferences$9": {
-   "env": [],
-   "state": [
+   "env": [
     {
      "kinds": [
-      "settings"
+      "other_app"
      ],
-     "text": "automatic backups are on (pref_backups, default off, Preferences.java:401), so the backup location row is shown (BackupsPreferencesFragment.java:208)"
+     "text": "automatic backups are turned on only in the result of the system folder picker (ACTION_OPEN_DOCUMENT_TREE, BackupsPreferencesFragment.java:79-89,175-189,263-264), and an Android backup result is written by the system backup service; either needs the system first"
     }
    ],
+   "state": [],
    "route_edge_classes": [
     "explicit",
     "standard"
@@ -32267,28 +32285,23 @@
    "path_status": "UNCHECKED"
   },
   "BackupsPreferencesFragment.scheduleBackup": {
-   "env": [],
-   "state": [
+   "env": [
     {
      "kinds": [
-      "settings"
+      "other_app"
      ],
-     "text": "automatic backups are on (pref_backups, default off, Preferences.java:401), so the Backup trigger row is shown and its tap runs a backup (BackupsPreferencesFragment.java:153-158, 209)"
-    },
-    {
-     "kinds": [
-      "settings"
-     ],
-     "text": "automatic backups are on (pref_backups, default off), so the trigger row is shown (:209) and schedules a backup (BackupsPreferencesFragment.java:152-156)"
+     "text": "the user picks a backup folder (ACTION_OPEN_DOCUMENT_TREE) or chooses where to save the single backup file (ACTION_CREATE_DOCUMENT) in the system document picker of another app, and that app returns to Aegis (BackupsPreferencesFragment.java:255-271)"
     }
    ],
+   "state": [],
    "route_edge_classes": [
     "explicit",
+    "non_standard",
     "standard"
    ],
    "explicit_standard_route": true,
    "confirmed_by": "INFERRED",
-   "source_ref": "BackupsPreferencesFragment.java:155",
+   "source_ref": "BackupsPreferencesFragment.java:191",
    "path_status": "UNCHECKED"
   },
   "BackupsPreferencesFragment.selectBackupsLocation": {
@@ -34519,7 +34532,14 @@
    "path_status": "UNCHECKED"
   },
   "SecurityPreferencesFragment$SetBackupPasswordListener.onException": {
-   "env": [],
+   "env": [
+    {
+     "kinds": [
+      "other"
+     ],
+     "text": "outside the app: the crypto provider fails to make the encrypt cipher (SlotException, Dialogs.java:166-171) after the backup password dialog, as for E0f559a12"
+    }
+   ],
    "state": [],
    "route_edge_classes": [
     "explicit",
@@ -34527,7 +34547,7 @@
    ],
    "explicit_standard_route": true,
    "confirmed_by": "INFERRED",
-   "source_ref": "SecurityPreferencesFragment.java:382",
+   "source_ref": "Dialogs.java:171",
    "path_status": "UNCHECKED"
   },
   "SecurityPreferencesFragment$SetBackupPasswordListener.onSlotResult": {
@@ -34555,7 +34575,14 @@
    "path_status": "UNCHECKED"
   },
   "SecurityPreferencesFragment$SetPasswordListener.onException": {
-   "env": [],
+   "env": [
+    {
+     "kinds": [
+      "other"
+     ],
+     "text": "outside the app: the crypto provider fails to make the encrypt cipher (SlotException, Dialogs.java:166-171) after the set-password dialog, as for E0f559a12"
+    }
+   ],
    "state": [],
    "route_edge_classes": [
     "explicit",
@@ -34563,7 +34590,7 @@
    ],
    "explicit_standard_route": true,
    "confirmed_by": "INFERRED",
-   "source_ref": "SecurityPreferencesFragment.java:341",
+   "source_ref": "Dialogs.java:171",
    "path_status": "UNCHECKED"
   },
   "SecurityPreferencesFragment$SetPasswordListener.onSlotResult": {
@@ -34880,7 +34907,14 @@
    "path_status": "UNCHECKED"
   },
   "GlideHelper$ViewReadyListener.onLoadFailed": {
-   "env": [],
+   "env": [
+    {
+     "kinds": [
+      "other_app"
+     ],
+     "text": "an object of GlideHelper$ViewReadyListener is made in the app only on a route with an env gate (no <init> of the class is reachable without one), so the env action comes first"
+    }
+   ],
    "state": [],
    "route_edge_classes": [
     "explicit",
@@ -34892,7 +34926,14 @@
    "path_status": "UNCHECKED"
   },
   "GlideHelper$ViewReadyListener.onResourceReady": {
-   "env": [],
+   "env": [
+    {
+     "kinds": [
+      "other_app"
+     ],
+     "text": "an object of GlideHelper$ViewReadyListener is made in the app only on a route with an env gate (no <init> of the class is reachable without one), so the env action comes first"
+    }
+   ],
    "state": [],
    "route_edge_classes": [
     "explicit",
@@ -36589,7 +36630,14 @@
    "path_status": "UNCHECKED"
   },
   "SvgBytesDecoder.decode": {
-   "env": [],
+   "env": [
+    {
+     "kinds": [
+      "other_app"
+     ],
+     "text": "round 3b blind pass 1 (VaultEntryIconLoader.<clinit>): the icon branch of loadEntryIcon runs only for an entry with an icon (entry.hasIcon(), GlideHelper.java:40-41); no baseline entry has one, and an icon comes only from an icon pack or a picked image (another app or the system picker), as for the other edges of this branch"
+    }
+   ],
    "state": [],
    "route_edge_classes": [
     "explicit",
@@ -36601,7 +36649,14 @@
    "path_status": "UNCHECKED"
   },
   "SvgBytesDecoder.handles": {
-   "env": [],
+   "env": [
+    {
+     "kinds": [
+      "other_app"
+     ],
+     "text": "round 3b blind pass 1 (VaultEntryIconLoader.<clinit>): the icon branch of loadEntryIcon runs only for an entry with an icon (entry.hasIcon(), GlideHelper.java:40-41); no baseline entry has one, and an icon comes only from an icon pack or a picked image (another app or the system picker), as for the other edges of this branch"
+    }
+   ],
    "state": [],
    "route_edge_classes": [
     "explicit",
@@ -36626,7 +36681,14 @@
    "path_status": "UNCHECKED"
   },
   "SvgDecoder.decode": {
-   "env": [],
+   "env": [
+    {
+     "kinds": [
+      "other_app"
+     ],
+     "text": "round 3b blind pass 1 (VaultEntryIconLoader.<clinit>): the icon branch of loadEntryIcon runs only for an entry with an icon (entry.hasIcon(), GlideHelper.java:40-41); no baseline entry has one, and an icon comes only from an icon pack or a picked image (another app or the system picker), as for the other edges of this branch"
+    }
+   ],
    "state": [],
    "route_edge_classes": [
     "explicit",
@@ -36638,7 +36700,14 @@
    "path_status": "UNCHECKED"
   },
   "SvgDecoder.handles": {
-   "env": [],
+   "env": [
+    {
+     "kinds": [
+      "other_app"
+     ],
+     "text": "round 3b blind pass 1 (VaultEntryIconLoader.<clinit>): the icon branch of loadEntryIcon runs only for an entry with an icon (entry.hasIcon(), GlideHelper.java:40-41); no baseline entry has one, and an icon comes only from an icon pack or a picked image (another app or the system picker), as for the other edges of this branch"
+    }
+   ],
    "state": [],
    "route_edge_classes": [
     "explicit",
@@ -36663,7 +36732,14 @@
    "path_status": "UNCHECKED"
   },
   "SvgDrawableTranscoder.transcode": {
-   "env": [],
+   "env": [
+    {
+     "kinds": [
+      "other_app"
+     ],
+     "text": "round 3b blind pass 1 (VaultEntryIconLoader.<clinit>): the icon branch of loadEntryIcon runs only for an entry with an icon (entry.hasIcon(), GlideHelper.java:40-41); no baseline entry has one, and an icon comes only from an icon pack or a picked image (another app or the system picker), as for the other edges of this branch"
+    }
+   ],
    "state": [],
    "route_edge_classes": [
     "explicit",
@@ -36751,7 +36827,14 @@
    "path_status": "UNCHECKED"
   },
   "VaultEntryIconLoader.<clinit>": {
-   "env": [],
+   "env": [
+    {
+     "kinds": [
+      "other_app"
+     ],
+     "text": "outside package: an icon with a type is loaded (from an icon pack or an image from the system picker), so the icon loader class is loaded for its option key (GlideHelper.java:58-59), as for E1be49de0"
+    }
+   ],
    "state": [],
    "route_edge_classes": [
     "explicit",
@@ -36759,7 +36842,7 @@
    ],
    "explicit_standard_route": true,
    "confirmed_by": "INFERRED",
-   "source_ref": "SvgDecoder.java:25",
+   "source_ref": "GlideHelper.java:59",
    "path_status": "UNCHECKED"
   },
   "VaultEntryIconLoader.<init>": {
@@ -36880,61 +36963,96 @@
    "path_status": "UNCHECKED"
   },
   "VaultEntryIconLoader$Fetcher.cancel": {
-   "env": [],
+   "env": [
+    {
+     "kinds": [
+      "other_app"
+     ],
+     "text": "round 3b blind pass 1 (VaultEntryIconLoader.<clinit>): the icon branch of loadEntryIcon runs only for an entry with an icon (entry.hasIcon(), GlideHelper.java:40-41); no baseline entry has one, and an icon comes only from an icon pack or a picked image (another app or the system picker), as for the other edges of this branch"
+    }
+   ],
    "state": [],
    "route_edge_classes": [
     "explicit",
     "standard"
    ],
-   "explicit_standard_route": false,
+   "explicit_standard_route": true,
    "confirmed_by": "INFERRED",
    "source_ref": "ui/glide/VaultEntryIconLoader.java:39-42,57-65",
    "path_status": "UNCHECKED"
   },
   "VaultEntryIconLoader$Fetcher.cleanup": {
-   "env": [],
+   "env": [
+    {
+     "kinds": [
+      "other_app"
+     ],
+     "text": "round 3b blind pass 1 (VaultEntryIconLoader.<clinit>): the icon branch of loadEntryIcon runs only for an entry with an icon (entry.hasIcon(), GlideHelper.java:40-41); no baseline entry has one, and an icon comes only from an icon pack or a picked image (another app or the system picker), as for the other edges of this branch"
+    }
+   ],
    "state": [],
    "route_edge_classes": [
     "explicit",
     "standard"
    ],
-   "explicit_standard_route": false,
+   "explicit_standard_route": true,
    "confirmed_by": "INFERRED",
    "source_ref": "ui/glide/VaultEntryIconLoader.java:39-42,57-65",
    "path_status": "UNCHECKED"
   },
   "VaultEntryIconLoader$Fetcher.getDataClass": {
-   "env": [],
+   "env": [
+    {
+     "kinds": [
+      "other_app"
+     ],
+     "text": "round 3b blind pass 1 (VaultEntryIconLoader.<clinit>): the icon branch of loadEntryIcon runs only for an entry with an icon (entry.hasIcon(), GlideHelper.java:40-41); no baseline entry has one, and an icon comes only from an icon pack or a picked image (another app or the system picker), as for the other edges of this branch"
+    }
+   ],
    "state": [],
    "route_edge_classes": [
     "explicit",
     "standard"
    ],
-   "explicit_standard_route": false,
+   "explicit_standard_route": true,
    "confirmed_by": "INFERRED",
    "source_ref": "ui/glide/VaultEntryIconLoader.java:39-42,57-65",
    "path_status": "UNCHECKED"
   },
   "VaultEntryIconLoader$Fetcher.getDataSource": {
-   "env": [],
+   "env": [
+    {
+     "kinds": [
+      "other_app"
+     ],
+     "text": "round 3b blind pass 1 (VaultEntryIconLoader.<clinit>): the icon branch of loadEntryIcon runs only for an entry with an icon (entry.hasIcon(), GlideHelper.java:40-41); no baseline entry has one, and an icon comes only from an icon pack or a picked image (another app or the system picker), as for the other edges of this branch"
+    }
+   ],
    "state": [],
    "route_edge_classes": [
     "explicit",
     "standard"
    ],
-   "explicit_standard_route": false,
+   "explicit_standard_route": true,
    "confirmed_by": "INFERRED",
    "source_ref": "ui/glide/VaultEntryIconLoader.java:39-42,57-65",
    "path_status": "UNCHECKED"
   },
   "VaultEntryIconLoader$Fetcher.loadData": {
-   "env": [],
+   "env": [
+    {
+     "kinds": [
+      "other_app"
+     ],
+     "text": "round 3b blind pass 1 (VaultEntryIconLoader.<clinit>): the icon branch of loadEntryIcon runs only for an entry with an icon (entry.hasIcon(), GlideHelper.java:40-41); no baseline entry has one, and an icon comes only from an icon pack or a picked image (another app or the system picker), as for the other edges of this branch"
+    }
+   ],
    "state": [],
    "route_edge_classes": [
     "explicit",
     "standard"
    ],
-   "explicit_standard_route": false,
+   "explicit_standard_route": true,
    "confirmed_by": "INFERRED",
    "source_ref": "ui/glide/VaultEntryIconLoader.java:39-42,57-65",
    "path_status": "UNCHECKED"
@@ -37955,15 +38073,15 @@
    "path_status": "UNCHECKED"
   },
   "ErrorCardInfo.<init>": {
-   "env": [],
-   "state": [
+   "env": [
     {
      "kinds": [
-      "settings"
+      "other_app"
      ],
-     "text": "a plaintext export was made (it sets the plaintext warning flag, ImportExportPreferencesFragment.java:494-500), so the main screen makes the plaintext export error card (MainActivity.java:1192-1193), as for Ea056cf0e"
+     "text": "an export file was saved in the system document creator (ACTION_CREATE_DOCUMENT, ImportExportPreferencesFragment.java:494-500): the export flag is set only after that"
     }
    ],
+   "state": [],
    "route_edge_classes": [
     "explicit",
     "standard"
@@ -37974,19 +38092,33 @@
    "path_status": "UNCHECKED"
   },
   "ErrorCardInfo.equals": {
-   "env": [],
+   "env": [
+    {
+     "kinds": [
+      "other_app"
+     ],
+     "text": "an object of ErrorCardInfo is made in the app only on a route with an env gate (no <init> of the class is reachable without one), so the env action comes first"
+    }
+   ],
    "state": [],
    "route_edge_classes": [
     "explicit",
     "standard"
    ],
-   "explicit_standard_route": true,
+   "explicit_standard_route": false,
    "confirmed_by": "INFERRED",
    "source_ref": "ui/views/EntryAdapter.java:152-154",
    "path_status": "UNCHECKED"
   },
   "ErrorCardInfo.getListener": {
-   "env": [],
+   "env": [
+    {
+     "kinds": [
+      "other_app"
+     ],
+     "text": "an object of ErrorCardInfo is made in the app only on a route with an env gate (no <init> of the class is reachable without one), so the env action comes first"
+    }
+   ],
    "state": [
     {
      "kinds": [
@@ -37999,13 +38131,20 @@
     "explicit",
     "standard"
    ],
-   "explicit_standard_route": true,
+   "explicit_standard_route": false,
    "confirmed_by": "INFERRED",
    "source_ref": "MainActivity.java:1163-1197",
    "path_status": "UNCHECKED"
   },
   "ErrorCardInfo.getMessage": {
-   "env": [],
+   "env": [
+    {
+     "kinds": [
+      "other_app"
+     ],
+     "text": "an object of ErrorCardInfo is made in the app only on a route with an env gate (no <init> of the class is reachable without one), so the env action comes first"
+    }
+   ],
    "state": [
     {
      "kinds": [
@@ -38018,7 +38157,7 @@
     "explicit",
     "standard"
    ],
-   "explicit_standard_route": true,
+   "explicit_standard_route": false,
    "confirmed_by": "INFERRED",
    "source_ref": "ErrorCardInfo.java:42",
    "path_status": "UNCHECKED"
@@ -38038,17 +38177,16 @@
      "kinds": [
       "other_app"
      ],
+     "text": "an entry icon that is not optimised yet: no baseline entry has an icon, and an icon comes only from a picked image or an icon pack (system picker, another app; IconPacksManagerFragment, EditEntryActivity.java:147-158) or from the vault of an older app version (Vault.java:92-93)"
+    },
+    {
+     "kinds": [
+      "other_app"
+     ],
      "text": "outside package: the imported file has entries, so each gets an import row (ImportEntriesActivity.java:237-238), as for E840aaaea"
     }
    ],
-   "state": [
-    {
-     "kinds": [
-      "data"
-     ],
-     "text": "The vault icons are not marked optimised yet: Vault.areIconsOptimized is false (MainActivity.java:767)"
-    }
-   ],
+   "state": [],
    "route_edge_classes": [
     "explicit",
     "standard"
@@ -38059,26 +38197,33 @@
    "path_status": "UNCHECKED"
   },
   "ImportEntry.getEntry": {
-   "env": [],
-   "state": [
+   "env": [
     {
      "kinds": [
-      "data"
+      "other_app"
      ],
-     "text": "The vault icons are not marked optimised yet: Vault.areIconsOptimized is false (MainActivity.java:767)"
+     "text": "an entry icon that is not optimised yet: no baseline entry has an icon, and an icon comes only from a picked image or an icon pack (system picker, another app; IconPacksManagerFragment, EditEntryActivity.java:147-158) or from the vault of an older app version (Vault.java:92-93)"
     }
    ],
+   "state": [],
    "route_edge_classes": [
     "explicit",
     "standard"
    ],
-   "explicit_standard_route": false,
+   "explicit_standard_route": true,
    "confirmed_by": "INFERRED",
    "source_ref": "ImportEntriesActivity.java:352",
    "path_status": "UNCHECKED"
   },
   "ImportEntry.isChecked": {
-   "env": [],
+   "env": [
+    {
+     "kinds": [
+      "other_app"
+     ],
+     "text": "an object of ImportEntry is made in the app only on a route with an env gate (no <init> of the class is reachable without one), so the env action comes first"
+    }
+   ],
    "state": [],
    "route_edge_classes": [
     "explicit",
@@ -38090,7 +38235,14 @@
    "path_status": "UNCHECKED"
   },
   "ImportEntry.setIsChecked": {
-   "env": [],
+   "env": [
+    {
+     "kinds": [
+      "other_app"
+     ],
+     "text": "an object of ImportEntry is made in the app only on a route with an env gate (no <init> of the class is reachable without one), so the env action comes first"
+    }
+   ],
    "state": [],
    "route_edge_classes": [
     "explicit",
@@ -38107,17 +38259,16 @@
      "kinds": [
       "other_app"
      ],
+     "text": "an entry icon that is not optimised yet: no baseline entry has an icon, and an icon comes only from a picked image or an icon pack (system picker, another app; IconPacksManagerFragment, EditEntryActivity.java:147-158) or from the vault of an older app version (Vault.java:92-93)"
+    },
+    {
+     "kinds": [
+      "other_app"
+     ],
      "text": "outside package: the imported file has entries that are added to the import list (:239)"
     }
    ],
-   "state": [
-    {
-     "kinds": [
-      "data"
-     ],
-     "text": "The vault icons are not marked optimised yet: Vault.areIconsOptimized is false (MainActivity.java:767)"
-    }
-   ],
+   "state": [],
    "route_edge_classes": [
     "explicit",
     "standard"
@@ -39112,21 +39263,15 @@
    "path_status": "UNCHECKED"
   },
   "WelcomeSlide$1.onCanceled": {
-   "env": [],
-   "state": [
+   "env": [
     {
      "kinds": [
-      "file"
+      "other_app"
      ],
-     "text": "app state: the password dialog of an encrypted Aegis export import is cancelled (Dialogs.java:217), as for Ed482f1f4"
-    },
-    {
-     "kinds": [
-      "file"
-     ],
-     "text": "an encrypted Aegis vault or export made by the app (e.g. a backup from an earlier install) is imported in the intro; GUI: cancel its password dialog (AegisImporter.java:95-109)"
+     "text": "a file comes back from the system document picker (ACTION_GET_CONTENT; ImportExportPreferencesFragment.java:146-158, WelcomeSlide, EditEntryActivity.java:147-158): an import file or icon exists in the app only after that pick"
     }
    ],
+   "state": [],
    "route_edge_classes": [
     "explicit",
     "standard"
@@ -39453,15 +39598,15 @@
    "path_status": "UNCHECKED"
   },
   "IconOptimizationTask.<init>": {
-   "env": [],
-   "state": [
+   "env": [
     {
      "kinds": [
-      "data"
+      "other_app"
      ],
-     "text": "the vault icons are not marked optimised and some need it, so the optimisation task is made (MainActivity.java:766-775), as for Ef00941c3"
+     "text": "an entry icon that is not optimised yet: no baseline entry has an icon, and an icon comes only from a picked image or an icon pack (system picker, another app; IconPacksManagerFragment, EditEntryActivity.java:147-158) or from the vault of an older app version (Vault.java:92-93)"
     }
    ],
+   "state": [],
    "route_edge_classes": [
     "explicit",
     "standard"
@@ -39472,15 +39617,15 @@
    "path_status": "UNCHECKED"
   },
   "IconOptimizationTask.doInBackground": {
-   "env": [],
-   "state": [
+   "env": [
     {
      "kinds": [
-      "data"
+      "other_app"
      ],
-     "text": "The vault icons are not marked optimised yet: Vault.areIconsOptimized is false (MainActivity.java:767)"
+     "text": "an entry icon that is not optimised yet: no baseline entry has an icon, and an icon comes only from a picked image or an icon pack (system picker, another app; IconPacksManagerFragment, EditEntryActivity.java:147-158) or from the vault of an older app version (Vault.java:92-93)"
     }
    ],
+   "state": [],
    "route_edge_classes": [
     "explicit",
     "standard"
@@ -39491,15 +39636,15 @@
    "path_status": "UNCHECKED"
   },
   "IconOptimizationTask.onPostExecute": {
-   "env": [],
-   "state": [
+   "env": [
     {
      "kinds": [
-      "data"
+      "other_app"
      ],
-     "text": "The vault icons are not marked optimised yet: Vault.areIconsOptimized is false (MainActivity.java:767)"
+     "text": "an entry icon that is not optimised yet: no baseline entry has an icon, and an icon comes only from a picked image or an icon pack (system picker, another app; IconPacksManagerFragment, EditEntryActivity.java:147-158) or from the vault of an older app version (Vault.java:92-93)"
     }
    ],
+   "state": [],
    "route_edge_classes": [
     "explicit",
     "standard"
@@ -40468,15 +40613,15 @@
    "path_status": "UNCHECKED"
   },
   "ProgressDialogTask.onProgressUpdate": {
-   "env": [],
-   "state": [
+   "env": [
     {
      "kinds": [
-      "data"
+      "other_app"
      ],
-     "text": "The vault icons are not marked optimised yet: Vault.areIconsOptimized is false (MainActivity.java:767)"
+     "text": "an entry icon that is not optimised yet: no baseline entry has an icon, and an icon comes only from a picked image or an icon pack (system picker, another app; IconPacksManagerFragment, EditEntryActivity.java:147-158) or from the vault of an older app version (Vault.java:92-93)"
     }
    ],
+   "state": [],
    "route_edge_classes": [
     "explicit",
     "standard"
@@ -45453,17 +45598,16 @@
      "kinds": [
       "other_app"
      ],
+     "text": "an entry icon that is not optimised yet: no baseline entry has an icon, and an icon comes only from a picked image or an icon pack (system picker, another app; IconPacksManagerFragment, EditEntryActivity.java:147-158) or from the vault of an older app version (Vault.java:92-93)"
+    },
+    {
+     "kinds": [
+      "other_app"
+     ],
      "text": "outside package: the imported file has entries that are added to the import list (:239)"
     }
    ],
-   "state": [
-    {
-     "kinds": [
-      "data"
-     ],
-     "text": "The vault icons are not marked optimised yet: Vault.areIconsOptimized is false (MainActivity.java:767)"
-    }
-   ],
+   "state": [],
    "route_edge_classes": [
     "explicit",
     "standard"
@@ -45491,17 +45635,16 @@
      "kinds": [
       "other_app"
      ],
+     "text": "an entry icon that is not optimised yet: no baseline entry has an icon, and an icon comes only from a picked image or an icon pack (system picker, another app; IconPacksManagerFragment, EditEntryActivity.java:147-158) or from the vault of an older app version (Vault.java:92-93)"
+    },
+    {
+     "kinds": [
+      "other_app"
+     ],
      "text": "outside package: the imported file has entries that are added to the import list (:239)"
     }
    ],
-   "state": [
-    {
-     "kinds": [
-      "data"
-     ],
-     "text": "The vault icons are not marked optimised yet: Vault.areIconsOptimized is false (MainActivity.java:767)"
-    }
-   ],
+   "state": [],
    "route_edge_classes": [
     "explicit",
     "standard"
@@ -45517,17 +45660,16 @@
      "kinds": [
       "other_app"
      ],
+     "text": "an entry icon that is not optimised yet: no baseline entry has an icon, and an icon comes only from a picked image or an icon pack (system picker, another app; IconPacksManagerFragment, EditEntryActivity.java:147-158) or from the vault of an older app version (Vault.java:92-93)"
+    },
+    {
+     "kinds": [
+      "other_app"
+     ],
      "text": "outside package: the imported file has entries that are added to the import list (:239)"
     }
    ],
-   "state": [
-    {
-     "kinds": [
-      "data"
-     ],
-     "text": "The vault icons are not marked optimised yet: Vault.areIconsOptimized is false (MainActivity.java:767)"
-    }
-   ],
+   "state": [],
    "route_edge_classes": [
     "explicit",
     "standard"
@@ -45543,17 +45685,16 @@
      "kinds": [
       "other_app"
      ],
+     "text": "an entry icon that is not optimised yet: no baseline entry has an icon, and an icon comes only from a picked image or an icon pack (system picker, another app; IconPacksManagerFragment, EditEntryActivity.java:147-158) or from the vault of an older app version (Vault.java:92-93)"
+    },
+    {
+     "kinds": [
+      "other_app"
+     ],
      "text": "outside package: the imported file has entries that are added to the import list (:239)"
     }
    ],
-   "state": [
-    {
-     "kinds": [
-      "data"
-     ],
-     "text": "The vault icons are not marked optimised yet: Vault.areIconsOptimized is false (MainActivity.java:767)"
-    }
-   ],
+   "state": [],
    "route_edge_classes": [
     "explicit",
     "standard"
@@ -45569,17 +45710,16 @@
      "kinds": [
       "other_app"
      ],
+     "text": "an entry icon that is not optimised yet: no baseline entry has an icon, and an icon comes only from a picked image or an icon pack (system picker, another app; IconPacksManagerFragment, EditEntryActivity.java:147-158) or from the vault of an older app version (Vault.java:92-93)"
+    },
+    {
+     "kinds": [
+      "other_app"
+     ],
      "text": "outside package: the imported file has entries that are added to the import list (:239)"
     }
    ],
-   "state": [
-    {
-     "kinds": [
-      "data"
-     ],
-     "text": "The vault icons are not marked optimised yet: Vault.areIconsOptimized is false (MainActivity.java:767)"
-    }
-   ],
+   "state": [],
    "route_edge_classes": [
     "explicit",
     "standard"
@@ -45590,21 +45730,21 @@
    "path_status": "UNCHECKED"
   },
   "ImportEntriesAdapter.setCheckboxStates(List,boolean)": {
-   "env": [],
-   "state": [
+   "env": [
     {
      "kinds": [
-      "data"
+      "other_app"
      ],
-     "text": "The vault icons are not marked optimised yet: Vault.areIconsOptimized is false (MainActivity.java:767)"
+     "text": "an entry icon that is not optimised yet: no baseline entry has an icon, and an icon comes only from a picked image or an icon pack (system picker, another app; IconPacksManagerFragment, EditEntryActivity.java:147-158) or from the vault of an older app version (Vault.java:92-93)"
     },
     {
      "kinds": [
-      "data"
+      "other_app"
      ],
-     "text": "an import file holds an entry already in the vault (for example the app's own export of the baseline vault), so the duplicates are unticked (ImportEntriesActivity.java:356-360), as for Ec3f432b1"
+     "text": "a file comes back from the system document picker (ACTION_GET_CONTENT; ImportExportPreferencesFragment.java:146-158, WelcomeSlide, EditEntryActivity.java:147-158): an import file or icon exists in the app only after that pick"
     }
    ],
+   "state": [],
    "route_edge_classes": [
     "explicit",
     "standard"
@@ -45644,17 +45784,16 @@
      "kinds": [
       "other_app"
      ],
+     "text": "an entry icon that is not optimised yet: no baseline entry has an icon, and an icon comes only from a picked image or an icon pack (system picker, another app; IconPacksManagerFragment, EditEntryActivity.java:147-158) or from the vault of an older app version (Vault.java:92-93)"
+    },
+    {
+     "kinds": [
+      "other_app"
+     ],
      "text": "outside package: the imported file has entries that are added to the import list (:239)"
     }
    ],
-   "state": [
-    {
-     "kinds": [
-      "data"
-     ],
-     "text": "The vault icons are not marked optimised yet: Vault.areIconsOptimized is false (MainActivity.java:767)"
-    }
-   ],
+   "state": [],
    "route_edge_classes": [
     "explicit",
     "standard"
@@ -45670,17 +45809,16 @@
      "kinds": [
       "other_app"
      ],
+     "text": "an entry icon that is not optimised yet: no baseline entry has an icon, and an icon comes only from a picked image or an icon pack (system picker, another app; IconPacksManagerFragment, EditEntryActivity.java:147-158) or from the vault of an older app version (Vault.java:92-93)"
+    },
+    {
+     "kinds": [
+      "other_app"
+     ],
      "text": "outside package: the imported file has entries that are added to the import list (:239)"
     }
    ],
-   "state": [
-    {
-     "kinds": [
-      "data"
-     ],
-     "text": "The vault icons are not marked optimised yet: Vault.areIconsOptimized is false (MainActivity.java:767)"
-    }
-   ],
+   "state": [],
    "route_edge_classes": [
     "explicit",
     "standard"
@@ -45696,6 +45834,12 @@
      "kinds": [
       "other_app"
      ],
+     "text": "an entry icon that is not optimised yet: no baseline entry has an icon, and an icon comes only from a picked image or an icon pack (system picker, another app; IconPacksManagerFragment, EditEntryActivity.java:147-158) or from the vault of an older app version (Vault.java:92-93)"
+    },
+    {
+     "kinds": [
+      "other_app"
+     ],
      "text": "outside package: the imported file has entries that are added to the import list (:239)"
     },
     {
@@ -45705,14 +45849,7 @@
      "text": "outside package: the imported file has entries in the import list; GUI: tap an import row to toggle it, as for E840aaaea"
     }
    ],
-   "state": [
-    {
-     "kinds": [
-      "data"
-     ],
-     "text": "The vault icons are not marked optimised yet: Vault.areIconsOptimized is false (MainActivity.java:767)"
-    }
-   ],
+   "state": [],
    "route_edge_classes": [
     "explicit",
     "standard"
@@ -45747,17 +45884,16 @@
      "kinds": [
       "other_app"
      ],
+     "text": "an entry icon that is not optimised yet: no baseline entry has an icon, and an icon comes only from a picked image or an icon pack (system picker, another app; IconPacksManagerFragment, EditEntryActivity.java:147-158) or from the vault of an older app version (Vault.java:92-93)"
+    },
+    {
+     "kinds": [
+      "other_app"
+     ],
      "text": "outside package: the imported file has entries that are added to the import list (:239)"
     }
    ],
-   "state": [
-    {
-     "kinds": [
-      "data"
-     ],
-     "text": "The vault icons are not marked optimised yet: Vault.areIconsOptimized is false (MainActivity.java:767)"
-    }
-   ],
+   "state": [],
    "route_edge_classes": [
     "explicit",
     "standard"
@@ -46179,9 +46315,9 @@
    "state": [
     {
      "kinds": [
-      "data"
+      "settings"
      ],
-     "text": "a backup reminder is due and a backup or export was made earlier, so the elapsed time is shown (MainActivity.java:1175-1177)"
+     "text": "Android backups are on (pref_android_backups default false, Preferences.java:391-392), so their status is shown (BackupsPreferencesFragment.java:214-215)"
     }
    ],
    "route_edge_classes": [
@@ -46198,9 +46334,9 @@
    "state": [
     {
      "kinds": [
-      "data"
+      "settings"
      ],
-     "text": "a backup reminder is due and a backup or export was made earlier, so the elapsed time is shown (MainActivity.java:1175-1177)"
+     "text": "Android backups are on (pref_android_backups default false, Preferences.java:391-392), so their status is shown (BackupsPreferencesFragment.java:214-215)"
     }
    ],
    "route_edge_classes": [
@@ -46209,7 +46345,7 @@
    ],
    "explicit_standard_route": true,
    "confirmed_by": "INFERRED",
-   "source_ref": "MainActivity.java:1177",
+   "source_ref": "Preferences.java:653",
    "path_status": "UNCHECKED"
   },
   "UUIDMap.<init>": {
@@ -46419,15 +46555,15 @@
    "path_status": "UNCHECKED"
   },
   "UUIDMap$Value.resetUUID": {
-   "env": [],
-   "state": [
+   "env": [
     {
      "kinds": [
-      "data"
+      "other_app"
      ],
-     "text": "an import file holds an entry already in the vault and it is imported anyway, so it gets a new UUID (ImportEntriesActivity.java:306-307), as for Ec3f432b1"
+     "text": "a file comes back from the system document picker (ACTION_GET_CONTENT; ImportExportPreferencesFragment.java:146-158, WelcomeSlide, EditEntryActivity.java:147-158): an import file or icon exists in the app only after that pick"
     }
    ],
+   "state": [],
    "route_edge_classes": [
     "explicit",
     "standard"
@@ -46561,15 +46697,15 @@
    "path_status": "UNCHECKED"
   },
   "Vault.setIconsOptimized": {
-   "env": [],
-   "state": [
+   "env": [
     {
      "kinds": [
-      "data"
+      "other_app"
      ],
-     "text": "The vault icons are not marked optimised yet: Vault.areIconsOptimized is false (MainActivity.java:767)"
+     "text": "an entry icon that is not optimised yet: no baseline entry has an icon, and an icon comes only from a picked image or an icon pack (system picker, another app; IconPacksManagerFragment, EditEntryActivity.java:147-158) or from the vault of an older app version (Vault.java:92-93)"
     }
    ],
+   "state": [],
    "route_edge_classes": [
     "explicit",
     "standard"
@@ -46635,7 +46771,7 @@
      "kinds": [
       "other_app"
      ],
-     "text": "the user picks a backup folder (ACTION_OPEN_DOCUMENT_TREE) or chooses where to save the single backup file (ACTION_CREATE_DOCUMENT) in the system document picker of another app, and that app returns to Aegis (BackupsPreferencesFragment.java:255-271)"
+     "text": "automatic backups are turned on only in the result of the system folder picker (ACTION_OPEN_DOCUMENT_TREE, BackupsPreferencesFragment.java:79-89,175-189,263-264), and an Android backup result is written by the system backup service; either needs the system first"
     },
     {
      "kinds": [
@@ -46647,7 +46783,6 @@
    "state": [],
    "route_edge_classes": [
     "explicit",
-    "non_standard",
     "standard"
    ],
    "explicit_standard_route": false,
@@ -46661,7 +46796,7 @@
      "kinds": [
       "other_app"
      ],
-     "text": "the user picks a backup folder (ACTION_OPEN_DOCUMENT_TREE) or chooses where to save the single backup file (ACTION_CREATE_DOCUMENT) in the system document picker of another app, and that app returns to Aegis (BackupsPreferencesFragment.java:255-271)"
+     "text": "automatic backups are turned on only in the result of the system folder picker (ACTION_OPEN_DOCUMENT_TREE, BackupsPreferencesFragment.java:79-89,175-189,263-264), and an Android backup result is written by the system backup service; either needs the system first"
     },
     {
      "kinds": [
@@ -46673,7 +46808,6 @@
    "state": [],
    "route_edge_classes": [
     "explicit",
-    "non_standard",
     "standard"
    ],
    "explicit_standard_route": false,
@@ -46682,15 +46816,15 @@
    "path_status": "UNCHECKED"
   },
   "VaultBackupManager.createBackup(File,BackupsVersioningStrategy,Uri,int)": {
-   "env": [],
-   "state": [
+   "env": [
     {
      "kinds": [
-      "settings"
+      "other_app"
      ],
-     "text": "automatic backups are on (pref_backups, default off, Preferences.java:401); the vault is encrypted (baseline)"
+     "text": "automatic backups are turned on only in the result of the system folder picker (ACTION_OPEN_DOCUMENT_TREE, BackupsPreferencesFragment.java:79-89,175-189,263-264), and an Android backup result is written by the system backup service; either needs the system first"
     }
    ],
+   "state": [],
    "route_edge_classes": [
     "explicit",
     "standard"
@@ -46706,7 +46840,7 @@
      "kinds": [
       "other_app"
      ],
-     "text": "the user picks a backup folder (ACTION_OPEN_DOCUMENT_TREE) or chooses where to save the single backup file (ACTION_CREATE_DOCUMENT) in the system document picker of another app, and that app returns to Aegis (BackupsPreferencesFragment.java:255-271)"
+     "text": "automatic backups are turned on only in the result of the system folder picker (ACTION_OPEN_DOCUMENT_TREE, BackupsPreferencesFragment.java:79-89,175-189,263-264), and an Android backup result is written by the system backup service; either needs the system first"
     },
     {
      "kinds": [
@@ -46718,7 +46852,6 @@
    "state": [],
    "route_edge_classes": [
     "explicit",
-    "non_standard",
     "standard"
    ],
    "explicit_standard_route": false,
@@ -46732,7 +46865,7 @@
      "kinds": [
       "other_app"
      ],
-     "text": "the user picks a backup folder (ACTION_OPEN_DOCUMENT_TREE) or chooses where to save the single backup file (ACTION_CREATE_DOCUMENT) in the system document picker of another app, and that app returns to Aegis (BackupsPreferencesFragment.java:255-271)"
+     "text": "automatic backups are turned on only in the result of the system folder picker (ACTION_OPEN_DOCUMENT_TREE, BackupsPreferencesFragment.java:79-89,175-189,263-264), and an Android backup result is written by the system backup service; either needs the system first"
     },
     {
      "kinds": [
@@ -46744,7 +46877,6 @@
    "state": [],
    "route_edge_classes": [
     "explicit",
-    "non_standard",
     "standard"
    ],
    "explicit_standard_route": false,
@@ -46753,15 +46885,15 @@
    "path_status": "UNCHECKED"
   },
   "VaultBackupManager.lambda$scheduleBackup$0": {
-   "env": [],
-   "state": [
+   "env": [
     {
      "kinds": [
-      "settings"
+      "other_app"
      ],
-     "text": "automatic backups are on (pref_backups, default off, Preferences.java:401); the vault is encrypted (baseline)"
+     "text": "automatic backups are turned on only in the result of the system folder picker (ACTION_OPEN_DOCUMENT_TREE, BackupsPreferencesFragment.java:79-89,175-189,263-264), and an Android backup result is written by the system backup service; either needs the system first"
     }
    ],
+   "state": [],
    "route_edge_classes": [
     "explicit",
     "standard"
@@ -46772,15 +46904,15 @@
    "path_status": "UNCHECKED"
   },
   "VaultBackupManager.scheduleBackup": {
-   "env": [],
-   "state": [
+   "env": [
     {
      "kinds": [
-      "settings"
+      "other_app"
      ],
-     "text": "automatic backups are on (pref_backups, default off, Preferences.java:401); the vault is encrypted (baseline)"
+     "text": "automatic backups are turned on only in the result of the system folder picker (ACTION_OPEN_DOCUMENT_TREE, BackupsPreferencesFragment.java:79-89,175-189,263-264), and an Android backup result is written by the system backup service; either needs the system first"
     }
    ],
+   "state": [],
    "route_edge_classes": [
     "explicit",
     "standard"
@@ -46796,7 +46928,7 @@
      "kinds": [
       "other_app"
      ],
-     "text": "the user picks a backup folder (ACTION_OPEN_DOCUMENT_TREE) or chooses where to save the single backup file (ACTION_CREATE_DOCUMENT) in the system document picker of another app, and that app returns to Aegis (BackupsPreferencesFragment.java:255-271)"
+     "text": "automatic backups are turned on only in the result of the system folder picker (ACTION_OPEN_DOCUMENT_TREE, BackupsPreferencesFragment.java:79-89,175-189,263-264), and an Android backup result is written by the system backup service; either needs the system first"
     },
     {
      "kinds": [
@@ -46808,7 +46940,6 @@
    "state": [],
    "route_edge_classes": [
     "explicit",
-    "non_standard",
     "standard"
    ],
    "explicit_standard_route": true,
@@ -46822,7 +46953,7 @@
      "kinds": [
       "other_app"
      ],
-     "text": "the user picks a backup folder (ACTION_OPEN_DOCUMENT_TREE) or chooses where to save the single backup file (ACTION_CREATE_DOCUMENT) in the system document picker of another app, and that app returns to Aegis (BackupsPreferencesFragment.java:255-271)"
+     "text": "automatic backups are turned on only in the result of the system folder picker (ACTION_OPEN_DOCUMENT_TREE, BackupsPreferencesFragment.java:79-89,175-189,263-264), and an Android backup result is written by the system backup service; either needs the system first"
     },
     {
      "kinds": [
@@ -46834,7 +46965,6 @@
    "state": [],
    "route_edge_classes": [
     "explicit",
-    "non_standard",
     "standard"
    ],
    "explicit_standard_route": true,
@@ -46848,7 +46978,7 @@
      "kinds": [
       "other_app"
      ],
-     "text": "the user picks a backup folder (ACTION_OPEN_DOCUMENT_TREE) or chooses where to save the single backup file (ACTION_CREATE_DOCUMENT) in the system document picker of another app, and that app returns to Aegis (BackupsPreferencesFragment.java:255-271)"
+     "text": "automatic backups are turned on only in the result of the system folder picker (ACTION_OPEN_DOCUMENT_TREE, BackupsPreferencesFragment.java:79-89,175-189,263-264), and an Android backup result is written by the system backup service; either needs the system first"
     },
     {
      "kinds": [
@@ -46860,7 +46990,6 @@
    "state": [],
    "route_edge_classes": [
     "explicit",
-    "non_standard",
     "standard"
    ],
    "explicit_standard_route": true,
@@ -46874,7 +47003,7 @@
      "kinds": [
       "other_app"
      ],
-     "text": "the user picks a backup folder (ACTION_OPEN_DOCUMENT_TREE) or chooses where to save the single backup file (ACTION_CREATE_DOCUMENT) in the system document picker of another app, and that app returns to Aegis (BackupsPreferencesFragment.java:255-271)"
+     "text": "automatic backups are turned on only in the result of the system folder picker (ACTION_OPEN_DOCUMENT_TREE, BackupsPreferencesFragment.java:79-89,175-189,263-264), and an Android backup result is written by the system backup service; either needs the system first"
     },
     {
      "kinds": [
@@ -46886,7 +47015,6 @@
    "state": [],
    "route_edge_classes": [
     "explicit",
-    "non_standard",
     "standard"
    ],
    "explicit_standard_route": true,
@@ -46900,7 +47028,7 @@
      "kinds": [
       "other_app"
      ],
-     "text": "the user picks a backup folder (ACTION_OPEN_DOCUMENT_TREE) or chooses where to save the single backup file (ACTION_CREATE_DOCUMENT) in the system document picker of another app, and that app returns to Aegis (BackupsPreferencesFragment.java:255-271)"
+     "text": "automatic backups are turned on only in the result of the system folder picker (ACTION_OPEN_DOCUMENT_TREE, BackupsPreferencesFragment.java:79-89,175-189,263-264), and an Android backup result is written by the system backup service; either needs the system first"
     },
     {
      "kinds": [
@@ -46912,7 +47040,6 @@
    "state": [],
    "route_edge_classes": [
     "explicit",
-    "non_standard",
     "standard"
    ],
    "explicit_standard_route": true,
@@ -46974,7 +47101,7 @@
      "kinds": [
       "other_app"
      ],
-     "text": "the user picks a backup folder (ACTION_OPEN_DOCUMENT_TREE) or chooses where to save the single backup file (ACTION_CREATE_DOCUMENT) in the system document picker of another app, and that app returns to Aegis (BackupsPreferencesFragment.java:255-271)"
+     "text": "automatic backups are turned on only in the result of the system folder picker (ACTION_OPEN_DOCUMENT_TREE, BackupsPreferencesFragment.java:79-89,175-189,263-264), and an Android backup result is written by the system backup service; either needs the system first"
     },
     {
      "kinds": [
@@ -46986,7 +47113,6 @@
    "state": [],
    "route_edge_classes": [
     "explicit",
-    "non_standard",
     "standard"
    ],
    "explicit_standard_route": true,
@@ -47018,7 +47144,7 @@
      "kinds": [
       "other_app"
      ],
-     "text": "the user picks a backup folder (ACTION_OPEN_DOCUMENT_TREE) or chooses where to save the single backup file (ACTION_CREATE_DOCUMENT) in the system document picker of another app, and that app returns to Aegis (BackupsPreferencesFragment.java:255-271)"
+     "text": "automatic backups are turned on only in the result of the system folder picker (ACTION_OPEN_DOCUMENT_TREE, BackupsPreferencesFragment.java:79-89,175-189,263-264), and an Android backup result is written by the system backup service; either needs the system first"
     },
     {
      "kinds": [
@@ -47030,7 +47156,6 @@
    "state": [],
    "route_edge_classes": [
     "explicit",
-    "non_standard",
     "standard"
    ],
    "explicit_standard_route": true,
@@ -47044,7 +47169,7 @@
      "kinds": [
       "other_app"
      ],
-     "text": "the user picks a backup folder (ACTION_OPEN_DOCUMENT_TREE) or chooses where to save the single backup file (ACTION_CREATE_DOCUMENT) in the system document picker of another app, and that app returns to Aegis (BackupsPreferencesFragment.java:255-271)"
+     "text": "automatic backups are turned on only in the result of the system folder picker (ACTION_OPEN_DOCUMENT_TREE, BackupsPreferencesFragment.java:79-89,175-189,263-264), and an Android backup result is written by the system backup service; either needs the system first"
     },
     {
      "kinds": [
@@ -47056,7 +47181,6 @@
    "state": [],
    "route_edge_classes": [
     "explicit",
-    "non_standard",
     "standard"
    ],
    "explicit_standard_route": true,
@@ -47095,7 +47219,7 @@
      "kinds": [
       "other_app"
      ],
-     "text": "the user picks a backup folder (ACTION_OPEN_DOCUMENT_TREE) or chooses where to save the single backup file (ACTION_CREATE_DOCUMENT) in the system document picker of another app, and that app returns to Aegis (BackupsPreferencesFragment.java:255-271)"
+     "text": "automatic backups are turned on only in the result of the system folder picker (ACTION_OPEN_DOCUMENT_TREE, BackupsPreferencesFragment.java:79-89,175-189,263-264), and an Android backup result is written by the system backup service; either needs the system first"
     },
     {
      "kinds": [
@@ -47107,7 +47231,6 @@
    "state": [],
    "route_edge_classes": [
     "explicit",
-    "non_standard",
     "standard"
    ],
    "explicit_standard_route": true,
@@ -47121,7 +47244,7 @@
      "kinds": [
       "other_app"
      ],
-     "text": "the user picks a backup folder (ACTION_OPEN_DOCUMENT_TREE) or chooses where to save the single backup file (ACTION_CREATE_DOCUMENT) in the system document picker of another app, and that app returns to Aegis (BackupsPreferencesFragment.java:255-271)"
+     "text": "automatic backups are turned on only in the result of the system folder picker (ACTION_OPEN_DOCUMENT_TREE, BackupsPreferencesFragment.java:79-89,175-189,263-264), and an Android backup result is written by the system backup service; either needs the system first"
     },
     {
      "kinds": [
@@ -47133,7 +47256,6 @@
    "state": [],
    "route_edge_classes": [
     "explicit",
-    "non_standard",
     "standard"
    ],
    "explicit_standard_route": true,
@@ -47597,53 +47719,41 @@
    "path_status": "UNCHECKED"
   },
   "VaultEntryIcon.<init>(byte[],IconType)": {
-   "env": [],
-   "state": [
+   "env": [
     {
      "kinds": [
-      "data"
+      "other_app"
      ],
-     "text": "The vault icons are not marked optimised yet: Vault.areIconsOptimized is false (MainActivity.java:767)"
-    },
-    {
-     "kinds": [
-      "data"
-     ],
-     "text": "the vault has an icon that is not optimised yet, so the task converts it (IconOptimizationTask.java:31-46), as for Ea226ffdc"
+     "text": "outside package: a stored entry has an icon (from an icon pack or an image from the system picker), so loading it builds the icon (VaultEntryIcon.java:79-96), as for E1be49de0"
     }
    ],
+   "state": [],
    "route_edge_classes": [
     "explicit",
     "standard"
    ],
    "explicit_standard_route": true,
    "confirmed_by": "INFERRED",
-   "source_ref": "BitmapHelper.java:61",
+   "source_ref": "VaultEntryIcon.java:96",
    "path_status": "UNCHECKED"
   },
   "VaultEntryIcon.<init>(byte[],IconType,byte[])": {
-   "env": [],
-   "state": [
+   "env": [
     {
      "kinds": [
-      "data"
+      "other_app"
      ],
-     "text": "The vault icons are not marked optimised yet: Vault.areIconsOptimized is false (MainActivity.java:767)"
-    },
-    {
-     "kinds": [
-      "data"
-     ],
-     "text": "the vault has an icon that is not optimised yet, so the task converts it (IconOptimizationTask.java:31-46), as for Ea226ffdc"
+     "text": "outside package: an entry has an icon with a stored hash (an icon from an icon pack or an image from the system picker), so loading it makes the icon with its hash (VaultEntryIcon.java:91-93), as for E1be49de0"
     }
    ],
+   "state": [],
    "route_edge_classes": [
     "explicit",
     "standard"
    ],
    "explicit_standard_route": true,
    "confirmed_by": "INFERRED",
-   "source_ref": "VaultEntryIcon.java:30",
+   "source_ref": "VaultEntryIcon.java:93",
    "path_status": "UNCHECKED"
   },
   "VaultEntryIcon.equals": {
@@ -47678,21 +47788,15 @@
    "path_status": "UNCHECKED"
   },
   "VaultEntryIcon.generateHash": {
-   "env": [],
-   "state": [
+   "env": [
     {
      "kinds": [
-      "data"
+      "other_app"
      ],
-     "text": "The vault icons are not marked optimised yet: Vault.areIconsOptimized is false (MainActivity.java:767)"
-    },
-    {
-     "kinds": [
-      "data"
-     ],
-     "text": "the vault has an icon that is not optimised yet, so the task converts it (IconOptimizationTask.java:31-46), as for Ea226ffdc"
+     "text": "outside package: a stored entry has an icon (from an icon pack or an image from the system picker), so loading it builds the icon (VaultEntryIcon.java:79-96), as for E1be49de0"
     }
    ],
+   "state": [],
    "route_edge_classes": [
     "explicit",
     "standard"
@@ -47703,15 +47807,22 @@
    "path_status": "UNCHECKED"
   },
   "VaultEntryIcon.getBytes": {
-   "env": [],
+   "env": [
+    {
+     "kinds": [
+      "other_app"
+     ],
+     "text": "an object of VaultEntryIcon is made in the app only on a route with an env gate (no <init> of the class is reachable without one), so the env action comes first"
+    }
+   ],
    "state": [],
    "route_edge_classes": [
     "explicit",
     "standard"
    ],
-   "explicit_standard_route": true,
+   "explicit_standard_route": false,
    "confirmed_by": "INFERRED",
-   "source_ref": "VaultEntryIconLoader.java:40",
+   "source_ref": "VaultEntryIcon.java:68",
    "path_status": "UNCHECKED"
   },
   "VaultEntryIcon.getHash": {
@@ -47734,13 +47845,20 @@
    "path_status": "UNCHECKED"
   },
   "VaultEntryIcon.getType": {
-   "env": [],
+   "env": [
+    {
+     "kinds": [
+      "other_app"
+     ],
+     "text": "an object of VaultEntryIcon is made in the app only on a route with an env gate (no <init> of the class is reachable without one), so the env action comes first"
+    }
+   ],
    "state": [],
    "route_edge_classes": [
     "explicit",
     "standard"
    ],
-   "explicit_standard_route": true,
+   "explicit_standard_route": false,
    "confirmed_by": "INFERRED",
    "source_ref": "EntryListView.java:714",
    "path_status": "UNCHECKED"
@@ -48675,15 +48793,15 @@
    "path_status": "UNCHECKED"
   },
   "VaultManager.scheduleBackup": {
-   "env": [],
-   "state": [
+   "env": [
     {
      "kinds": [
-      "settings"
+      "other_app"
      ],
-     "text": "automatic backups are on (pref_backups, default off, Preferences.java:401); the vault is encrypted (baseline)"
+     "text": "automatic backups are turned on only in the result of the system folder picker (ACTION_OPEN_DOCUMENT_TREE, BackupsPreferencesFragment.java:79-89,175-189,263-264), and an Android backup result is written by the system backup service; either needs the system first"
     }
    ],
+   "state": [],
    "route_edge_classes": [
     "explicit",
     "standard"
@@ -49313,15 +49431,15 @@
    "path_status": "UNCHECKED"
   },
   "VaultRepository.setIconsOptimized": {
-   "env": [],
-   "state": [
+   "env": [
     {
      "kinds": [
-      "data"
+      "other_app"
      ],
-     "text": "The vault icons are not marked optimised yet: Vault.areIconsOptimized is false (MainActivity.java:767)"
+     "text": "an entry icon that is not optimised yet: no baseline entry has an icon, and an icon comes only from a picked image or an icon pack (system picker, another app; IconPacksManagerFragment, EditEntryActivity.java:147-158) or from the vault of an older app version (Vault.java:92-93)"
     }
    ],
+   "state": [],
    "route_edge_classes": [
     "explicit",
     "standard"
@@ -49366,19 +49484,18 @@
    "env": [
     {
      "kinds": [
+      "other_app"
+     ],
+     "text": "automatic backups are turned on only in the result of the system folder picker (ACTION_OPEN_DOCUMENT_TREE, BackupsPreferencesFragment.java:79-89,175-189,263-264), and an Android backup result is written by the system backup service; either needs the system first"
+    },
+    {
+     "kinds": [
       "other"
      ],
      "text": "outside data: backups are on but the stored backup location is missing (:72-73); the strategy comes from the same location (Preferences.java:611-620), so the invalid-strategy throw at :79-80 never runs and only the :73 call of this pair can"
     }
    ],
-   "state": [
-    {
-     "kinds": [
-      "settings"
-     ],
-     "text": "automatic backups are on (pref_backups, default off, Preferences.java:401); the vault is encrypted (baseline)"
-    }
-   ],
+   "state": [],
    "route_edge_classes": [
     "explicit",
     "standard"
@@ -49460,18 +49577,18 @@
     },
     {
      "kinds": [
+      "other_app"
+     ],
+     "text": "a file comes back from the system document picker (ACTION_GET_CONTENT; ImportExportPreferencesFragment.java:146-158, WelcomeSlide, EditEntryActivity.java:147-158): an import file or icon exists in the app only after that pick"
+    },
+    {
+     "kinds": [
       "hardware"
      ],
      "text": "a fingerprint or face is enrolled and accepted by the sensor (BiometricPrompt, AuthActivity.java:270-293); the unlock screen shows the button only when the vault has a biometric slot (AuthActivity.java:132-150)"
     }
    ],
    "state": [
-    {
-     "kinds": [
-      "data"
-     ],
-     "text": "The Welcome slide imported a vault file in this intro run (intro state \"imported\")"
-    },
     {
      "kinds": [
       "session"
@@ -49629,15 +49746,15 @@
       "other_app"
      ],
      "text": "the system document picker of another app returns a file (ACTION_GET_CONTENT, WelcomeSlide.java:43-47)"
+    },
+    {
+     "kinds": [
+      "other_app"
+     ],
+     "text": "a file comes back from the system document picker (ACTION_GET_CONTENT; ImportExportPreferencesFragment.java:146-158, WelcomeSlide, EditEntryActivity.java:147-158): an import file or icon exists in the app only after that pick"
     }
    ],
    "state": [
-    {
-     "kinds": [
-      "data"
-     ],
-     "text": "The Welcome slide imported a vault file in this intro run (intro state \"imported\")"
-    },
     {
      "kinds": [
       "session"
@@ -49691,15 +49808,15 @@
       "other_app"
      ],
      "text": "the system document picker of another app returns a file (ACTION_GET_CONTENT, WelcomeSlide.java:43-47)"
+    },
+    {
+     "kinds": [
+      "other_app"
+     ],
+     "text": "a file comes back from the system document picker (ACTION_GET_CONTENT; ImportExportPreferencesFragment.java:146-158, WelcomeSlide, EditEntryActivity.java:147-158): an import file or icon exists in the app only after that pick"
     }
    ],
    "state": [
-    {
-     "kinds": [
-      "data"
-     ],
-     "text": "The Welcome slide imported a vault file in this intro run (intro state \"imported\")"
-    },
     {
      "kinds": [
       "session"
@@ -49836,15 +49953,15 @@
       "other_app"
      ],
      "text": "the system document picker of another app returns a file (ACTION_GET_CONTENT, WelcomeSlide.java:43-47)"
+    },
+    {
+     "kinds": [
+      "other_app"
+     ],
+     "text": "a file comes back from the system document picker (ACTION_GET_CONTENT; ImportExportPreferencesFragment.java:146-158, WelcomeSlide, EditEntryActivity.java:147-158): an import file or icon exists in the app only after that pick"
     }
    ],
    "state": [
-    {
-     "kinds": [
-      "data"
-     ],
-     "text": "The Welcome slide imported a vault file in this intro run (intro state \"imported\")"
-    },
     {
      "kinds": [
       "session"
@@ -50042,15 +50159,15 @@
       "other_app"
      ],
      "text": "the system document picker of another app returns a file (ACTION_GET_CONTENT, WelcomeSlide.java:43-47)"
+    },
+    {
+     "kinds": [
+      "other_app"
+     ],
+     "text": "a file comes back from the system document picker (ACTION_GET_CONTENT; ImportExportPreferencesFragment.java:146-158, WelcomeSlide, EditEntryActivity.java:147-158): an import file or icon exists in the app only after that pick"
     }
    ],
    "state": [
-    {
-     "kinds": [
-      "data"
-     ],
-     "text": "The Welcome slide imported a vault file in this intro run (intro state \"imported\")"
-    },
     {
      "kinds": [
       "session"
@@ -52001,17 +52118,17 @@
    "guard": "the icons are not marked optimised yet and no entry has an icon to optimise (MainActivity.java:767,774-778)",
    "reads": [],
    "writes": [],
-   "note": null,
-   "needs_state": "The vault icons are not marked optimised yet: Vault.areIconsOptimized is false (MainActivity.java:767)",
+   "note": "round 3b T: the state can be made only after an env action (was state: The vault icons are not marked optimised yet: Vault.areIconsOptimized is false (MainActivity.java:767))",
+   "needs_state": null,
    "evidence": "SRC ui/MainActivity.java:767-778 (bytecode line 778)",
-   "env": null,
+   "env": "an entry icon that is not optimised yet: no baseline entry has an icon, and an icon comes only from a picked image or an icon pack (system picker, another app; IconPacksManagerFragment, EditEntryActivity.java:147-158) or from the vault of an older app version (Vault.java:92-93)",
    "edge_class": "explicit",
    "via": null,
-   "env_kinds": [],
-   "state_kinds": [
-    "data"
+   "env_kinds": [
+    "other_app"
    ],
-   "id": "Edabaca93",
+   "state_kinds": [],
+   "id": "E7ce09ede",
    "class_basis": "default"
   },
   {
@@ -52989,17 +53106,17 @@
    "guard": "the Welcome slide imported a vault (IntroActivity.java:57-62)",
    "reads": [],
    "writes": [],
-   "note": null,
-   "needs_state": "The Welcome slide imported a vault file in this intro run (intro state \"imported\")",
+   "note": "round 3b T: the state can be made only after an env action (was state: The Welcome slide imported a vault file in this intro run (intro state \"imported\"))",
+   "needs_state": null,
    "evidence": "SRC ui/IntroActivity.java:57-62",
-   "env": null,
+   "env": "a file comes back from the system document picker (ACTION_GET_CONTENT; ImportExportPreferencesFragment.java:146-158, WelcomeSlide, EditEntryActivity.java:147-158): an import file or icon exists in the app only after that pick",
    "edge_class": "explicit",
    "via": null,
-   "env_kinds": [],
-   "state_kinds": [
-    "data"
+   "env_kinds": [
+    "other_app"
    ],
-   "id": "Ee00175d0",
+   "state_kinds": [],
+   "id": "E907cc18d",
    "class_basis": "default"
   },
   {
@@ -53463,8 +53580,8 @@
    "guard": "the Welcome slide imported a vault (IntroActivity.java:57-62) and readVaultFile and loadFrom return without an error (IntroActivity.java:106-123)",
    "reads": [],
    "writes": [],
-   "note": null,
-   "needs_state": "The Welcome slide imported a vault file in this intro run (intro state \"imported\")",
+   "note": "round 3b T: the state can be made only after an env action (was state: The Welcome slide imported a vault file in this intro run (intro state \"imported\"))",
+   "needs_state": null,
    "evidence": "SRC ui/IntroActivity.java:106-123",
    "env": "the system document picker of another app returns a file (ACTION_GET_CONTENT, WelcomeSlide.java:43-47)",
    "edge_class": "explicit",
@@ -53472,10 +53589,8 @@
    "env_kinds": [
     "other_app"
    ],
-   "state_kinds": [
-    "data"
-   ],
-   "id": "E372ecee7",
+   "state_kinds": [],
+   "id": "E1b0c96b8",
    "class_basis": "default"
   },
   {
@@ -54081,15 +54196,17 @@
    "guard": "VaultRepositoryException from loadFrom (303-306)",
    "reads": [],
    "writes": [],
-   "note": null,
+   "note": "round 3: env gate from r3_judged.csv",
    "needs_state": null,
    "evidence": "SRC ui/AuthActivity.java:295-307",
-   "env": null,
+   "env": "round 3b blind pass 1 (error-only path): the vault fails to load after a correct password only for a damaged vault file (VaultRepositoryException, AuthActivity.java:299-306); the app writes a valid vault",
    "edge_class": "explicit",
    "via": null,
-   "env_kinds": [],
+   "env_kinds": [
+    "other"
+   ],
    "state_kinds": [],
-   "id": "E18d65fe1",
+   "id": "E95a9f035",
    "class_basis": "default"
   },
   {
@@ -56073,17 +56190,17 @@
    "guard": "some vault entry icons are not optimised yet (MainActivity.java:774)",
    "reads": [],
    "writes": [],
-   "note": null,
-   "needs_state": "The vault icons are not marked optimised yet: Vault.areIconsOptimized is false (MainActivity.java:767)",
+   "note": "round 3b T: the state can be made only after an env action (was state: The vault icons are not marked optimised yet: Vault.areIconsOptimized is false (MainActivity.java:767))",
+   "needs_state": null,
    "evidence": "FW-SRC core/java/android/os/AsyncTask.java:594-595 (execute), 632-650 (executeOnExecutor), 326-339 (doInBackground at 333), 369-374 (postResult), 705-713 (handleMessage), 691-697 (finish calls onPostExecute at 695); SRC ui/tasks/ProgressDialogTask.java:69-74; SRC ui/MainActivity.java:774-776; SRC ui/tasks/IconOptimizationTask.java:25",
-   "env": null,
+   "env": "an entry icon that is not optimised yet: no baseline entry has an icon, and an icon comes only from a picked image or an icon pack (system picker, another app; IconPacksManagerFragment, EditEntryActivity.java:147-158) or from the vault of an older app version (Vault.java:92-93)",
    "edge_class": "standard",
    "via": null,
-   "env_kinds": [],
-   "state_kinds": [
-    "data"
+   "env_kinds": [
+    "other_app"
    ],
-   "id": "Ea226ffdc",
+   "state_kinds": [],
+   "id": "Eb8fae01a",
    "class_basis": "default"
   },
   {
@@ -63095,17 +63212,17 @@
    "guard": "none on this edge (ImportFileTask.java:55 calls the callback unconditionally); the SVG check is EditEntryActivity.java:148, the guard of the task edge above",
    "reads": [],
    "writes": [],
-   "note": null,
-   "needs_state": "The icon picker returned an SVG file and its import task was started (EditEntryActivity.java:148-158)",
+   "note": "round 3b T: the state can be made only after an env action (was state: The icon picker returned an SVG file and its import task was started (EditEntryActivity.java:148-158))",
+   "needs_state": null,
    "evidence": "SRC ui/tasks/ImportFileTask.java:53-59; SRC ui/EditEntryActivity.java:150-157",
-   "env": null,
+   "env": "a file comes back from the system document picker (ACTION_GET_CONTENT; ImportExportPreferencesFragment.java:146-158, WelcomeSlide, EditEntryActivity.java:147-158): an import file or icon exists in the app only after that pick",
    "edge_class": "explicit",
    "via": null,
-   "env_kinds": [],
-   "state_kinds": [
-    "session"
+   "env_kinds": [
+    "other_app"
    ],
-   "id": "E82a3bc77",
+   "state_kinds": [],
+   "id": "E6c5657aa",
    "class_basis": "default"
   },
   {
@@ -65109,17 +65226,17 @@
    "guard": "no condition on the call (ImportFileTask.java:55 is unconditional); inside the lambda, result.getError() == null opens the import page, otherwise the read error dialog is shown (ImportExportPreferencesFragment.java:152-155)",
    "reads": [],
    "writes": [],
-   "note": null,
-   "needs_state": "The Settings import picker returned a file and its import task was started (ImportExportPreferencesFragment.java:146-158)",
+   "note": "round 3b T: the state can be made only after an env action (was state: The Settings import picker returned a file and its import task was started (ImportExportPreferencesFragment.java:146-158))",
+   "needs_state": null,
    "evidence": "SRC ui/tasks/ImportFileTask.java:53-56; SRC ui/fragments/preferences/ImportExportPreferencesFragment.java:150-157",
-   "env": null,
+   "env": "a file comes back from the system document picker (ACTION_GET_CONTENT; ImportExportPreferencesFragment.java:146-158, WelcomeSlide, EditEntryActivity.java:147-158): an import file or icon exists in the app only after that pick",
    "edge_class": "explicit",
    "via": null,
-   "env_kinds": [],
-   "state_kinds": [
-    "session"
+   "env_kinds": [
+    "other_app"
    ],
-   "id": "Ed10f6640",
+   "state_kinds": [],
+   "id": "E7276075c",
    "class_basis": "default"
   },
   {
@@ -65291,17 +65408,17 @@
    "guard": null,
    "reads": [],
    "writes": [],
-   "note": null,
-   "needs_state": "an import file is read (an Aegis export made in the app, or another app's export) and the list of its entries is scrolled, as for E2936b7b5",
+   "note": "round 3b T: the state can be made only after an env action (was state: an import file is read (an Aegis export made in the app, or another app's export) and the list of its entries is scrolled, as for E2936b7b5)",
+   "needs_state": null,
    "evidence": "INFERRED androidx.recyclerview: RecyclerView calls each OnScrollListener.onScrolled while the list moves (source not read); SRC ui/ImportEntriesActivity.java:79-85",
-   "env": null,
+   "env": "a file comes back from the system document picker (ACTION_GET_CONTENT; ImportExportPreferencesFragment.java:146-158, WelcomeSlide, EditEntryActivity.java:147-158): an import file or icon exists in the app only after that pick",
    "edge_class": "standard",
    "via": null,
-   "env_kinds": [],
-   "state_kinds": [
-    "file"
+   "env_kinds": [
+    "other_app"
    ],
-   "id": "E5f9cbf67",
+   "state_kinds": [],
+   "id": "E3fb57d1a",
    "class_basis": "default"
   },
   {
@@ -67217,17 +67334,17 @@
    "guard": "the row is visible only when backups are on (BackupsPreferencesFragment.java:208)",
    "reads": [],
    "writes": [],
-   "note": null,
-   "needs_state": "automatic backups are on (pref_backups, default off, Preferences.java:401), so the backup location row is shown (BackupsPreferencesFragment.java:208)",
+   "note": "round 3b T: the state can be made only after an env action (was state: automatic backups are on (pref_backups, default off, Preferences.java:401), so the backup location row is shown (BackupsPreferencesFragment.java:208))",
+   "needs_state": null,
    "evidence": "INFERRED androidx.preference: a tap on a Preference row calls its OnPreferenceClickListener, or the activity callback OnPreferenceStartFragmentCallback for a row with android:fragment (androidx source not cached); SRC ui/fragments/preferences/BackupsPreferencesFragment.java:142-150",
-   "env": null,
+   "env": "automatic backups are turned on only in the result of the system folder picker (ACTION_OPEN_DOCUMENT_TREE, BackupsPreferencesFragment.java:79-89,175-189,263-264), and an Android backup result is written by the system backup service; either needs the system first",
    "edge_class": "standard",
    "via": null,
-   "env_kinds": [],
-   "state_kinds": [
-    "settings"
+   "env_kinds": [
+    "other_app"
    ],
-   "id": "Ea0c0acaa",
+   "state_kinds": [],
+   "id": "Ed74edcc4",
    "class_basis": "default"
   },
   {
@@ -67241,17 +67358,17 @@
    "guard": "the row is visible only when backups are on (BackupsPreferencesFragment.java:209); the backup runs only when backups are on (:154)",
    "reads": [],
    "writes": [],
-   "note": "baseline: the setup vault is password-protected (Q3), so it has credentials and isEncryptionEnabled is true (VaultRepository.java:352-354)",
-   "needs_state": "automatic backups are on (pref_backups, default off, Preferences.java:401), so the Backup trigger row is shown and its tap runs a backup (BackupsPreferencesFragment.java:153-158, 209)",
+   "note": "baseline: the setup vault is password-protected (Q3), so it has credentials and isEncryptionEnabled is true (VaultRepository.java:352-354) | round 3b T: the state can be made only after an env action (was state: automatic backups are on (pref_backups, default off, Preferences.java:401), so the Backup trigger row is shown and its tap runs a backup (BackupsPreferencesFragment.java:153-158, 209))",
+   "needs_state": null,
    "evidence": "INFERRED androidx.preference: a tap on a Preference row calls its OnPreferenceClickListener, or the activity callback OnPreferenceStartFragmentCallback for a row with android:fragment (androidx source not cached); SRC ui/fragments/preferences/BackupsPreferencesFragment.java:153-159,197-199,209",
-   "env": null,
+   "env": "automatic backups are turned on only in the result of the system folder picker (ACTION_OPEN_DOCUMENT_TREE, BackupsPreferencesFragment.java:79-89,175-189,263-264), and an Android backup result is written by the system backup service; either needs the system first",
    "edge_class": "standard",
    "via": null,
-   "env_kinds": [],
-   "state_kinds": [
-    "settings"
+   "env_kinds": [
+    "other_app"
    ],
-   "id": "E239312c1",
+   "state_kinds": [],
+   "id": "Ee3c3bd09",
    "class_basis": "default"
   },
   {
@@ -67265,17 +67382,17 @@
    "guard": "the row is visible only when backups are on (BackupsPreferencesFragment.java:207)",
    "reads": [],
    "writes": [],
-   "note": null,
-   "needs_state": "automatic backups are on (pref_backups, default off, Preferences.java:401), so the versioning strategy row is shown (BackupsPreferencesFragment.java:207)",
+   "note": "round 3b T: the state can be made only after an env action (was state: automatic backups are on (pref_backups, default off, Preferences.java:401), so the versioning strategy row is shown (BackupsPreferencesFragment.java:207))",
+   "needs_state": null,
    "evidence": "INFERRED androidx.preference: a tap on a Preference row calls its OnPreferenceClickListener, or the activity callback OnPreferenceStartFragmentCallback for a row with android:fragment (androidx source not cached); SRC ui/fragments/preferences/BackupsPreferencesFragment.java:114-127",
-   "env": null,
+   "env": "automatic backups are turned on only in the result of the system folder picker (ACTION_OPEN_DOCUMENT_TREE, BackupsPreferencesFragment.java:79-89,175-189,263-264), and an Android backup result is written by the system backup service; either needs the system first",
    "edge_class": "standard",
    "via": null,
-   "env_kinds": [],
-   "state_kinds": [
-    "settings"
+   "env_kinds": [
+    "other_app"
    ],
-   "id": "Ef7ba8dcf",
+   "state_kinds": [],
+   "id": "Ede5f5324",
    "class_basis": "default"
   },
   {
@@ -67331,17 +67448,17 @@
    "guard": "the row is visible only when backups are on and the strategy is not single backup (BackupsPreferencesFragment.java:210)",
    "reads": [],
    "writes": [],
-   "note": null,
-   "needs_state": "automatic backups are on (pref_backups, default off, Preferences.java:401) with a versioning strategy other than single backup, so the versions row is shown (BackupsPreferencesFragment.java:210)",
+   "note": "round 3b T: the state can be made only after an env action (was state: automatic backups are on (pref_backups, default off, Preferences.java:401) with a versioning strategy other than single backup, so the versions row is shown (BackupsPreferencesFragment.java:210))",
+   "needs_state": null,
    "evidence": "INFERRED androidx.preference: a tap on a Preference row calls its OnPreferenceClickListener, or the activity callback OnPreferenceStartFragmentCallback for a row with android:fragment (androidx source not cached); SRC ui/fragments/preferences/BackupsPreferencesFragment.java:163-169",
-   "env": null,
+   "env": "automatic backups are turned on only in the result of the system folder picker (ACTION_OPEN_DOCUMENT_TREE, BackupsPreferencesFragment.java:79-89,175-189,263-264), and an Android backup result is written by the system backup service; either needs the system first",
    "edge_class": "standard",
    "via": null,
-   "env_kinds": [],
-   "state_kinds": [
-    "settings"
+   "env_kinds": [
+    "other_app"
    ],
-   "id": "Eb0d8cb87",
+   "state_kinds": [],
+   "id": "Edf23db16",
    "class_basis": "default"
   },
   {
@@ -70737,17 +70854,17 @@
    "guard": "at least one duplicate was found (ImportEntriesActivity.java:356-358)",
    "reads": [],
    "writes": [],
-   "note": null,
-   "needs_state": "an import file holds an entry already in the vault (for example the app's own export of the baseline vault), so the duplicate snackbar is shown (ImportEntriesActivity.java:356-362)",
+   "note": "round 3b T: the state can be made only after an env action (was state: an import file holds an entry already in the vault (for example the app's own export of the baseline vault), so the duplicate snackbar is shown (ImportEntriesActivity.java:356-362))",
+   "needs_state": null,
    "evidence": "INFERRED com.google.android.material: Snackbar.show runs Callback.onShown when the bar appears and Callback.onDismissed when it leaves (material source not cached); SRC ui/ImportEntriesActivity.java:361-373",
-   "env": null,
+   "env": "a file comes back from the system document picker (ACTION_GET_CONTENT; ImportExportPreferencesFragment.java:146-158, WelcomeSlide, EditEntryActivity.java:147-158): an import file or icon exists in the app only after that pick",
    "edge_class": "standard",
    "via": null,
-   "env_kinds": [],
-   "state_kinds": [
-    "file"
+   "env_kinds": [
+    "other_app"
    ],
-   "id": "Ee1296b2f",
+   "state_kinds": [],
+   "id": "E056fb887",
    "class_basis": "default"
   },
   {
@@ -70781,17 +70898,17 @@
    "guard": "at least one duplicate was found (ImportEntriesActivity.java:356-358)",
    "reads": [],
    "writes": [],
-   "note": null,
-   "needs_state": "an import file holds an entry already in the vault, and Undo in the duplicate snackbar checks the duplicates again (ImportEntriesActivity.java:356-362)",
+   "note": "round 3b T: the state can be made only after an env action (was state: an import file holds an entry already in the vault, and Undo in the duplicate snackbar checks the duplicates again (ImportEntriesActivity.java:356-362))",
+   "needs_state": null,
    "evidence": "FW-SRC core/java/android/view/View.java:6289-6296 (performClick calls the OnClickListener.onClick); SRC ui/ImportEntriesActivity.java:387-392",
-   "env": null,
+   "env": "a file comes back from the system document picker (ACTION_GET_CONTENT; ImportExportPreferencesFragment.java:146-158, WelcomeSlide, EditEntryActivity.java:147-158): an import file or icon exists in the app only after that pick",
    "edge_class": "standard",
    "via": null,
-   "env_kinds": [],
-   "state_kinds": [
-    "file"
+   "env_kinds": [
+    "other_app"
    ],
-   "id": "E581a031b",
+   "state_kinds": [],
+   "id": "Eb314322a",
    "class_basis": "default"
   },
   {
@@ -73465,17 +73582,17 @@
    "guard": null,
    "reads": [],
    "writes": [],
-   "note": null,
-   "needs_state": "app state: the password dialog of an encrypted Aegis export import is cancelled (Dialogs.java:217), as for Ed482f1f4",
+   "note": "round 3b T: the state can be made only after an env action (was state: app state: the password dialog of an encrypted Aegis export import is cancelled (Dialogs.java:217), as for Ed482f1f4)",
+   "needs_state": null,
    "evidence": "INFERRED androidx.appcompat AlertDialog: a cancel (Back or a tap outside) calls the OnCancelListener set with setOnCancelListener (AppCompat source not read); SRC ui/dialogs/Dialogs.java:217-219; SRC importers/AegisImporter.java:109",
-   "env": null,
+   "env": "a file comes back from the system document picker (ACTION_GET_CONTENT; ImportExportPreferencesFragment.java:146-158, WelcomeSlide, EditEntryActivity.java:147-158): an import file or icon exists in the app only after that pick",
    "edge_class": "standard",
    "via": null,
-   "env_kinds": [],
-   "state_kinds": [
-    "file"
+   "env_kinds": [
+    "other_app"
    ],
-   "id": "E78c25350",
+   "state_kinds": [],
+   "id": "Ed59ba750",
    "class_basis": "default"
   },
   {
@@ -77431,15 +77548,17 @@
    "guard": "a biometric key exists and the password reminder is due (AuthActivity.java:237-240)",
    "reads": [],
    "writes": [],
-   "note": null,
+   "note": "round 3: env gate from r3_judged.csv",
    "needs_state": null,
    "evidence": "SRC ui/AuthActivity.java:236-240",
-   "env": null,
+   "env": "round 3b: the password reminder is shown on attach only with a biometric key (_bioKey, set only when a fingerprint slot unlocks; biometric hardware) and the reminder due (AuthActivity.java:235-237)",
    "edge_class": "explicit",
    "via": null,
-   "env_kinds": [],
+   "env_kinds": [
+    "hardware"
+   ],
    "state_kinds": [],
-   "id": "Ed738d5b5",
+   "id": "E4c34ee71",
    "class_basis": "default"
   },
   {
@@ -78765,17 +78884,17 @@
    "guard": null,
    "reads": [],
    "writes": [],
-   "note": null,
-   "needs_state": "an icon pack is imported, so the icon list has icons to bind (loadIcons fills _icons, :87-89); the baseline has none",
+   "note": "round 3b T: the state can be made only after an env action (was state: an icon pack is imported, so the icon list has icons to bind (loadIcons fills _icons, :87-89); the baseline has none)",
+   "needs_state": null,
    "evidence": "INFERRED androidx.recyclerview: RecyclerView creates and binds the row views of an adapter after its data changes (androidx source not cached); SRC ui/views/IconAdapter.java:90,166-168",
-   "env": null,
+   "env": "a file comes back from the system document picker (ACTION_GET_CONTENT; ImportExportPreferencesFragment.java:146-158, WelcomeSlide, EditEntryActivity.java:147-158): an import file or icon exists in the app only after that pick",
    "edge_class": "standard",
    "via": null,
-   "env_kinds": [],
-   "state_kinds": [
-    "data"
+   "env_kinds": [
+    "other_app"
    ],
-   "id": "E22c023d7",
+   "state_kinds": [],
+   "id": "Ef14f4536",
    "class_basis": "default"
   },
   {
@@ -79803,15 +79922,17 @@
    "guard": "the entry has an icon (GlideHelper.java:40-41), and the fetch is started (INFERRED)",
    "reads": [],
    "writes": [],
-   "note": null,
+   "note": "round 3: env gate from r3_judged.csv",
    "needs_state": null,
    "evidence": "INFERRED Glide (source not read); SRC ui/glide/VaultEntryIconLoader.java:39-42,57-65",
-   "env": null,
+   "env": "round 3b blind pass 1 (VaultEntryIconLoader.<clinit>): the icon branch of loadEntryIcon runs only for an entry with an icon (entry.hasIcon(), GlideHelper.java:40-41); no baseline entry has one, and an icon comes only from an icon pack or a picked image (another app or the system picker), as for the other edges of this branch",
    "edge_class": "standard",
    "via": null,
-   "env_kinds": [],
+   "env_kinds": [
+    "other_app"
+   ],
    "state_kinds": [],
-   "id": "E215afcc5",
+   "id": "Eb9b9d513",
    "class_basis": "default"
   },
   {
@@ -79823,15 +79944,17 @@
    "guard": "the entry has an icon (GlideHelper.java:40-41), and the fetch is started (INFERRED)",
    "reads": [],
    "writes": [],
-   "note": null,
+   "note": "round 3: env gate from r3_judged.csv",
    "needs_state": null,
    "evidence": "INFERRED Glide (source not read); SRC ui/glide/VaultEntryIconLoader.java:39-42,57-65",
-   "env": null,
+   "env": "round 3b blind pass 1 (VaultEntryIconLoader.<clinit>): the icon branch of loadEntryIcon runs only for an entry with an icon (entry.hasIcon(), GlideHelper.java:40-41); no baseline entry has one, and an icon comes only from an icon pack or a picked image (another app or the system picker), as for the other edges of this branch",
    "edge_class": "standard",
    "via": null,
-   "env_kinds": [],
+   "env_kinds": [
+    "other_app"
+   ],
    "state_kinds": [],
-   "id": "Ed4969eb4",
+   "id": "Ead2af0b0",
    "class_basis": "default"
   },
   {
@@ -79843,15 +79966,17 @@
    "guard": "the entry has an icon (GlideHelper.java:40-41), and the load is not answered from the memory cache (INFERRED)",
    "reads": [],
    "writes": [],
-   "note": null,
+   "note": "round 3: env gate from r3_judged.csv",
    "needs_state": null,
    "evidence": "INFERRED Glide (source not read); SRC ui/glide/VaultEntryIconLoader.java:39-42,57-65",
-   "env": null,
+   "env": "round 3b blind pass 1 (VaultEntryIconLoader.<clinit>): the icon branch of loadEntryIcon runs only for an entry with an icon (entry.hasIcon(), GlideHelper.java:40-41); no baseline entry has one, and an icon comes only from an icon pack or a picked image (another app or the system picker), as for the other edges of this branch",
    "edge_class": "standard",
    "via": null,
-   "env_kinds": [],
+   "env_kinds": [
+    "other_app"
+   ],
    "state_kinds": [],
-   "id": "E24bae80e",
+   "id": "E96402f81",
    "class_basis": "default"
   },
   {
@@ -79863,15 +79988,17 @@
    "guard": "the entry has an icon (GlideHelper.java:40-41), and the fetch has finished (INFERRED)",
    "reads": [],
    "writes": [],
-   "note": null,
+   "note": "round 3: env gate from r3_judged.csv",
    "needs_state": null,
    "evidence": "INFERRED Glide (source not read); SRC ui/glide/VaultEntryIconLoader.java:39-42,57-65",
-   "env": null,
+   "env": "round 3b blind pass 1 (VaultEntryIconLoader.<clinit>): the icon branch of loadEntryIcon runs only for an entry with an icon (entry.hasIcon(), GlideHelper.java:40-41); no baseline entry has one, and an icon comes only from an icon pack or a picked image (another app or the system picker), as for the other edges of this branch",
    "edge_class": "standard",
    "via": null,
-   "env_kinds": [],
+   "env_kinds": [
+    "other_app"
+   ],
    "state_kinds": [],
-   "id": "E23f3d30c",
+   "id": "E3fc31b3e",
    "class_basis": "default"
   },
   {
@@ -79883,15 +80010,17 @@
    "guard": "the entry has no icon (the else branch, GlideHelper.java:43-45), and an earlier load for this view is still running (INFERRED)",
    "reads": [],
    "writes": [],
-   "note": null,
+   "note": "round 3: env gate from r3_judged.csv",
    "needs_state": null,
    "evidence": "INFERRED Glide (source not read); SRC ui/glide/VaultEntryIconLoader.java:39-42,57-65",
-   "env": null,
+   "env": "round 3b blind pass 1 (VaultEntryIconLoader.<clinit>): the icon branch of loadEntryIcon runs only for an entry with an icon (entry.hasIcon(), GlideHelper.java:40-41); no baseline entry has one, and an icon comes only from an icon pack or a picked image (another app or the system picker), as for the other edges of this branch",
    "edge_class": "standard",
    "via": null,
-   "env_kinds": [],
+   "env_kinds": [
+    "other_app"
+   ],
    "state_kinds": [],
-   "id": "E32177606",
+   "id": "E4893bd58",
    "class_basis": "default"
   },
   {
@@ -81305,17 +81434,17 @@
    "guard": "the vault is encrypted (VaultManager.java:143) and pref_backups is on (VaultManager.java:144)",
    "reads": [],
    "writes": [],
-   "note": null,
-   "needs_state": "automatic backups are on (pref_backups, default off, Preferences.java:401); the vault is encrypted (baseline)",
+   "note": "round 3b T: the state can be made only after an env action (was state: automatic backups are on (pref_backups, default off, Preferences.java:401); the vault is encrypted (baseline))",
+   "needs_state": null,
    "evidence": "SRC vault/VaultManager.java:143-147",
-   "env": null,
+   "env": "automatic backups are turned on only in the result of the system folder picker (ACTION_OPEN_DOCUMENT_TREE, BackupsPreferencesFragment.java:79-89,175-189,263-264), and an Android backup result is written by the system backup service; either needs the system first",
    "edge_class": "explicit",
    "via": null,
-   "env_kinds": [],
-   "state_kinds": [
-    "settings"
+   "env_kinds": [
+    "other_app"
    ],
-   "id": "E681c4281",
+   "state_kinds": [],
+   "id": "E19326b36",
    "class_basis": "default"
   },
   {
@@ -81489,17 +81618,17 @@
    "guard": "the Welcome slide imported a vault (IntroActivity.java:57-62)",
    "reads": [],
    "writes": [],
-   "note": null,
-   "needs_state": "The Welcome slide imported a vault file in this intro run (intro state \"imported\")",
+   "note": "round 3b T: the state can be made only after an env action (was state: The Welcome slide imported a vault file in this intro run (intro state \"imported\"))",
+   "needs_state": null,
    "evidence": "SRC ui/IntroActivity.java:57-62",
-   "env": null,
+   "env": "a file comes back from the system document picker (ACTION_GET_CONTENT; ImportExportPreferencesFragment.java:146-158, WelcomeSlide, EditEntryActivity.java:147-158): an import file or icon exists in the app only after that pick",
    "edge_class": "explicit",
    "via": null,
-   "env_kinds": [],
-   "state_kinds": [
-    "data"
+   "env_kinds": [
+    "other_app"
    ],
-   "id": "E0237a72b",
+   "state_kinds": [],
+   "id": "Eca3b318d",
    "class_basis": "default"
   },
   {
@@ -81553,17 +81682,17 @@
    "guard": "the Welcome slide imported a vault (IntroActivity.java:57-62) and readVaultFile and loadFrom return without an error (IntroActivity.java:106-123)",
    "reads": [],
    "writes": [],
-   "note": null,
-   "needs_state": "The Welcome slide imported a vault file in this intro run (intro state \"imported\")",
+   "note": "round 3b T: the state can be made only after an env action (was state: The Welcome slide imported a vault file in this intro run (intro state \"imported\"))",
+   "needs_state": null,
    "evidence": "SRC ui/IntroActivity.java:106-123",
-   "env": null,
+   "env": "a file comes back from the system document picker (ACTION_GET_CONTENT; ImportExportPreferencesFragment.java:146-158, WelcomeSlide, EditEntryActivity.java:147-158): an import file or icon exists in the app only after that pick",
    "edge_class": "explicit",
    "via": null,
-   "env_kinds": [],
-   "state_kinds": [
-    "data"
+   "env_kinds": [
+    "other_app"
    ],
-   "id": "Ed92e13fe",
+   "state_kinds": [],
+   "id": "E395b9599",
    "class_basis": "default"
   },
   {
@@ -83462,18 +83591,18 @@
    "guard": null,
    "reads": [],
    "writes": [],
-   "note": null,
-   "needs_state": "settings: an Android backup result exists only after Android backups were turned on (off by default, Preferences.java:392), so its time is added (:454)",
+   "note": "round 3b T: the state can be made only after an env action (was state: settings: an Android backup result exists only after Android backups were turned on (off by default, Preferences.java:392), so its time is added (:454))",
+   "needs_state": null,
    "evidence": "SRC Preferences.java:454 (bytecode)",
-   "env": null,
+   "env": "automatic backups are turned on only in the result of the system folder picker (ACTION_OPEN_DOCUMENT_TREE, BackupsPreferencesFragment.java:79-89,175-189,263-264), and an Android backup result is written by the system backup service; either needs the system first",
    "edge_class": "explicit",
    "via": null,
-   "env_kinds": [],
-   "state_kinds": [
-    "settings"
+   "env_kinds": [
+    "other_app"
    ],
+   "state_kinds": [],
    "auto": true,
-   "id": "Ecf9e476c",
+   "id": "E97883f7f",
    "class_basis": "default"
   },
   {
@@ -83611,18 +83740,18 @@
    "guard": null,
    "reads": [],
    "writes": [],
-   "note": null,
-   "needs_state": "settings: an Android backup result exists only after Android backups were turned on (off by default, Preferences.java:392), so it is checked for success (:501)",
+   "note": "round 3b T: the state can be made only after an env action (was state: settings: an Android backup result exists only after Android backups were turned on (off by default, Preferences.java:392), so it is checked for success (:501))",
+   "needs_state": null,
    "evidence": "SRC Preferences.java:501 (bytecode)",
-   "env": null,
+   "env": "automatic backups are turned on only in the result of the system folder picker (ACTION_OPEN_DOCUMENT_TREE, BackupsPreferencesFragment.java:79-89,175-189,263-264), and an Android backup result is written by the system backup service; either needs the system first",
    "edge_class": "explicit",
    "via": null,
-   "env_kinds": [],
-   "state_kinds": [
-    "settings"
+   "env_kinds": [
+    "other_app"
    ],
+   "state_kinds": [],
    "auto": true,
-   "id": "E28ea038a",
+   "id": "Eed4ea2a1",
    "class_basis": "default"
   },
   {
@@ -83697,18 +83826,18 @@
    "guard": null,
    "reads": [],
    "writes": [],
-   "note": null,
-   "needs_state": "settings: a non-null backup result is saved only after a backup ran (VaultManager.java:146-149), which needs backups turned on (off by default), so it is written as JSON (Preferences.java:509-511)",
+   "note": "round 3b T: the state can be made only after an env action (was state: settings: a non-null backup result is saved only after a backup ran (VaultManager.java:146-149), which needs backups turned on (off by default), so it is written as JSON (Preferences.java:509-511))",
+   "needs_state": null,
    "evidence": "SRC Preferences.java:511 (bytecode)",
-   "env": null,
+   "env": "automatic backups are turned on only in the result of the system folder picker (ACTION_OPEN_DOCUMENT_TREE, BackupsPreferencesFragment.java:79-89,175-189,263-264), and an Android backup result is written by the system backup service; either needs the system first",
    "edge_class": "explicit",
    "via": null,
-   "env_kinds": [],
-   "state_kinds": [
-    "settings"
+   "env_kinds": [
+    "other_app"
    ],
+   "state_kinds": [],
    "auto": true,
-   "id": "Ee9ee2f0f",
+   "id": "E067d3ac9",
    "class_basis": "default"
   },
   {
@@ -83741,18 +83870,18 @@
    "guard": null,
    "reads": [],
    "writes": [],
-   "note": null,
-   "needs_state": "settings: a backup result is stored only after a backup ran, which needs backups or Android backups turned on (off by default, Preferences.java:392, :401), so it is read (:525)",
+   "note": "round 3b T: the state can be made only after an env action (was state: settings: a backup result is stored only after a backup ran, which needs backups or Android backups turned on (off by default, Preferences.java:392, :401), so it is read (:525))",
+   "needs_state": null,
    "evidence": "SRC Preferences.java:525 (bytecode)",
-   "env": null,
+   "env": "automatic backups are turned on only in the result of the system folder picker (ACTION_OPEN_DOCUMENT_TREE, BackupsPreferencesFragment.java:79-89,175-189,263-264), and an Android backup result is written by the system backup service; either needs the system first",
    "edge_class": "explicit",
    "via": null,
-   "env_kinds": [],
-   "state_kinds": [
-    "settings"
+   "env_kinds": [
+    "other_app"
    ],
+   "state_kinds": [],
    "auto": true,
-   "id": "E851c69a4",
+   "id": "E4c672eb6",
    "class_basis": "default"
   },
   {
@@ -83764,18 +83893,18 @@
    "guard": null,
    "reads": [],
    "writes": [],
-   "note": null,
-   "needs_state": "automatic backups are on (default off) and a backup ran, so a stored result exists to parse (Preferences.java:519-524)",
+   "note": "round 3b T: the state can be made only after an env action (was state: automatic backups are on (default off) and a backup ran, so a stored result exists to parse (Preferences.java:519-524))",
+   "needs_state": null,
    "evidence": "SRC Preferences.java:524 (bytecode)",
-   "env": null,
+   "env": "automatic backups are turned on only in the result of the system folder picker (ACTION_OPEN_DOCUMENT_TREE, BackupsPreferencesFragment.java:79-89,175-189,263-264), and an Android backup result is written by the system backup service; either needs the system first",
    "edge_class": "explicit",
    "via": null,
-   "env_kinds": [],
-   "state_kinds": [
-    "settings"
+   "env_kinds": [
+    "other_app"
    ],
+   "state_kinds": [],
    "auto": true,
-   "id": "Ec188e9b8",
+   "id": "Eb9d59ba2",
    "class_basis": "default"
   },
   {
@@ -88841,18 +88970,18 @@
    "guard": null,
    "reads": [],
    "writes": [],
-   "note": null,
-   "needs_state": "the vault icons are not marked optimised and some need it: only then is the optimisation task run (MainActivity.java:767-776), as for Ea226ffdc",
+   "note": "round 3b T: the state can be made only after an env action (was state: the vault icons are not marked optimised and some need it: only then is the optimisation task run (MainActivity.java:767-776), as for Ea226ffdc)",
+   "needs_state": null,
    "evidence": "SRC MainActivity.java:776 (bytecode)",
-   "env": null,
+   "env": "an entry icon that is not optimised yet: no baseline entry has an icon, and an icon comes only from a picked image or an icon pack (system picker, another app; IconPacksManagerFragment, EditEntryActivity.java:147-158) or from the vault of an older app version (Vault.java:92-93)",
    "edge_class": "explicit",
    "via": null,
-   "env_kinds": [],
-   "state_kinds": [
-    "data"
+   "env_kinds": [
+    "other_app"
    ],
+   "state_kinds": [],
    "auto": true,
-   "id": "E7c69a6e1",
+   "id": "E7963812a",
    "class_basis": "default"
   },
   {
@@ -88864,18 +88993,18 @@
    "guard": null,
    "reads": [],
    "writes": [],
-   "note": null,
-   "needs_state": "the vault icons are not marked optimised and some need it, so the optimisation task is made (MainActivity.java:766-775), as for Ef00941c3",
+   "note": "round 3b T: the state can be made only after an env action (was state: the vault icons are not marked optimised and some need it, so the optimisation task is made (MainActivity.java:766-775), as for Ef00941c3)",
+   "needs_state": null,
    "evidence": "SRC MainActivity.java:775 (bytecode)",
-   "env": null,
+   "env": "an entry icon that is not optimised yet: no baseline entry has an icon, and an icon comes only from a picked image or an icon pack (system picker, another app; IconPacksManagerFragment, EditEntryActivity.java:147-158) or from the vault of an older app version (Vault.java:92-93)",
    "edge_class": "explicit",
    "via": null,
-   "env_kinds": [],
-   "state_kinds": [
-    "data"
+   "env_kinds": [
+    "other_app"
    ],
+   "state_kinds": [],
    "auto": true,
-   "id": "E6f2fb84e",
+   "id": "Edb61c79c",
    "class_basis": "default"
   },
   {
@@ -90273,18 +90402,18 @@
    "guard": null,
    "reads": [],
    "writes": [],
-   "note": null,
-   "needs_state": "a plaintext export was made (it sets the plaintext warning flag, ImportExportPreferencesFragment.java:494-500), so the main screen makes the plaintext export error card (MainActivity.java:1192-1193), as for Ea056cf0e",
+   "note": "round 3b T: the state can be made only after an env action (was state: a plaintext export was made (it sets the plaintext warning flag, ImportExportPreferencesFragment.java:494-500), so the main screen makes the plaintext export error card (MainActivity.java:1192-1193), as for Ea056cf0e)",
+   "needs_state": null,
    "evidence": "SRC MainActivity.java:1193 (bytecode)",
-   "env": null,
+   "env": "an export file was saved in the system document creator (ACTION_CREATE_DOCUMENT, ImportExportPreferencesFragment.java:494-500): the export flag is set only after that",
    "edge_class": "explicit",
    "via": null,
-   "env_kinds": [],
-   "state_kinds": [
-    "settings"
+   "env_kinds": [
+    "other_app"
    ],
+   "state_kinds": [],
    "auto": true,
-   "id": "E557b85da",
+   "id": "Ebacef880",
    "class_basis": "default"
   },
   {
@@ -90317,18 +90446,18 @@
    "guard": null,
    "reads": [],
    "writes": [],
-   "note": null,
-   "needs_state": "a backup reminder is due and a backup or export was made earlier, so the elapsed time is shown (MainActivity.java:1175-1177)",
+   "note": "round 3b T: the state can be made only after an env action (was state: a backup reminder is due and a backup or export was made earlier, so the elapsed time is shown (MainActivity.java:1175-1177))",
+   "needs_state": null,
    "evidence": "SRC MainActivity.java:1177 (bytecode)",
-   "env": null,
+   "env": "an export file was saved in the system document creator (ACTION_CREATE_DOCUMENT, ImportExportPreferencesFragment.java:494-500): the export flag is set only after that",
    "edge_class": "explicit",
    "via": null,
-   "env_kinds": [],
-   "state_kinds": [
-    "data"
+   "env_kinds": [
+    "other_app"
    ],
+   "state_kinds": [],
    "auto": true,
-   "id": "E450c3e8d",
+   "id": "Eaa7f8cea",
    "class_basis": "default"
   },
   {
@@ -91150,18 +91279,18 @@
    "guard": null,
    "reads": [],
    "writes": [],
-   "note": null,
-   "needs_state": "a plaintext export was made (it sets the plaintext warning, ImportExportPreferencesFragment.java:494-500), so the error card offers the warning options (MainActivity.java:1192-1193)",
+   "note": "round 3b T: the state can be made only after an env action (was state: a plaintext export was made (it sets the plaintext warning, ImportExportPreferencesFragment.java:494-500), so the error card offers the warning options (MainActivity.java:1192-1193))",
+   "needs_state": null,
    "evidence": "SRC MainActivity.java:1193 (bytecode)",
-   "env": null,
+   "env": "an export file was saved in the system document creator (ACTION_CREATE_DOCUMENT, ImportExportPreferencesFragment.java:494-500): the export flag is set only after that",
    "edge_class": "explicit",
    "via": null,
-   "env_kinds": [],
-   "state_kinds": [
-    "data"
+   "env_kinds": [
+    "other_app"
    ],
+   "state_kinds": [],
    "auto": true,
-   "id": "E8e0a6a4a",
+   "id": "Ed0bd98be",
    "class_basis": "default"
   },
   {
@@ -91257,18 +91386,18 @@
    "guard": null,
    "reads": [],
    "writes": [],
-   "note": null,
-   "needs_state": "app state: the vault icons are not marked optimised and an entry has a non-SVG icon (MainActivity.java:767-770), as for Ea226ffdc",
+   "note": "round 3b T: the state can be made only after an env action (was state: app state: the vault icons are not marked optimised and an entry has a non-SVG icon (MainActivity.java:767-770), as for Ea226ffdc)",
+   "needs_state": null,
    "evidence": "SRC MainActivity.java:770 (bytecode)",
-   "env": null,
+   "env": "an entry icon that is not optimised yet: no baseline entry has an icon, and an icon comes only from a picked image or an icon pack (system picker, another app; IconPacksManagerFragment, EditEntryActivity.java:147-158) or from the vault of an older app version (Vault.java:92-93)",
    "edge_class": "explicit",
    "via": null,
-   "env_kinds": [],
-   "state_kinds": [
-    "data"
+   "env_kinds": [
+    "other_app"
    ],
+   "state_kinds": [],
    "auto": true,
-   "id": "E2e73a76d",
+   "id": "E81a8d77b",
    "class_basis": "default"
   },
   {
@@ -91280,18 +91409,18 @@
    "guard": null,
    "reads": [],
    "writes": [],
-   "note": null,
-   "needs_state": "the vault icons are not marked optimised: each entry icon is checked (MainActivity.java:767-771), as for Ea226ffdc",
+   "note": "round 3b T: the state can be made only after an env action (was state: the vault icons are not marked optimised: each entry icon is checked (MainActivity.java:767-771), as for Ea226ffdc)",
+   "needs_state": null,
    "evidence": "SRC MainActivity.java:771 (bytecode)",
-   "env": null,
+   "env": "an entry icon that is not optimised yet: no baseline entry has an icon, and an icon comes only from a picked image or an icon pack (system picker, another app; IconPacksManagerFragment, EditEntryActivity.java:147-158) or from the vault of an older app version (Vault.java:92-93)",
    "edge_class": "explicit",
    "via": null,
-   "env_kinds": [],
-   "state_kinds": [
-    "data"
+   "env_kinds": [
+    "other_app"
    ],
+   "state_kinds": [],
    "auto": true,
-   "id": "E79ee4737",
+   "id": "E5d39bb3f",
    "class_basis": "default"
   },
   {
@@ -91303,18 +91432,18 @@
    "guard": null,
    "reads": [],
    "writes": [],
-   "note": null,
-   "needs_state": "the vault icons are not marked optimised, so each entry icon is read (MainActivity.java:767-771), as for Ea226ffdc",
+   "note": "round 3b T: the state can be made only after an env action (was state: the vault icons are not marked optimised, so each entry icon is read (MainActivity.java:767-771), as for Ea226ffdc)",
+   "needs_state": null,
    "evidence": "SRC MainActivity.java:771 (bytecode)",
-   "env": null,
+   "env": "an entry icon that is not optimised yet: no baseline entry has an icon, and an icon comes only from a picked image or an icon pack (system picker, another app; IconPacksManagerFragment, EditEntryActivity.java:147-158) or from the vault of an older app version (Vault.java:92-93)",
    "edge_class": "explicit",
    "via": null,
-   "env_kinds": [],
-   "state_kinds": [
-    "data"
+   "env_kinds": [
+    "other_app"
    ],
+   "state_kinds": [],
    "auto": true,
-   "id": "Ee49be4ff",
+   "id": "E57aa240d",
    "class_basis": "default"
   },
   {
@@ -91326,18 +91455,18 @@
    "guard": null,
    "reads": [],
    "writes": [],
-   "note": null,
-   "needs_state": "the vault icons are not marked optimised, so each entry icon type is read (MainActivity.java:767-770), as for Ea226ffdc",
+   "note": "round 3b T: the state can be made only after an env action (was state: the vault icons are not marked optimised, so each entry icon type is read (MainActivity.java:767-770), as for Ea226ffdc)",
+   "needs_state": null,
    "evidence": "SRC MainActivity.java:770 (bytecode)",
-   "env": null,
+   "env": "an entry icon that is not optimised yet: no baseline entry has an icon, and an icon comes only from a picked image or an icon pack (system picker, another app; IconPacksManagerFragment, EditEntryActivity.java:147-158) or from the vault of an older app version (Vault.java:92-93)",
    "edge_class": "explicit",
    "via": null,
-   "env_kinds": [],
-   "state_kinds": [
-    "data"
+   "env_kinds": [
+    "other_app"
    ],
+   "state_kinds": [],
    "auto": true,
-   "id": "E2cd3061d",
+   "id": "E47fbc765",
    "class_basis": "default"
   },
   {
@@ -99023,18 +99152,18 @@
    "guard": null,
    "reads": [],
    "writes": [],
-   "note": null,
-   "needs_state": "an encrypted import file (e.g. the app's own encrypted export) is chosen, so the importer state is decrypted (ImportEntriesActivity.java:178-179), as for Ee1503195",
+   "note": "round 3b T: the state can be made only after an env action (was state: an encrypted import file (e.g. the app's own encrypted export) is chosen, so the importer state is decrypted (ImportEntriesActivity.java:178-179), as for Ee1503195)",
+   "needs_state": null,
    "evidence": "SRC ImportEntriesActivity.java:179 (bytecode)",
-   "env": null,
+   "env": "a file comes back from the system document picker (ACTION_GET_CONTENT; ImportExportPreferencesFragment.java:146-158, WelcomeSlide, EditEntryActivity.java:147-158): an import file or icon exists in the app only after that pick",
    "edge_class": "explicit",
    "via": null,
-   "env_kinds": [],
-   "state_kinds": [
-    "file"
+   "env_kinds": [
+    "other_app"
    ],
+   "state_kinds": [],
    "auto": true,
-   "id": "Eabe24c03",
+   "id": "Ee2d6de5d",
    "class_basis": "default"
   },
   {
@@ -99256,18 +99385,18 @@
    "guard": null,
    "reads": [],
    "writes": [],
-   "note": null,
-   "needs_state": "an encrypted import file (e.g. the app's own encrypted export) is chosen, so the importer state is decrypted (ImportEntriesActivity.java:178-179)",
+   "note": "round 3b T: the state can be made only after an env action (was state: an encrypted import file (e.g. the app's own encrypted export) is chosen, so the importer state is decrypted (ImportEntriesActivity.java:178-179))",
+   "needs_state": null,
    "evidence": "SRC ImportEntriesActivity.java:179 (bytecode)",
-   "env": null,
+   "env": "a file comes back from the system document picker (ACTION_GET_CONTENT; ImportExportPreferencesFragment.java:146-158, WelcomeSlide, EditEntryActivity.java:147-158): an import file or icon exists in the app only after that pick",
    "edge_class": "explicit",
    "via": null,
-   "env_kinds": [],
-   "state_kinds": [
-    "file"
+   "env_kinds": [
+    "other_app"
    ],
+   "state_kinds": [],
    "auto": true,
-   "id": "E599c7e26",
+   "id": "Ea35a9645",
    "class_basis": "default"
   },
   {
@@ -99489,18 +99618,18 @@
    "guard": null,
    "reads": [],
    "writes": [],
-   "note": null,
-   "needs_state": "an import file is read (an Aegis export made in the app, or another app's export), so its state is asked whether it is encrypted (ImportEntriesActivity.java:176-178), as for E2936b7b5",
+   "note": "round 3b T: the state can be made only after an env action (was state: an import file is read (an Aegis export made in the app, or another app's export), so its state is asked whether it is encrypted (ImportEntriesActivity.java:176-178), as for E2936b7b5)",
+   "needs_state": null,
    "evidence": "SRC ImportEntriesActivity.java:178 (bytecode)",
-   "env": null,
+   "env": "a file comes back from the system document picker (ACTION_GET_CONTENT; ImportExportPreferencesFragment.java:146-158, WelcomeSlide, EditEntryActivity.java:147-158): an import file or icon exists in the app only after that pick",
    "edge_class": "explicit",
    "via": null,
-   "env_kinds": [],
-   "state_kinds": [
-    "file"
+   "env_kinds": [
+    "other_app"
    ],
+   "state_kinds": [],
    "auto": true,
-   "id": "E6f526edc",
+   "id": "E75107277",
    "class_basis": "default"
   },
   {
@@ -99785,18 +99914,18 @@
    "guard": null,
    "reads": [],
    "writes": [],
-   "note": null,
-   "needs_state": "an import file is read and converted (an Aegis export made in the app, or another app's export), so its entries are listed (ImportEntriesActivity.java:205-215), as for E2936b7b5",
+   "note": "round 3b T: the state can be made only after an env action (was state: an import file is read and converted (an Aegis export made in the app, or another app's export), so its entries are listed (ImportEntriesActivity.java:205-215), as for E2936b7b5)",
+   "needs_state": null,
    "evidence": "SRC ImportEntriesActivity.java:215 (bytecode)",
-   "env": null,
+   "env": "a file comes back from the system document picker (ACTION_GET_CONTENT; ImportExportPreferencesFragment.java:146-158, WelcomeSlide, EditEntryActivity.java:147-158): an import file or icon exists in the app only after that pick",
    "edge_class": "explicit",
    "via": null,
-   "env_kinds": [],
-   "state_kinds": [
-    "file"
+   "env_kinds": [
+    "other_app"
    ],
+   "state_kinds": [],
    "auto": true,
-   "id": "E66e8666f",
+   "id": "E3fea68ab",
    "class_basis": "default"
   },
   {
@@ -100530,18 +100659,18 @@
    "guard": null,
    "reads": [],
    "writes": [],
-   "note": null,
-   "needs_state": "an import file holds an entry already in the vault and it is imported anyway, so it gets a new UUID (ImportEntriesActivity.java:306-307), as for Ec3f432b1",
+   "note": "round 3b T: the state can be made only after an env action (was state: an import file holds an entry already in the vault and it is imported anyway, so it gets a new UUID (ImportEntriesActivity.java:306-307), as for Ec3f432b1)",
+   "needs_state": null,
    "evidence": "SRC ImportEntriesActivity.java:307 (bytecode)",
-   "env": null,
+   "env": "a file comes back from the system document picker (ACTION_GET_CONTENT; ImportExportPreferencesFragment.java:146-158, WelcomeSlide, EditEntryActivity.java:147-158): an import file or icon exists in the app only after that pick",
    "edge_class": "explicit",
    "via": null,
-   "env_kinds": [],
-   "state_kinds": [
-    "data"
+   "env_kinds": [
+    "other_app"
    ],
+   "state_kinds": [],
    "auto": true,
-   "id": "Ea17a5f44",
+   "id": "Eb68abbd2",
    "class_basis": "default"
   },
   {
@@ -100794,18 +100923,18 @@
    "guard": null,
    "reads": [],
    "writes": [],
-   "note": null,
-   "needs_state": "an import file holds an entry already in the vault (for example the app's own export of the baseline vault), so the duplicate snackbar is made (ImportEntriesActivity.java:356-362)",
+   "note": "round 3b T: the state can be made only after an env action (was state: an import file holds an entry already in the vault (for example the app's own export of the baseline vault), so the duplicate snackbar is made (ImportEntriesActivity.java:356-362))",
+   "needs_state": null,
    "evidence": "SRC ImportEntriesActivity.java:362 (bytecode)",
-   "env": null,
+   "env": "a file comes back from the system document picker (ACTION_GET_CONTENT; ImportExportPreferencesFragment.java:146-158, WelcomeSlide, EditEntryActivity.java:147-158): an import file or icon exists in the app only after that pick",
    "edge_class": "explicit",
    "via": null,
-   "env_kinds": [],
-   "state_kinds": [
-    "file"
+   "env_kinds": [
+    "other_app"
    ],
+   "state_kinds": [],
    "auto": true,
-   "id": "Eb9f0f553",
+   "id": "Ecd65e53e",
    "class_basis": "default"
   },
   {
@@ -100817,18 +100946,18 @@
    "guard": null,
    "reads": [],
    "writes": [],
-   "note": null,
-   "needs_state": "an import file holds an entry already in the vault (for example the app's own export of the baseline vault), so the duplicates are unticked (ImportEntriesActivity.java:356-360), as for Ec3f432b1",
+   "note": "round 3b T: the state can be made only after an env action (was state: an import file holds an entry already in the vault (for example the app's own export of the baseline vault), so the duplicates are unticked (ImportEntriesActivity.java:356-360), as for Ec3f432b1)",
+   "needs_state": null,
    "evidence": "SRC ImportEntriesActivity.java:360 (bytecode)",
-   "env": null,
+   "env": "a file comes back from the system document picker (ACTION_GET_CONTENT; ImportExportPreferencesFragment.java:146-158, WelcomeSlide, EditEntryActivity.java:147-158): an import file or icon exists in the app only after that pick",
    "edge_class": "explicit",
    "via": null,
-   "env_kinds": [],
-   "state_kinds": [
-    "data"
+   "env_kinds": [
+    "other_app"
    ],
+   "state_kinds": [],
    "auto": true,
-   "id": "E068ff6a2",
+   "id": "E6f76a4d2",
    "class_basis": "default"
   },
   {
@@ -101478,18 +101607,18 @@
    "guard": null,
    "reads": [],
    "writes": [],
-   "note": null,
-   "needs_state": "an import file is read (an Aegis export made in the app, or another app's export) with the wipe option on and the vault holds entries, so Save asks to wipe them (ImportEntriesActivity.java:94-96)",
+   "note": "round 3b T: the state can be made only after an env action (was state: an import file is read (an Aegis export made in the app, or another app's export) with the wipe option on and the vault holds entries, so Save asks to wipe them (ImportEntriesActivity.java:94-96))",
+   "needs_state": null,
    "evidence": "SRC ImportEntriesActivity.java:96 (bytecode)",
-   "env": null,
+   "env": "a file comes back from the system document picker (ACTION_GET_CONTENT; ImportExportPreferencesFragment.java:146-158, WelcomeSlide, EditEntryActivity.java:147-158): an import file or icon exists in the app only after that pick",
    "edge_class": "explicit",
    "via": null,
-   "env_kinds": [],
-   "state_kinds": [
-    "file"
+   "env_kinds": [
+    "other_app"
    ],
+   "state_kinds": [],
    "auto": true,
-   "id": "E2e7d6bb7",
+   "id": "Eb1bdfbc4",
    "class_basis": "default"
   },
   {
@@ -109195,18 +109324,18 @@
    "guard": null,
    "reads": [],
    "writes": [],
-   "note": null,
-   "needs_state": "an encrypted import file (e.g. the app's own encrypted export) is chosen, so the decrypt listener is made (ImportEntriesActivity.java:178-179), as for Ee1503195",
+   "note": "round 3b T: the state can be made only after an env action (was state: an encrypted import file (e.g. the app's own encrypted export) is chosen, so the decrypt listener is made (ImportEntriesActivity.java:178-179), as for Ee1503195)",
+   "needs_state": null,
    "evidence": "SRC ImportEntriesActivity.java:179 (bytecode)",
-   "env": null,
+   "env": "a file comes back from the system document picker (ACTION_GET_CONTENT; ImportExportPreferencesFragment.java:146-158, WelcomeSlide, EditEntryActivity.java:147-158): an import file or icon exists in the app only after that pick",
    "edge_class": "explicit",
    "via": null,
-   "env_kinds": [],
-   "state_kinds": [
-    "file"
+   "env_kinds": [
+    "other_app"
    ],
+   "state_kinds": [],
    "auto": true,
-   "id": "Edde783ae",
+   "id": "Ee9466593",
    "class_basis": "default"
   },
   {
@@ -110618,18 +110747,18 @@
    "guard": null,
    "reads": [],
    "writes": [],
-   "note": null,
-   "needs_state": "the vault has an icon that is not optimised yet, so the task converts it (IconOptimizationTask.java:31-46), as for Ea226ffdc",
+   "note": "round 3b T: the state can be made only after an env action (was state: the vault has an icon that is not optimised yet, so the task converts it (IconOptimizationTask.java:31-46), as for Ea226ffdc)",
+   "needs_state": null,
    "evidence": "SRC IconOptimizationTask.java:46 (bytecode)",
-   "env": null,
+   "env": "an entry icon that is not optimised yet: no baseline entry has an icon, and an icon comes only from a picked image or an icon pack (system picker, another app; IconPacksManagerFragment, EditEntryActivity.java:147-158) or from the vault of an older app version (Vault.java:92-93)",
    "edge_class": "explicit",
    "via": null,
-   "env_kinds": [],
-   "state_kinds": [
-    "data"
+   "env_kinds": [
+    "other_app"
    ],
+   "state_kinds": [],
    "auto": true,
-   "id": "Ec6a42238",
+   "id": "Eee68b410",
    "class_basis": "default"
   },
   {
@@ -119424,23 +119553,23 @@
   {
    "src": "SecurityPreferencesFragment$SetBackupPasswordListener.onSlotResult",
    "dst": "SecurityPreferencesFragment$SetBackupPasswordListener.onException",
-   "kind": "CALL",
+   "kind": "REGISTER",
    "trigger": "Direct call",
    "gui": [],
    "guard": null,
    "reads": [],
    "writes": [],
-   "note": null,
+   "note": "round 3: never runs, kept as a REGISTER record: round 3b blind pass 1 (error-only path): onException runs only on a SlotException from Slot.createEncryptCipher or setKey with the key the dialog just derived; with a valid derived key it is never thrown",
    "needs_state": null,
    "evidence": "SRC SecurityPreferencesFragment.java:382 (bytecode)",
    "env": null,
-   "edge_class": "explicit",
+   "edge_class": "standard",
    "via": null,
    "env_kinds": [],
    "state_kinds": [],
    "auto": true,
-   "id": "E6b360fc0",
-   "class_basis": "default"
+   "id": "E5d4cb8db",
+   "class_basis": "authored"
   },
   {
    "src": "SecurityPreferencesFragment$SetBackupPasswordListener.onSlotResult",
@@ -120033,23 +120162,23 @@
   {
    "src": "SecurityPreferencesFragment$SetPasswordListener.onSlotResult",
    "dst": "SecurityPreferencesFragment$SetPasswordListener.onException",
-   "kind": "CALL",
+   "kind": "REGISTER",
    "trigger": "Direct call",
    "gui": [],
    "guard": null,
    "reads": [],
    "writes": [],
-   "note": null,
+   "note": "round 3: never runs, kept as a REGISTER record: round 3b blind pass 1 (error-only path): onException runs only on a SlotException from Slot.createEncryptCipher or setKey with the key the dialog just derived; with a valid derived key it is never thrown",
    "needs_state": null,
    "evidence": "SRC SecurityPreferencesFragment.java:341 (bytecode)",
    "env": null,
-   "edge_class": "explicit",
+   "edge_class": "standard",
    "via": null,
    "env_kinds": [],
    "state_kinds": [],
    "auto": true,
-   "id": "E915779a1",
-   "class_basis": "default"
+   "id": "E6670dd66",
+   "class_basis": "authored"
   },
   {
    "src": "SecurityPreferencesFragment$SetPasswordListener.onSlotResult",
@@ -122099,18 +122228,18 @@
    "guard": null,
    "reads": [],
    "writes": [],
-   "note": null,
-   "needs_state": "automatic backups are on with a folder as location, so the versions row is shown and opens its picker (BackupsPreferencesFragment.java:162-164), as for E92da0f6c",
+   "note": "round 3b T: the state can be made only after an env action (was state: automatic backups are on with a folder as location, so the versions row is shown and opens its picker (BackupsPreferencesFragment.java:162-164), as for E92da0f6c)",
+   "needs_state": null,
    "evidence": "SRC BackupsPreferencesFragment.java:164 (bytecode)",
-   "env": null,
+   "env": "automatic backups are turned on only in the result of the system folder picker (ACTION_OPEN_DOCUMENT_TREE, BackupsPreferencesFragment.java:79-89,175-189,263-264), and an Android backup result is written by the system backup service; either needs the system first",
    "edge_class": "explicit",
    "via": null,
-   "env_kinds": [],
-   "state_kinds": [
-    "settings"
+   "env_kinds": [
+    "other_app"
    ],
+   "state_kinds": [],
    "auto": true,
-   "id": "E5d1b1f2f",
+   "id": "E9acfa453",
    "class_basis": "default"
   },
   {
@@ -122143,18 +122272,18 @@
    "guard": null,
    "reads": [],
    "writes": [],
-   "note": null,
-   "needs_state": "settings: the versions preference is shown only when backups are on (off by default, BackupsPreferencesFragment.java:210), so the picker saves the count (:165)",
+   "note": "round 3b T: the state can be made only after an env action (was state: settings: the versions preference is shown only when backups are on (off by default, BackupsPreferencesFragment.java:210), so the picker saves the count (:165))",
+   "needs_state": null,
    "evidence": "SRC BackupsPreferencesFragment.java:165 (bytecode)",
-   "env": null,
+   "env": "automatic backups are turned on only in the result of the system folder picker (ACTION_OPEN_DOCUMENT_TREE, BackupsPreferencesFragment.java:79-89,175-189,263-264), and an Android backup result is written by the system backup service; either needs the system first",
    "edge_class": "explicit",
    "via": null,
-   "env_kinds": [],
-   "state_kinds": [
-    "settings"
+   "env_kinds": [
+    "other_app"
    ],
+   "state_kinds": [],
    "auto": true,
-   "id": "E7bae3caa",
+   "id": "Eec46bddb",
    "class_basis": "default"
   },
   {
@@ -122166,18 +122295,18 @@
    "guard": null,
    "reads": [],
    "writes": [],
-   "note": null,
-   "needs_state": "automatic backups are on (pref_backups, default off), so the trigger row is shown (:209) and schedules a backup (BackupsPreferencesFragment.java:152-156)",
+   "note": "round 3b T: the state can be made only after an env action (was state: automatic backups are on (pref_backups, default off), so the trigger row is shown (:209) and schedules a backup (BackupsPreferencesFragment.java:152-156))",
+   "needs_state": null,
    "evidence": "SRC BackupsPreferencesFragment.java:155 (bytecode)",
-   "env": null,
+   "env": "automatic backups are turned on only in the result of the system folder picker (ACTION_OPEN_DOCUMENT_TREE, BackupsPreferencesFragment.java:79-89,175-189,263-264), and an Android backup result is written by the system backup service; either needs the system first",
    "edge_class": "explicit",
    "via": null,
-   "env_kinds": [],
-   "state_kinds": [
-    "settings"
+   "env_kinds": [
+    "other_app"
    ],
+   "state_kinds": [],
    "auto": true,
-   "id": "E2691ad8b",
+   "id": "Eb685719d",
    "class_basis": "default"
   },
   {
@@ -122189,18 +122318,18 @@
    "guard": null,
    "reads": [],
    "writes": [],
-   "note": null,
-   "needs_state": "automatic backups are on, so the trigger row is shown and checks it when tapped (BackupsPreferencesFragment.java:152-154), as for E958b0b1d",
+   "note": "round 3b T: the state can be made only after an env action (was state: automatic backups are on, so the trigger row is shown and checks it when tapped (BackupsPreferencesFragment.java:152-154), as for E958b0b1d)",
+   "needs_state": null,
    "evidence": "SRC BackupsPreferencesFragment.java:154 (bytecode)",
-   "env": null,
+   "env": "automatic backups are turned on only in the result of the system folder picker (ACTION_OPEN_DOCUMENT_TREE, BackupsPreferencesFragment.java:79-89,175-189,263-264), and an Android backup result is written by the system backup service; either needs the system first",
    "edge_class": "explicit",
    "via": null,
-   "env_kinds": [],
-   "state_kinds": [
-    "settings"
+   "env_kinds": [
+    "other_app"
    ],
+   "state_kinds": [],
    "auto": true,
-   "id": "Ed40884b5",
+   "id": "E627d1035",
    "class_basis": "default"
   },
   {
@@ -122233,18 +122362,18 @@
    "guard": null,
    "reads": [],
    "writes": [],
-   "note": null,
-   "needs_state": "automatic backups are on with a single backup file as location (strategy single backup, Preferences.java:611-620), so the location row (shown only when backups are on, :208) picks a new file (BackupsPreferencesFragment.java:142-147)",
+   "note": "round 3b T: the state can be made only after an env action (was state: automatic backups are on with a single backup file as location (strategy single backup, Preferences.java:611-620), so the location row (shown only when backups are on, :208) picks a new file (BackupsPreferencesFragment.java:142-147))",
+   "needs_state": null,
    "evidence": "SRC BackupsPreferencesFragment.java:147 (bytecode)",
-   "env": null,
+   "env": "automatic backups are turned on only in the result of the system folder picker (ACTION_OPEN_DOCUMENT_TREE, BackupsPreferencesFragment.java:79-89,175-189,263-264), and an Android backup result is written by the system backup service; either needs the system first",
    "edge_class": "explicit",
    "via": null,
-   "env_kinds": [],
-   "state_kinds": [
-    "settings"
+   "env_kinds": [
+    "other_app"
    ],
+   "state_kinds": [],
    "auto": true,
-   "id": "E7709f245",
+   "id": "Eadd61f8a",
    "class_basis": "default"
   },
   {
@@ -122256,18 +122385,18 @@
    "guard": null,
    "reads": [],
    "writes": [],
-   "note": null,
-   "needs_state": "automatic backups are on with a folder as location (strategy multiple backups, Preferences.java:611-617), so the location row (shown only when backups are on, :208) picks a new folder (BackupsPreferencesFragment.java:142-145)",
+   "note": "round 3b T: the state can be made only after an env action (was state: automatic backups are on with a folder as location (strategy multiple backups, Preferences.java:611-617), so the location row (shown only when backups are on, :208) picks a new folder (BackupsPreferencesFragment.java:142-145))",
+   "needs_state": null,
    "evidence": "SRC BackupsPreferencesFragment.java:145 (bytecode)",
-   "env": null,
+   "env": "automatic backups are turned on only in the result of the system folder picker (ACTION_OPEN_DOCUMENT_TREE, BackupsPreferencesFragment.java:79-89,175-189,263-264), and an Android backup result is written by the system backup service; either needs the system first",
    "edge_class": "explicit",
    "via": null,
-   "env_kinds": [],
-   "state_kinds": [
-    "settings"
+   "env_kinds": [
+    "other_app"
    ],
+   "state_kinds": [],
    "auto": true,
-   "id": "E2fdc2b26",
+   "id": "E581855f5",
    "class_basis": "default"
   },
   {
@@ -122279,18 +122408,18 @@
    "guard": null,
    "reads": [],
    "writes": [],
-   "note": null,
-   "needs_state": "automatic backups are on, so the location row is shown and reads the strategy when tapped (BackupsPreferencesFragment.java:142-143), as for E301107e0",
+   "note": "round 3b T: the state can be made only after an env action (was state: automatic backups are on, so the location row is shown and reads the strategy when tapped (BackupsPreferencesFragment.java:142-143), as for E301107e0)",
+   "needs_state": null,
    "evidence": "SRC BackupsPreferencesFragment.java:143 (bytecode)",
-   "env": null,
+   "env": "automatic backups are turned on only in the result of the system folder picker (ACTION_OPEN_DOCUMENT_TREE, BackupsPreferencesFragment.java:79-89,175-189,263-264), and an Android backup result is written by the system backup service; either needs the system first",
    "edge_class": "explicit",
    "via": null,
-   "env_kinds": [],
-   "state_kinds": [
-    "settings"
+   "env_kinds": [
+    "other_app"
    ],
+   "state_kinds": [],
    "auto": true,
-   "id": "E5cbf24cd",
+   "id": "E2ae27a1d",
    "class_basis": "default"
   },
   {
@@ -122577,18 +122706,18 @@
    "guard": null,
    "reads": [],
    "writes": [],
-   "note": null,
-   "needs_state": "settings: backups are off by default (Preferences.java:401), so turning them off (BackupsPreferencesFragment.java:89) needs them turned on first",
+   "note": "round 3b T: the state can be made only after an env action (was state: settings: backups are off by default (Preferences.java:401), so turning them off (BackupsPreferencesFragment.java:89) needs them turned on first)",
+   "needs_state": null,
    "evidence": "SRC BackupsPreferencesFragment.java:89 (bytecode)",
-   "env": null,
+   "env": "automatic backups are turned on only in the result of the system folder picker (ACTION_OPEN_DOCUMENT_TREE, BackupsPreferencesFragment.java:79-89,175-189,263-264), and an Android backup result is written by the system backup service; either needs the system first",
    "edge_class": "explicit",
    "via": null,
-   "env_kinds": [],
-   "state_kinds": [
-    "settings"
+   "env_kinds": [
+    "other_app"
    ],
+   "state_kinds": [],
    "auto": true,
-   "id": "Ef7f9b497",
+   "id": "E22097ed7",
    "class_basis": "default"
   },
   {
@@ -127973,16 +128102,18 @@
    "guard": null,
    "reads": [],
    "writes": [],
-   "note": null,
+   "note": "round 3: env gate from r3_judged.csv",
    "needs_state": null,
    "evidence": "SRC GlideHelper.java:41 (bytecode)",
-   "env": null,
+   "env": "round 3b blind pass 1 (VaultEntryIconLoader.<clinit>): the icon branch of loadEntryIcon runs only for an entry with an icon (entry.hasIcon(), GlideHelper.java:40-41); no baseline entry has one, and an icon comes only from an icon pack or a picked image (another app or the system picker), as for the other edges of this branch",
    "edge_class": "explicit",
    "via": null,
-   "env_kinds": [],
+   "env_kinds": [
+    "other_app"
+   ],
    "state_kinds": [],
    "auto": true,
-   "id": "E0d5db980",
+   "id": "E0003bb3f",
    "class_basis": "default"
   },
   {
@@ -127994,16 +128125,18 @@
    "guard": null,
    "reads": [],
    "writes": [],
-   "note": null,
+   "note": "round 3: env gate from r3_judged.csv",
    "needs_state": null,
    "evidence": "SRC GlideHelper.java:41 (bytecode)",
-   "env": null,
+   "env": "round 3b blind pass 1 (VaultEntryIconLoader.<clinit>): the icon branch of loadEntryIcon runs only for an entry with an icon (entry.hasIcon(), GlideHelper.java:40-41); no baseline entry has one, and an icon comes only from an icon pack or a picked image (another app or the system picker), as for the other edges of this branch",
    "edge_class": "explicit",
    "via": null,
-   "env_kinds": [],
+   "env_kinds": [
+    "other_app"
+   ],
    "state_kinds": [],
    "auto": true,
-   "id": "Ef5fee72a",
+   "id": "E9fc7f4ff",
    "class_basis": "default"
   },
   {
@@ -128015,16 +128148,18 @@
    "guard": null,
    "reads": [],
    "writes": [],
-   "note": null,
+   "note": "round 3: env gate from r3_judged.csv",
    "needs_state": null,
    "evidence": "SRC GlideHelper.java:41 (bytecode)",
-   "env": null,
+   "env": "round 3b blind pass 1 (VaultEntryIconLoader.<clinit>): the icon branch of loadEntryIcon runs only for an entry with an icon (entry.hasIcon(), GlideHelper.java:40-41); no baseline entry has one, and an icon comes only from an icon pack or a picked image (another app or the system picker), as for the other edges of this branch",
    "edge_class": "explicit",
    "via": null,
-   "env_kinds": [],
+   "env_kinds": [
+    "other_app"
+   ],
    "state_kinds": [],
    "auto": true,
-   "id": "E7068ee3a",
+   "id": "E1859c405",
    "class_basis": "default"
   },
   {
@@ -150416,18 +150551,18 @@
    "guard": null,
    "reads": [],
    "writes": [],
-   "note": null,
-   "needs_state": "app state: an Aegis export (made with the app's own export) is imported, so each entry is converted (AegisImporter.java:153-156), as for E2936b7b5",
+   "note": "round 3b T: the state can be made only after an env action (was state: app state: an Aegis export (made with the app's own export) is imported, so each entry is converted (AegisImporter.java:153-156), as for E2936b7b5)",
+   "needs_state": null,
    "evidence": "SRC AegisImporter.java:156 (bytecode)",
-   "env": null,
+   "env": "a file comes back from the system document picker (ACTION_GET_CONTENT; ImportExportPreferencesFragment.java:146-158, WelcomeSlide, EditEntryActivity.java:147-158): an import file or icon exists in the app only after that pick",
    "edge_class": "explicit",
    "via": null,
-   "env_kinds": [],
-   "state_kinds": [
-    "file"
+   "env_kinds": [
+    "other_app"
    ],
+   "state_kinds": [],
    "auto": true,
-   "id": "E79cbc570",
+   "id": "E93b97e85",
    "class_basis": "default"
   },
   {
@@ -150439,18 +150574,18 @@
    "guard": null,
    "reads": [],
    "writes": [],
-   "note": null,
-   "needs_state": "app state: an Aegis export with groups (the app's own export has the groups field) is imported, so each new group is added (AegisImporter.java:137-144), as for E578db68d",
+   "note": "round 3b T: the state can be made only after an env action (was state: app state: an Aegis export with groups (the app's own export has the groups field) is imported, so each new group is added (AegisImporter.java:137-144), as for E578db68d)",
+   "needs_state": null,
    "evidence": "SRC AegisImporter.java:144 (bytecode)",
-   "env": null,
+   "env": "a file comes back from the system document picker (ACTION_GET_CONTENT; ImportExportPreferencesFragment.java:146-158, WelcomeSlide, EditEntryActivity.java:147-158): an import file or icon exists in the app only after that pick",
    "edge_class": "explicit",
    "via": null,
-   "env_kinds": [],
-   "state_kinds": [
-    "file"
+   "env_kinds": [
+    "other_app"
    ],
+   "state_kinds": [],
    "auto": true,
-   "id": "Ec5ee0800",
+   "id": "Ed8e516e3",
    "class_basis": "default"
   },
   {
@@ -150483,18 +150618,18 @@
    "guard": null,
    "reads": [],
    "writes": [],
-   "note": null,
-   "needs_state": "app state: an Aegis export with groups (the app's own export has the groups field) is imported, so each group is converted (AegisImporter.java:137-142)",
+   "note": "round 3b T: the state can be made only after an env action (was state: app state: an Aegis export with groups (the app's own export has the groups field) is imported, so each group is converted (AegisImporter.java:137-142))",
+   "needs_state": null,
    "evidence": "SRC AegisImporter.java:142 (bytecode)",
-   "env": null,
+   "env": "a file comes back from the system document picker (ACTION_GET_CONTENT; ImportExportPreferencesFragment.java:146-158, WelcomeSlide, EditEntryActivity.java:147-158): an import file or icon exists in the app only after that pick",
    "edge_class": "explicit",
    "via": null,
-   "env_kinds": [],
-   "state_kinds": [
-    "file"
+   "env_kinds": [
+    "other_app"
    ],
+   "state_kinds": [],
    "auto": true,
-   "id": "Ebfa5c7eb",
+   "id": "Ecaa9438e",
    "class_basis": "default"
   },
   {
@@ -154446,18 +154581,18 @@
    "guard": null,
    "reads": [],
    "writes": [],
-   "note": null,
-   "needs_state": "an encrypted Aegis vault or export made by the app (e.g. a backup from an earlier install) is imported in the intro; GUI: cancel its password dialog (AegisImporter.java:95-109)",
+   "note": "round 3b T: the state can be made only after an env action (was state: an encrypted Aegis vault or export made by the app (e.g. a backup from an earlier install) is imported in the intro; GUI: cancel its password dialog (AegisImporter.java:95-109))",
+   "needs_state": null,
    "evidence": "SRC AegisImporter.java:109 (bytecode)",
-   "env": null,
+   "env": "a file comes back from the system document picker (ACTION_GET_CONTENT; ImportExportPreferencesFragment.java:146-158, WelcomeSlide, EditEntryActivity.java:147-158): an import file or icon exists in the app only after that pick",
    "edge_class": "explicit",
    "via": null,
-   "env_kinds": [],
-   "state_kinds": [
-    "file"
+   "env_kinds": [
+    "other_app"
    ],
+   "state_kinds": [],
    "auto": true,
-   "id": "Ec452567d",
+   "id": "Ebc2509e8",
    "class_basis": "default"
   },
   {
@@ -154469,18 +154604,18 @@
    "guard": null,
    "reads": [],
    "writes": [],
-   "note": null,
-   "needs_state": "an encrypted Aegis export made in the app is imported in Import and export; GUI: cancel its password dialog (AegisImporter.java:95-109)",
+   "note": "round 3b T: the state can be made only after an env action (was state: an encrypted Aegis export made in the app is imported in Import and export; GUI: cancel its password dialog (AegisImporter.java:95-109))",
+   "needs_state": null,
    "evidence": "SRC AegisImporter.java:109 (bytecode)",
-   "env": null,
+   "env": "a file comes back from the system document picker (ACTION_GET_CONTENT; ImportExportPreferencesFragment.java:146-158, WelcomeSlide, EditEntryActivity.java:147-158): an import file or icon exists in the app only after that pick",
    "edge_class": "explicit",
    "via": null,
-   "env_kinds": [],
-   "state_kinds": [
-    "file"
+   "env_kinds": [
+    "other_app"
    ],
+   "state_kinds": [],
    "auto": true,
-   "id": "Eebe058e0",
+   "id": "E3146d4af",
    "class_basis": "default"
   },
   {
@@ -156075,18 +156210,18 @@
    "guard": null,
    "reads": [],
    "writes": [],
-   "note": null,
-   "needs_state": "a plaintext Aegis export (made with the app's own export) is imported, so its content is read directly (AegisImporter.java:49-52)",
+   "note": "round 3b T: the state can be made only after an env action (was state: a plaintext Aegis export (made with the app's own export) is imported, so its content is read directly (AegisImporter.java:49-52))",
+   "needs_state": null,
    "evidence": "SRC AegisImporter.java:52 (bytecode)",
-   "env": null,
+   "env": "a file comes back from the system document picker (ACTION_GET_CONTENT; ImportExportPreferencesFragment.java:146-158, WelcomeSlide, EditEntryActivity.java:147-158): an import file or icon exists in the app only after that pick",
    "edge_class": "explicit",
    "via": null,
-   "env_kinds": [],
-   "state_kinds": [
-    "file"
+   "env_kinds": [
+    "other_app"
    ],
+   "state_kinds": [],
    "auto": true,
-   "id": "Ed4756569",
+   "id": "Eb6a91966",
    "class_basis": "default"
   },
   {
@@ -156119,18 +156254,18 @@
    "guard": null,
    "reads": [],
    "writes": [],
-   "note": null,
-   "needs_state": "app state: an encrypted Aegis export (made with the app's own encrypted export) is imported (AegisImporter.java:49-50)",
+   "note": "round 3b T: the state can be made only after an env action (was state: app state: an encrypted Aegis export (made with the app's own encrypted export) is imported (AegisImporter.java:49-50))",
+   "needs_state": null,
    "evidence": "SRC AegisImporter.java:50 (bytecode)",
-   "env": null,
+   "env": "a file comes back from the system document picker (ACTION_GET_CONTENT; ImportExportPreferencesFragment.java:146-158, WelcomeSlide, EditEntryActivity.java:147-158): an import file or icon exists in the app only after that pick",
    "edge_class": "explicit",
    "via": null,
-   "env_kinds": [],
-   "state_kinds": [
-    "file"
+   "env_kinds": [
+    "other_app"
    ],
+   "state_kinds": [],
    "auto": true,
-   "id": "Edfb88e51",
+   "id": "E61d2d391",
    "class_basis": "default"
   },
   {
@@ -172771,18 +172906,18 @@
    "guard": null,
    "reads": [],
    "writes": [],
-   "note": null,
-   "needs_state": "the vault file was saved with icons not marked optimised, so loading it clears the flag (Vault.java:92-93), as for Ea226ffdc",
+   "note": "round 3b T: the state can be made only after an env action (was state: the vault file was saved with icons not marked optimised, so loading it clears the flag (Vault.java:92-93), as for Ea226ffdc)",
+   "needs_state": null,
    "evidence": "SRC Vault.java:93 (bytecode)",
-   "env": null,
+   "env": "an entry icon that is not optimised yet: no baseline entry has an icon, and an icon comes only from a picked image or an icon pack (system picker, another app; IconPacksManagerFragment, EditEntryActivity.java:147-158) or from the vault of an older app version (Vault.java:92-93)",
    "edge_class": "explicit",
    "via": null,
-   "env_kinds": [],
-   "state_kinds": [
-    "data"
+   "env_kinds": [
+    "other_app"
    ],
+   "state_kinds": [],
    "auto": true,
-   "id": "E19f538b7",
+   "id": "E36e2be83",
    "class_basis": "default"
   },
   {
@@ -174559,16 +174694,18 @@
    "guard": null,
    "reads": [],
    "writes": [],
-   "note": null,
+   "note": "round 3: env gate from r3_judged.csv",
    "needs_state": null,
    "evidence": "SRC VaultManager.java:252 (bytecode)",
-   "env": null,
+   "env": "round 3b blind pass 1 (error-only path): the error dialog is shown only when no app on the device handles the document picker intent (ActivityNotFoundException); the API 27 image has the system documents UI",
    "edge_class": "explicit",
    "via": null,
-   "env_kinds": [],
+   "env_kinds": [
+    "other"
+   ],
    "state_kinds": [],
    "auto": true,
-   "id": "E67043853",
+   "id": "E1648ca74",
    "class_basis": "default"
   },
   {
@@ -184845,10 +184982,10 @@
  "verification": {
   "label": {
    "checked": 556,
-   "correct": 543,
-   "errors_found": 13,
+   "correct": 544,
+   "errors_found": 12,
    "unclear": 3,
-   "error_rate": 0.023
+   "error_rate": 0.022
   },
   "edge": {
    "checked": 26,

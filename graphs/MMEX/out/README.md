@@ -16,7 +16,7 @@ How every method of **MMEX** is triggered, in the standard configuration: the in
 
 - **4270 methods**, **43 pages** (including pseudo pages), **8413 edges**. Verdicts: **3426 REACHABLE**, **844 UNREACHABLE**.
 - UNREACHABLE by reason: branch_never_taken 13, closed_by_api_level 9, closed_by_configuration 4, framework_never_calls 77, no_trigger_in_app 741.
-- ENV gates (methods): hardware 13, network 92, other 32, other_app 161, system_event 31, time 6. STATE gates (methods): account 5, data 675, file 3, session 18, settings 128. Methods with no gate: 2459.
+- ENV gates (methods): hardware 13, network 92, other 32, other_app 165, system_event 34, time 6. STATE gates (methods): account 5, data 675, file 1, session 18, settings 128. Methods with no gate: 2455.
 - Edge classes: explicit 6839, non_standard 604, page 53, standard 917. Non-standard edges: 604 (AbstractAccountAuthenticator binder stub: onBind returns the IBinder from getIBinder, and the stub dispatches addAccount (the library and AccountManagerService are not in fw_src; INFERRED); Activity.runOnUiThread (fw_src core/java/android/app/Activity.java:6170-6176); AmplitudeKt.Amplitude (com.ampl).
 - 1249 reachable methods have a non-standard edge on their best route; 1141 have no explicit-or-standard-only route at all.
 - Labels confirmed by: INFERRED 2964, SOURCE 1306 (SOURCE: every edge of the best route cites a source line, in the app or in the Android 8.1 / library source; INFERRED: some edge rests on inference or on another app).
