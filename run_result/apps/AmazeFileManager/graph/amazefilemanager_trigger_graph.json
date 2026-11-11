@@ -3240,7 +3240,7 @@
   "MainActivity.onBackPressed": "REACHABLE",
   "MainActivity.onBookAdded": "REACHABLE",
   "MainActivity.onCancelled": "REACHABLE",
-  "MainActivity.onConfigurationChanged": "REACHABLE",
+  "MainActivity.onConfigurationChanged": "UNREACHABLE",
   "MainActivity.onCreate": "REACHABLE",
   "MainActivity.onCreateLoader": "REACHABLE",
   "MainActivity.onCreateOptionsMenu": "REACHABLE",
@@ -3543,7 +3543,7 @@
   "DbViewerTask.doInBackground": "REACHABLE",
   "DbViewerTask.getDbTableDetails": "REACHABLE",
   "DbViewerTask.getDbTableSchema": "REACHABLE",
-  "DbViewerTask.onCancelled": "REACHABLE",
+  "DbViewerTask.onCancelled": "UNREACHABLE",
   "DbViewerTask.onPostExecute": "REACHABLE",
   "DbViewerTask.onPreExecute": "REACHABLE",
   "DbViewerTask.onProgressUpdate": "REACHABLE",
@@ -3856,7 +3856,7 @@
   "ZipService$CompressAsyncTask.doInBackground": "REACHABLE",
   "ZipService$CompressAsyncTask.execute": "REACHABLE",
   "ZipService$CompressAsyncTask.lambda$doInBackground$0": "REACHABLE",
-  "ZipService$CompressAsyncTask.onCancelled": "REACHABLE",
+  "ZipService$CompressAsyncTask.onCancelled": "UNREACHABLE",
   "ZipService$CompressAsyncTask.onPostExecute": "REACHABLE",
   "FtpReceiver.<clinit>": "REACHABLE",
   "FtpReceiver.<init>": "REACHABLE",
@@ -4124,7 +4124,7 @@
   "HybridFileParcelable.<init>(Parcel)": "REACHABLE",
   "HybridFileParcelable.<init>(String)": "REACHABLE",
   "HybridFileParcelable.<init>(String,String,long,long,boolean)": "REACHABLE",
-  "HybridFileParcelable.describeContents": "REACHABLE",
+  "HybridFileParcelable.describeContents": "UNREACHABLE",
   "HybridFileParcelable.equals": "REACHABLE",
   "HybridFileParcelable.getDate": "REACHABLE",
   "HybridFileParcelable.getLink": "REACHABLE",
@@ -5334,12 +5334,12 @@
   "SearchView$1.<init>": "REACHABLE",
   "SearchView$1.onAnimationCancel": "REACHABLE",
   "SearchView$1.onAnimationEnd": "REACHABLE",
-  "SearchView$1.onAnimationRepeat": "REACHABLE",
+  "SearchView$1.onAnimationRepeat": "UNREACHABLE",
   "SearchView$1.onAnimationStart": "REACHABLE",
   "SearchView$2.<init>": "REACHABLE",
   "SearchView$2.onAnimationCancel": "REACHABLE",
   "SearchView$2.onAnimationEnd": "REACHABLE",
-  "SearchView$2.onAnimationRepeat": "REACHABLE",
+  "SearchView$2.onAnimationRepeat": "UNREACHABLE",
   "SearchView$2.onAnimationStart": "REACHABLE",
   "ActionViewStateManager.<init>": "REACHABLE",
   "ActionViewStateManager.deselectCurrentActionView": "REACHABLE",
@@ -5384,7 +5384,7 @@
   "Drawer.lock": "REACHABLE",
   "Drawer.lockIfNotOnTablet": "REACHABLE",
   "Drawer.onActivityResult": "REACHABLE",
-  "Drawer.onConfigurationChanged": "REACHABLE",
+  "Drawer.onConfigurationChanged": "UNREACHABLE",
   "Drawer.onDrawerClosed": "REACHABLE",
   "Drawer.onNavigationItemActionClick": "REACHABLE",
   "Drawer.onNavigationItemSelected": "REACHABLE",
@@ -8648,15 +8648,13 @@
    "path_status": "UNCHECKED"
   },
   "MainActivity.onConfigurationChanged": {
-   "env": [],
-   "state": [],
-   "route_edge_classes": [
-    "standard"
-   ],
-   "explicit_standard_route": true,
+   "unreachable": {
+    "kind": "framework_never_calls",
+    "text": "round 3: the activity declares no android:configChanges in the manifest, so a configuration change recreates it and the framework never calls onConfigurationChanged"
+   },
    "confirmed_by": "SOURCE",
-   "source_ref": "Activity.java",
-   "path_status": "UNCHECKED"
+   "source_ref": "SRC AndroidManifest.xml (no android:configChanges); FW-SRC core/java/android/app/ActivityThread.java:4868-4900 (performActivityConfigurationChanged calls onConfigurationChanged only when every changed field is in getRealConfigChanged())",
+   "path_status": null
   },
   "MainActivity.onCreate": {
    "env": [],
@@ -8978,15 +8976,15 @@
    "path_status": "UNCHECKED"
   },
   "MainActivity.showSftpDialog": {
-   "env": [],
-   "state": [
+   "env": [
     {
      "kinds": [
-      "data"
+      "network"
      ],
-     "text": "a saved SFTP connection exists (the drawer shows an ssh:/ entry); the baseline has none"
+     "text": "a saved SFTP connection exists only after a connect to a real SSH server (SftpConnectDialog.java:343-354; SshConnectionPool.java:146); the emulator network has none"
     }
    ],
+   "state": [],
    "route_edge_classes": [
     "explicit",
     "standard"
@@ -9339,7 +9337,7 @@
    ],
    "explicit_standard_route": true,
    "confirmed_by": "INFERRED",
-   "source_ref": "fragments/preference_fragments/ColorPref.java:183:",
+   "source_ref": "fragments/preference_fragments/ColorPref.java:225:",
    "path_status": "UNCHECKED"
   },
   "TextEditorActivity.<init>": {
@@ -10027,14 +10025,7 @@
   },
   "PermissionsActivity.lambda$requestPermission$2": {
    "env": [],
-   "state": [
-    {
-     "kinds": [
-      "settings"
-     ],
-     "text": "the storage permission was denied once before: the rationale dialog appears only when shouldShowRequestPermissionRationale is true (PermissionsActivity.java:86-89), which needs an earlier denial in the app"
-    }
-   ],
+   "state": [],
    "route_edge_classes": [
     "explicit",
     "standard"
@@ -10363,7 +10354,14 @@
   },
   "ColorAdapter.<init>": {
    "env": [],
-   "state": [],
+   "state": [
+    {
+     "kinds": [
+      "settings"
+     ],
+     "text": "ui/dialogs/ColorPickerDialog.java:43-44,102-110; the Primary, Primary two, Accent and Icon colour rows are enabled only when the stored colour config is Custom (PREFERENCE_COLOR_CONFIG == CUSTOM_INDEX; the default is a preset), so Custom is chosen first"
+    }
+   ],
    "route_edge_classes": [
     "explicit",
     "standard"
@@ -10375,7 +10373,14 @@
   },
   "ColorAdapter.getColorResAt": {
    "env": [],
-   "state": [],
+   "state": [
+    {
+     "kinds": [
+      "settings"
+     ],
+     "text": "ui/dialogs/ColorPickerDialog.java:43-44,102-110; the Primary, Primary two, Accent and Icon colour rows are enabled only when the stored colour config is Custom (PREFERENCE_COLOR_CONFIG == CUSTOM_INDEX; the default is a preset), so Custom is chosen first"
+    }
+   ],
    "route_edge_classes": [
     "explicit",
     "standard"
@@ -10387,7 +10392,14 @@
   },
   "ColorAdapter.getView": {
    "env": [],
-   "state": [],
+   "state": [
+    {
+     "kinds": [
+      "settings"
+     ],
+     "text": "ui/dialogs/ColorPickerDialog.java:43-44,102-110; the Primary, Primary two, Accent and Icon colour rows are enabled only when the stored colour config is Custom (PREFERENCE_COLOR_CONFIG == CUSTOM_INDEX; the default is a preset), so Custom is chosen first"
+    }
+   ],
    "route_edge_classes": [
     "explicit",
     "standard"
@@ -10399,7 +10411,14 @@
   },
   "ColorAdapter.onItemClick": {
    "env": [],
-   "state": [],
+   "state": [
+    {
+     "kinds": [
+      "settings"
+     ],
+     "text": "ui/dialogs/ColorPickerDialog.java:43-44,102-110; the Primary, Primary two, Accent and Icon colour rows are enabled only when the stored colour config is Custom (PREFERENCE_COLOR_CONFIG == CUSTOM_INDEX; the default is a preset), so Custom is chosen first"
+    }
+   ],
    "route_edge_classes": [
     "explicit",
     "standard"
@@ -12277,7 +12296,7 @@
    ],
    "explicit_standard_route": true,
    "confirmed_by": "SOURCE",
-   "source_ref": "MainFragment.java:1171",
+   "source_ref": "LoadFilesListTask.java:247",
    "path_status": "UNCHECKED"
   },
   "LayoutElementParcelable.<init>(Context,String,String,String,String,long,boolean,String,boolean,boolean,OpenMode)": {
@@ -12313,12 +12332,19 @@
    ],
    "explicit_standard_route": true,
    "confirmed_by": "SOURCE",
-   "source_ref": "LayoutElementParcelable.java:59",
+   "source_ref": "LayoutElementParcelable.java:73",
    "path_status": "UNCHECKED"
   },
   "LayoutElementParcelable.<init>(Context,boolean,String,boolean)": {
    "env": [],
-   "state": [],
+   "state": [
+    {
+     "kinds": [
+      "settings"
+     ],
+     "text": "res/xml/preferences.xml:95-99; the back row is added only with Show back button on (goBack_checkbox, default false)"
+    }
+   ],
    "route_edge_classes": [
     "explicit",
     "standard"
@@ -13199,29 +13225,13 @@
    "path_status": "UNCHECKED"
   },
   "DbViewerTask.onCancelled": {
-   "env": [],
-   "state": [
-    {
-     "kinds": [
-      "file"
-     ],
-     "text": "a file path (not a folder) is pending when Back is pressed on the FTP page, so it is opened as a file; the baseline has no such file"
-    },
-    {
-     "kinds": [
-      "file"
-     ],
-     "text": "a database (.db) file exists in the browsed folder (openFile starts the viewer only for a .db file, FileUtils.java:755-757); the baseline storage has none"
-    }
-   ],
-   "route_edge_classes": [
-    "explicit",
-    "standard"
-   ],
-   "explicit_standard_route": true,
-   "confirmed_by": "INFERRED",
-   "source_ref": "DbViewerTask.java:135,148",
-   "path_status": "UNCHECKED"
+   "unreachable": {
+    "kind": "framework_never_calls",
+    "text": "round 2 C: the framework calls onCancelled only after cancel(), and no file that creates DbViewerTask calls cancel (fw AsyncTask.java:462,479)"
+   },
+   "confirmed_by": "SOURCE",
+   "source_ref": "FW-SRC core/java/android/os/AsyncTask.java:462,479",
+   "path_status": null
   },
   "DbViewerTask.onPostExecute": {
    "env": [],
@@ -14921,7 +14931,14 @@
    "path_status": "UNCHECKED"
   },
   "Bzip2HelperTask.addElements": {
-   "env": [],
+   "env": [
+    {
+     "kinds": [
+      "other_app"
+     ],
+     "text": "an object of Bzip2HelperTask is made in the app only on a route with an env gate (no <init> of the class is reachable without one), so the env action comes first"
+    }
+   ],
    "state": [
     {
      "kinds": [
@@ -15041,7 +15058,14 @@
    "path_status": "UNCHECKED"
   },
   "GzipHelperTask.addElements": {
-   "env": [],
+   "env": [
+    {
+     "kinds": [
+      "other_app"
+     ],
+     "text": "an object of GzipHelperTask is made in the app only on a route with an env gate (no <init> of the class is reachable without one), so the env action comes first"
+    }
+   ],
    "state": [
     {
      "kinds": [
@@ -15130,7 +15154,14 @@
    "path_status": "UNCHECKED"
   },
   "RarHelperTask.addElements": {
-   "env": [],
+   "env": [
+    {
+     "kinds": [
+      "other_app"
+     ],
+     "text": "an object of RarHelperTask is made in the app only on a route with an env gate (no <init> of the class is reachable without one), so the env action comes first"
+    }
+   ],
    "state": [
     {
      "kinds": [
@@ -15181,7 +15212,14 @@
    "path_status": "UNCHECKED"
   },
   "SevenZipHelperTask.addElements": {
-   "env": [],
+   "env": [
+    {
+     "kinds": [
+      "other_app"
+     ],
+     "text": "an object of SevenZipHelperTask is made in the app only on a route with an env gate (no <init> of the class is reachable without one), so the env action comes first"
+    }
+   ],
    "state": [
     {
      "kinds": [
@@ -15302,7 +15340,14 @@
    "path_status": "UNCHECKED"
   },
   "TarHelperTask.addElements": {
-   "env": [],
+   "env": [
+    {
+     "kinds": [
+      "other_app"
+     ],
+     "text": "an object of TarHelperTask is made in the app only on a route with an env gate (no <init> of the class is reachable without one), so the env action comes first"
+    }
+   ],
    "state": [
     {
      "kinds": [
@@ -15353,7 +15398,14 @@
    "path_status": "UNCHECKED"
   },
   "XzHelperTask.addElements": {
-   "env": [],
+   "env": [
+    {
+     "kinds": [
+      "other_app"
+     ],
+     "text": "an object of XzHelperTask is made in the app only on a route with an env gate (no <init> of the class is reachable without one), so the env action comes first"
+    }
+   ],
    "state": [
     {
      "kinds": [
@@ -15507,21 +15559,15 @@
    "path_status": "UNCHECKED"
   },
   "PemToKeyPairTask.<init>(String,Callback)": {
-   "env": [],
-   "state": [
+   "env": [
     {
      "kinds": [
-      "data"
+      "network"
      ],
-     "text": "a saved SFTP connection exists (the drawer shows an ssh:/ entry); the baseline has none"
-    },
-    {
-     "kinds": [
-      "data"
-     ],
-     "text": "a saved SFTP connection uses a PEM key (pem not empty, :196); the baseline has none"
+     "text": "a saved SFTP connection exists only after a connect to a real SSH server (SftpConnectDialog.java:343-354; SshConnectionPool.java:146); the emulator network has none"
     }
    ],
+   "state": [],
    "route_edge_classes": [
     "explicit",
     "standard"
@@ -15532,28 +15578,22 @@
    "path_status": "UNCHECKED"
   },
   "PemToKeyPairTask.<init>(byte[],Callback)": {
-   "env": [],
-   "state": [
+   "env": [
     {
      "kinds": [
-      "data"
+      "other_app"
      ],
-     "text": "a saved SFTP connection exists (the drawer shows an ssh:/ entry); the baseline has none"
-    },
-    {
-     "kinds": [
-      "data"
-     ],
-     "text": "a saved SFTP connection uses a PEM key (pem not empty, :196); the baseline has none"
+     "text": "other_app: the system document picker returns the chosen SSH key file (ACTION_GET_CONTENT, SftpConnectDialog.java:142-146)"
     }
    ],
+   "state": [],
    "route_edge_classes": [
     "explicit",
     "standard"
    ],
    "explicit_standard_route": true,
-   "confirmed_by": "SOURCE",
-   "source_ref": "PemToKeyPairTask.java:91",
+   "confirmed_by": "INFERRED",
+   "source_ref": "PemToKeyPairTask.java:95-97:",
    "path_status": "UNCHECKED"
   },
   "PemToKeyPairTask.doInBackground": {
@@ -15747,27 +15787,21 @@
    "path_status": "UNCHECKED"
   },
   "PemToKeyPairTask$JcaPemToKeyPairConverter.<init>": {
-   "env": [],
-   "state": [
+   "env": [
     {
      "kinds": [
-      "data"
+      "other_app"
      ],
-     "text": "a saved SFTP connection exists (the drawer shows an ssh:/ entry); the baseline has none"
-    },
-    {
-     "kinds": [
-      "data"
-     ],
-     "text": "a saved SFTP connection uses a PEM key (pem not empty, :196); the baseline has none"
+     "text": "other_app: the system document picker returns the chosen SSH key file (ACTION_GET_CONTENT, SftpConnectDialog.java:142-146)"
     }
    ],
+   "state": [],
    "route_edge_classes": [
     "explicit",
     "standard"
    ],
    "explicit_standard_route": true,
-   "confirmed_by": "SOURCE",
+   "confirmed_by": "INFERRED",
    "source_ref": "PemToKeyPairTask.java:69",
    "path_status": "UNCHECKED"
   },
@@ -15791,27 +15825,21 @@
    "path_status": "UNCHECKED"
   },
   "PemToKeyPairTask$OpenSshPemToKeyPairConverter.<init>": {
-   "env": [],
-   "state": [
+   "env": [
     {
      "kinds": [
-      "data"
+      "other_app"
      ],
-     "text": "a saved SFTP connection exists (the drawer shows an ssh:/ entry); the baseline has none"
-    },
-    {
-     "kinds": [
-      "data"
-     ],
-     "text": "a saved SFTP connection uses a PEM key (pem not empty, :196); the baseline has none"
+     "text": "other_app: the system document picker returns the chosen SSH key file (ACTION_GET_CONTENT, SftpConnectDialog.java:142-146)"
     }
    ],
+   "state": [],
    "route_edge_classes": [
     "explicit",
     "standard"
    ],
    "explicit_standard_route": true,
-   "confirmed_by": "SOURCE",
+   "confirmed_by": "INFERRED",
    "source_ref": "PemToKeyPairTask.java:69",
    "path_status": "UNCHECKED"
   },
@@ -15835,27 +15863,21 @@
    "path_status": "UNCHECKED"
   },
   "PemToKeyPairTask$OpenSshV1PemToKeyPairConverter.<init>": {
-   "env": [],
-   "state": [
+   "env": [
     {
      "kinds": [
-      "data"
+      "other_app"
      ],
-     "text": "a saved SFTP connection exists (the drawer shows an ssh:/ entry); the baseline has none"
-    },
-    {
-     "kinds": [
-      "data"
-     ],
-     "text": "a saved SFTP connection uses a PEM key (pem not empty, :196); the baseline has none"
+     "text": "other_app: the system document picker returns the chosen SSH key file (ACTION_GET_CONTENT, SftpConnectDialog.java:142-146)"
     }
    ],
+   "state": [],
    "route_edge_classes": [
     "explicit",
     "standard"
    ],
    "explicit_standard_route": true,
-   "confirmed_by": "SOURCE",
+   "confirmed_by": "INFERRED",
    "source_ref": "PemToKeyPairTask.java:69",
    "path_status": "UNCHECKED"
   },
@@ -15879,27 +15901,21 @@
    "path_status": "UNCHECKED"
   },
   "PemToKeyPairTask$PemToKeyPairConverter.<init>": {
-   "env": [],
-   "state": [
+   "env": [
     {
      "kinds": [
-      "data"
+      "other_app"
      ],
-     "text": "a saved SFTP connection exists (the drawer shows an ssh:/ entry); the baseline has none"
-    },
-    {
-     "kinds": [
-      "data"
-     ],
-     "text": "a saved SFTP connection uses a PEM key (pem not empty, :196); the baseline has none"
+     "text": "other_app: the system document picker returns the chosen SSH key file (ACTION_GET_CONTENT, SftpConnectDialog.java:142-146)"
     }
    ],
+   "state": [],
    "route_edge_classes": [
     "explicit",
     "standard"
    ],
    "explicit_standard_route": true,
-   "confirmed_by": "SOURCE",
+   "confirmed_by": "INFERRED",
    "source_ref": "PemToKeyPairTask.java:229",
    "path_status": "UNCHECKED"
   },
@@ -15923,27 +15939,21 @@
    "path_status": "UNCHECKED"
   },
   "PemToKeyPairTask$PuttyPrivateKeyToKeyPairConverter.<init>": {
-   "env": [],
-   "state": [
+   "env": [
     {
      "kinds": [
-      "data"
+      "other_app"
      ],
-     "text": "a saved SFTP connection exists (the drawer shows an ssh:/ entry); the baseline has none"
-    },
-    {
-     "kinds": [
-      "data"
-     ],
-     "text": "a saved SFTP connection uses a PEM key (pem not empty, :196); the baseline has none"
+     "text": "other_app: the system document picker returns the chosen SSH key file (ACTION_GET_CONTENT, SftpConnectDialog.java:142-146)"
     }
    ],
+   "state": [],
    "route_edge_classes": [
     "explicit",
     "standard"
    ],
    "explicit_standard_route": true,
-   "confirmed_by": "SOURCE",
+   "confirmed_by": "INFERRED",
    "source_ref": "PemToKeyPairTask.java:69",
    "path_status": "UNCHECKED"
   },
@@ -15981,13 +15991,7 @@
      "kinds": [
       "network"
      ],
-     "text": "network: an SSH server answers the host fingerprint request for the typed host (GetSshHostFingerprintTask, :203-205)"
-    },
-    {
-     "kinds": [
-      "network"
-     ],
-     "text": "network: a new SFTP server answers with its host key and Yes is pressed in the verification dialog (SftpConnectDialog.java:202-226)"
+     "text": "a saved SFTP connection exists only after a connect to a real SSH server (SftpConnectDialog.java:343-354; SshConnectionPool.java:146); the emulator network has none"
     },
     {
      "kinds": [
@@ -16002,7 +16006,7 @@
     "standard"
    ],
    "explicit_standard_route": true,
-   "confirmed_by": "INFERRED",
+   "confirmed_by": "SOURCE",
    "source_ref": "SshConnectionPool.java:222",
    "path_status": "UNCHECKED"
   },
@@ -16012,13 +16016,7 @@
      "kinds": [
       "network"
      ],
-     "text": "network: an SSH server answers the host fingerprint request for the typed host (GetSshHostFingerprintTask, :203-205)"
-    },
-    {
-     "kinds": [
-      "network"
-     ],
-     "text": "network: a new SFTP server answers with its host key and Yes is pressed in the verification dialog (SftpConnectDialog.java:202-226)"
+     "text": "a saved SFTP connection exists only after a connect to a real SSH server (SftpConnectDialog.java:343-354; SshConnectionPool.java:146); the emulator network has none"
     },
     {
      "kinds": [
@@ -16043,13 +16041,7 @@
      "kinds": [
       "network"
      ],
-     "text": "network: an SSH server answers the host fingerprint request for the typed host (GetSshHostFingerprintTask, :203-205)"
-    },
-    {
-     "kinds": [
-      "network"
-     ],
-     "text": "network: a new SFTP server answers with its host key and Yes is pressed in the verification dialog (SftpConnectDialog.java:202-226)"
+     "text": "a saved SFTP connection exists only after a connect to a real SSH server (SftpConnectDialog.java:343-354; SshConnectionPool.java:146); the emulator network has none"
     },
     {
      "kinds": [
@@ -16080,13 +16072,7 @@
      "kinds": [
       "network"
      ],
-     "text": "network: an SSH server answers the host fingerprint request for the typed host (GetSshHostFingerprintTask, :203-205)"
-    },
-    {
-     "kinds": [
-      "network"
-     ],
-     "text": "network: a new SFTP server answers with its host key and Yes is pressed in the verification dialog (SftpConnectDialog.java:202-226)"
+     "text": "a saved SFTP connection exists only after a connect to a real SSH server (SftpConnectDialog.java:343-354; SshConnectionPool.java:146); the emulator network has none"
     },
     {
      "kinds": [
@@ -16117,29 +16103,16 @@
      "kinds": [
       "network"
      ],
+     "text": "a saved SFTP connection exists only after a connect to a real SSH server (SftpConnectDialog.java:343-354; SshConnectionPool.java:146); the emulator network has none"
+    },
+    {
+     "kinds": [
+      "network"
+     ],
      "text": "network: an SSH server at the saved or typed host is reachable (SshAuthenticationTask connects first)"
     }
    ],
-   "state": [
-    {
-     "kinds": [
-      "data"
-     ],
-     "text": "a saved SFTP connection exists (the drawer shows an ssh:/ entry); the baseline has none"
-    },
-    {
-     "kinds": [
-      "data"
-     ],
-     "text": "a saved SFTP connection has a stored host key (:213); the baseline has none"
-    },
-    {
-     "kinds": [
-      "data"
-     ],
-     "text": "a saved SFTP connection authenticates with a key (the key-provider branch, :129-131); the baseline has none"
-    }
-   ],
+   "state": [],
    "route_edge_classes": [
     "explicit",
     "standard"
@@ -16155,29 +16128,16 @@
      "kinds": [
       "network"
      ],
+     "text": "a saved SFTP connection exists only after a connect to a real SSH server (SftpConnectDialog.java:343-354; SshConnectionPool.java:146); the emulator network has none"
+    },
+    {
+     "kinds": [
+      "network"
+     ],
      "text": "network: an SSH server at the saved or typed host is reachable (SshAuthenticationTask connects first)"
     }
    ],
-   "state": [
-    {
-     "kinds": [
-      "data"
-     ],
-     "text": "a saved SFTP connection exists (the drawer shows an ssh:/ entry); the baseline has none"
-    },
-    {
-     "kinds": [
-      "data"
-     ],
-     "text": "a saved SFTP connection has a stored host key (:213); the baseline has none"
-    },
-    {
-     "kinds": [
-      "data"
-     ],
-     "text": "a saved SFTP connection authenticates with a key (the key-provider branch, :129-131); the baseline has none"
-    }
-   ],
+   "state": [],
    "route_edge_classes": [
     "explicit",
     "standard"
@@ -16193,6 +16153,12 @@
      "kinds": [
       "network"
      ],
+     "text": "a saved SFTP connection exists only after a connect to a real SSH server (SftpConnectDialog.java:343-354; SshConnectionPool.java:146); the emulator network has none"
+    },
+    {
+     "kinds": [
+      "network"
+     ],
      "text": "network: an SSH server at the saved or typed host is reachable (SshAuthenticationTask connects first)"
     },
     {
@@ -16202,33 +16168,14 @@
      "text": "network: an SSH server authenticates the user with a private key: the key provider's getType runs during the key login (SshAuthenticationTask.java:129-145), only while connected to the server"
     }
    ],
-   "state": [
-    {
-     "kinds": [
-      "data"
-     ],
-     "text": "a saved SFTP connection exists (the drawer shows an ssh:/ entry); the baseline has none"
-    },
-    {
-     "kinds": [
-      "data"
-     ],
-     "text": "a saved SFTP connection has a stored host key (:213); the baseline has none"
-    },
-    {
-     "kinds": [
-      "data"
-     ],
-     "text": "a saved SFTP connection authenticates with a key (the key-provider branch, :129-131); the baseline has none"
-    }
-   ],
+   "state": [],
    "route_edge_classes": [
     "explicit",
     "standard"
    ],
    "explicit_standard_route": true,
    "confirmed_by": "INFERRED",
-   "source_ref": "SshConnectionPool.java:213",
+   "source_ref": "Drawer.java:612",
    "path_status": "SOURCE_OK"
   },
   "SshAuthenticationTask$1.getType": {
@@ -16237,6 +16184,12 @@
      "kinds": [
       "network"
      ],
+     "text": "a saved SFTP connection exists only after a connect to a real SSH server (SftpConnectDialog.java:343-354; SshConnectionPool.java:146); the emulator network has none"
+    },
+    {
+     "kinds": [
+      "network"
+     ],
      "text": "network: an SSH server at the saved or typed host is reachable (SshAuthenticationTask connects first)"
     },
     {
@@ -16246,26 +16199,7 @@
      "text": "network: an SSH server authenticates the user with a private key: the key provider's getType runs during the key login (SshAuthenticationTask.java:129-145), only while connected to the server"
     }
    ],
-   "state": [
-    {
-     "kinds": [
-      "data"
-     ],
-     "text": "a saved SFTP connection exists (the drawer shows an ssh:/ entry); the baseline has none"
-    },
-    {
-     "kinds": [
-      "data"
-     ],
-     "text": "a saved SFTP connection has a stored host key (:213); the baseline has none"
-    },
-    {
-     "kinds": [
-      "data"
-     ],
-     "text": "a saved SFTP connection authenticates with a key (the key-provider branch, :129-131); the baseline has none"
-    }
-   ],
+   "state": [],
    "route_edge_classes": [
     "explicit",
     "standard"
@@ -19112,23 +19046,13 @@
    "path_status": "UNCHECKED"
   },
   "ZipService$CompressAsyncTask.onCancelled": {
-   "env": [],
-   "state": [
-    {
-     "kinds": [
-      "file"
-     ],
-     "text": "the non-exported ZipService starts only from the in-app compress action, which needs files to compress; the baseline storage has none"
-    }
-   ],
-   "route_edge_classes": [
-    "explicit",
-    "standard"
-   ],
-   "explicit_standard_route": true,
+   "unreachable": {
+    "kind": "framework_never_calls",
+    "text": "round 2 C: the framework calls onCancelled only after cancel(), and no file that creates ZipService$CompressAsyncTask calls cancel (fw AsyncTask.java:462,479)"
+   },
    "confirmed_by": "SOURCE",
-   "source_ref": "ZipService.java:236-242",
-   "path_status": "UNCHECKED"
+   "source_ref": "FW-SRC core/java/android/os/AsyncTask.java:462,479",
+   "path_status": null
   },
   "ZipService$CompressAsyncTask.onPostExecute": {
    "env": [],
@@ -20250,15 +20174,15 @@
    "path_status": "UNCHECKED"
   },
   "UtilsHandler.getSshAuthPrivateKey": {
-   "env": [],
-   "state": [
+   "env": [
     {
      "kinds": [
-      "data"
+      "network"
      ],
-     "text": "a saved SFTP connection exists (the drawer shows an ssh:/ entry); the baseline has none"
+     "text": "a saved SFTP connection exists only after a connect to a real SSH server (SftpConnectDialog.java:343-354; SshConnectionPool.java:146); the emulator network has none"
     }
    ],
+   "state": [],
    "route_edge_classes": [
     "explicit",
     "standard"
@@ -20269,40 +20193,34 @@
    "path_status": "UNCHECKED"
   },
   "UtilsHandler.getSshAuthPrivateKeyColumn": {
-   "env": [],
-   "state": [
+   "env": [
     {
      "kinds": [
-      "data"
+      "network"
      ],
-     "text": "a saved SFTP connection exists (the drawer shows an ssh:/ entry); the baseline has none"
+     "text": "a saved SFTP connection exists only after a connect to a real SSH server (SftpConnectDialog.java:343-354; SshConnectionPool.java:146); the emulator network has none"
     }
    ],
+   "state": [],
    "route_edge_classes": [
     "explicit",
     "standard"
    ],
    "explicit_standard_route": true,
    "confirmed_by": "SOURCE",
-   "source_ref": "UtilsHandler.java:432",
+   "source_ref": "Drawer.java:612",
    "path_status": "WRONG"
   },
   "UtilsHandler.getSshAuthPrivateKeyName": {
-   "env": [],
-   "state": [
+   "env": [
     {
      "kinds": [
-      "data"
+      "network"
      ],
-     "text": "a saved SFTP connection exists (the drawer shows an ssh:/ entry); the baseline has none"
-    },
-    {
-     "kinds": [
-      "data"
-     ],
-     "text": "a saved SFTP connection without a password is edited: showSftpDialog reads its key name only when the saved URI has no password (MainActivity.java:1654-1656); a connection is saved in the app with the SFTP dialog"
+     "text": "a saved SFTP connection exists only after a connect to a real SSH server (SftpConnectDialog.java:343-354; SshConnectionPool.java:146); the emulator network has none"
     }
    ],
+   "state": [],
    "route_edge_classes": [
     "explicit",
     "standard"
@@ -20426,15 +20344,15 @@
    "path_status": "UNCHECKED"
   },
   "UtilsHandler.removeSftpPath": {
-   "env": [],
-   "state": [
+   "env": [
     {
      "kinds": [
-      "data"
+      "network"
      ],
-     "text": "a saved SFTP connection is removed (case SFTP); the baseline has none"
+     "text": "a saved SFTP connection exists only after a connect to a real SSH server (SftpConnectDialog.java:343-354; SshConnectionPool.java:146); the emulator network has none"
     }
    ],
+   "state": [],
    "route_edge_classes": [
     "explicit",
     "standard"
@@ -20558,21 +20476,15 @@
    "path_status": "UNCHECKED"
   },
   "UtilsHandler.updateSsh": {
-   "env": [],
-   "state": [
+   "env": [
     {
      "kinds": [
-      "data"
+      "network"
      ],
-     "text": "a saved SFTP connection exists (the edit dialog opens from its drawer entry); the baseline has none"
-    },
-    {
-     "kinds": [
-      "data"
-     ],
-     "text": "a saved SFTP connection is edited: the dialog removes the saved entry in the background only when it is in the saved list (containsServer != -1, SftpConnectDialog.java:244-251); the lambda name of this hand edge is not checked against the bytecode"
+     "text": "a saved SFTP connection exists only after a connect to a real SSH server (SftpConnectDialog.java:343-354; SshConnectionPool.java:146); the emulator network has none"
     }
    ],
+   "state": [],
    "route_edge_classes": [
     "explicit",
     "standard"
@@ -20903,21 +20815,15 @@
    "path_status": "UNCHECKED"
   },
   "OperationData.<init>(Operation,String,String,String,String,String)": {
-   "env": [],
-   "state": [
+   "env": [
     {
      "kinds": [
-      "data"
+      "network"
      ],
-     "text": "a saved SFTP connection exists (the edit dialog opens from its drawer entry); the baseline has none"
-    },
-    {
-     "kinds": [
-      "data"
-     ],
-     "text": "a saved SFTP connection is edited: the dialog removes the saved entry in the background only when it is in the saved list (containsServer != -1, SftpConnectDialog.java:244-251); the lambda name of this hand edge is not checked against the bytecode"
+     "text": "a saved SFTP connection exists only after a connect to a real SSH server (SftpConnectDialog.java:343-354; SshConnectionPool.java:146); the emulator network has none"
     }
    ],
+   "state": [],
    "route_edge_classes": [
     "explicit",
     "standard"
@@ -20985,27 +20891,21 @@
    "path_status": "UNCHECKED"
   },
   "ShellNotRunningException.<init>": {
-   "env": [],
-   "state": [
+   "env": [
     {
      "kinds": [
-      "file"
+      "other"
      ],
-     "text": "a file path (not a folder) is pending when Back is pressed on the FTP page, so it is opened as a file; the baseline has no such file"
-    },
-    {
-     "kinds": [
-      "file"
-     ],
-     "text": "a database (.db) file exists in the browsed folder (openFile starts the viewer only for a .db file, FileUtils.java:755-757); the baseline storage has none"
+     "text": "outside the app: a rooted device with root explorer on: a folder that could not be made normally is made through the root shell (Operations.java:170-175)"
     }
    ],
+   "state": [],
    "route_edge_classes": [
     "explicit",
     "standard"
    ],
    "explicit_standard_route": true,
-   "confirmed_by": "INFERRED",
+   "confirmed_by": "SOURCE",
    "source_ref": "RootHelper.java:61",
    "path_status": "UNCHECKED"
   },
@@ -21762,8 +21662,8 @@
     "standard"
    ],
    "explicit_standard_route": true,
-   "confirmed_by": "SOURCE",
-   "source_ref": "LoadFilesListTask.java:398",
+   "confirmed_by": "INFERRED",
+   "source_ref": "HybridFile.java:1239",
    "path_status": "UNCHECKED"
   },
   "HybridFile.exists(Context)": {
@@ -22136,7 +22036,7 @@
    ],
    "explicit_standard_route": true,
    "confirmed_by": "SOURCE",
-   "source_ref": "HybridFile.java:1100",
+   "source_ref": "GeneralDialogCreation.java:418",
    "path_status": "UNCHECKED"
   },
   "HybridFile.isOneDriveFile": {
@@ -22172,7 +22072,7 @@
    ],
    "explicit_standard_route": true,
    "confirmed_by": "SOURCE",
-   "source_ref": "HybridFile.java:1102",
+   "source_ref": "Operations.java:162",
    "path_status": "UNCHECKED"
   },
   "HybridFile.isSftp": {
@@ -22678,7 +22578,7 @@
     "standard"
    ],
    "explicit_standard_route": true,
-   "confirmed_by": "SOURCE",
+   "confirmed_by": "INFERRED",
    "source_ref": "HybridFile.java:1078",
    "path_status": "UNCHECKED"
   },
@@ -22703,7 +22603,7 @@
     "standard"
    ],
    "explicit_standard_route": true,
-   "confirmed_by": "SOURCE",
+   "confirmed_by": "INFERRED",
    "source_ref": "SshClientUtils.java:134",
    "path_status": "UNCHECKED"
   },
@@ -23199,23 +23099,13 @@
    "path_status": "UNCHECKED"
   },
   "HybridFileParcelable.describeContents": {
-   "env": [],
-   "state": [
-    {
-     "kinds": [
-      "session"
-     ],
-     "text": "A copy or cut operation is pending (MainActivity holds a PasteHelper)"
-    }
-   ],
-   "route_edge_classes": [
-    "explicit",
-    "standard"
-   ],
-   "explicit_standard_route": true,
-   "confirmed_by": "INFERRED",
-   "source_ref": "asynchronous/asynctasks/PrepareCopyTask.java:168-176",
-   "path_status": "UNCHECKED"
+   "unreachable": {
+    "kind": "framework_never_calls",
+    "text": "round 2 C: the framework calls describeContents of an app object only from hasFileDescriptors on unparcelled extras, which the activity start checks in system_server on parcelled data (Bundle.java:316-340; ActivityStarter.java:681)"
+   },
+   "confirmed_by": "SOURCE",
+   "source_ref": "FW-SRC core/java/android/os/Bundle.java:316-340; core/java/android/content/Intent.java:6958,9552; services/core/java/com/android/server/am/ActivityStarter.java:681",
+   "path_status": null
   },
   "HybridFileParcelable.equals": {
    "env": [],
@@ -23558,8 +23448,8 @@
     "standard"
    ],
    "explicit_standard_route": true,
-   "confirmed_by": "INFERRED",
-   "source_ref": "MainFragment.java:983",
+   "confirmed_by": "SOURCE",
+   "source_ref": "FileUtil.java:511",
    "path_status": "UNCHECKED"
   },
   "MediaStoreHack.<init>": {
@@ -23625,7 +23515,7 @@
    ],
    "explicit_standard_route": true,
    "confirmed_by": "INFERRED",
-   "source_ref": "MainFragment.java:983",
+   "source_ref": "FileUtil.java:392",
    "path_status": "UNCHECKED"
   },
   "MediaStoreHack.installTemporaryTrack": {
@@ -24040,7 +23930,7 @@
     "standard"
    ],
    "explicit_standard_route": true,
-   "confirmed_by": "SOURCE",
+   "confirmed_by": "INFERRED",
    "source_ref": "HybridFile.java:1110",
    "path_status": "UNCHECKED"
   },
@@ -24152,14 +24042,21 @@
    "path_status": "UNCHECKED"
   },
   "RootHelper.lambda$runShellCommandToList$0": {
-   "env": [],
+   "env": [
+    {
+     "kinds": [
+      "other"
+     ],
+     "text": "outside the app: a rooted device with root explorer on, browsing outside /storage and /sdcard: getFiles lists with a root shell (RootHelper.java:289-296)"
+    }
+   ],
    "state": [],
    "route_edge_classes": [
     "explicit",
     "standard"
    ],
    "explicit_standard_route": true,
-   "confirmed_by": "INFERRED",
+   "confirmed_by": "SOURCE",
    "source_ref": "RootHelper.java:50",
    "path_status": "UNCHECKED"
   },
@@ -24210,51 +24107,59 @@
    "path_status": null
   },
   "RootHelper.runShellCommand": {
-   "env": [],
-   "state": [
+   "env": [
     {
      "kinds": [
-      "file"
+      "other"
      ],
-     "text": "a file path (not a folder) is pending when Back is pressed on the FTP page, so it is opened as a file; the baseline has no such file"
-    },
-    {
-     "kinds": [
-      "file"
-     ],
-     "text": "a database (.db) file exists in the browsed folder (openFile starts the viewer only for a .db file, FileUtils.java:755-757); the baseline storage has none"
+     "text": "outside the app: a rooted device with root explorer on: a folder that could not be made normally is made through the root shell (Operations.java:170-175)"
     }
    ],
+   "state": [],
    "route_edge_classes": [
     "explicit",
     "standard"
    ],
    "explicit_standard_route": true,
-   "confirmed_by": "INFERRED",
-   "source_ref": "RootUtils.java:95",
+   "confirmed_by": "SOURCE",
+   "source_ref": "RootUtils.java:143",
    "path_status": "UNCHECKED"
   },
   "RootHelper.runShellCommandToList": {
-   "env": [],
+   "env": [
+    {
+     "kinds": [
+      "other"
+     ],
+     "text": "outside the app: a rooted device with root explorer on, browsing outside /storage and /sdcard: getFiles lists with a root shell (RootHelper.java:289-296)"
+    }
+   ],
    "state": [],
    "route_edge_classes": [
     "explicit",
     "standard"
    ],
    "explicit_standard_route": true,
-   "confirmed_by": "INFERRED",
-   "source_ref": "RootUtils.java:217",
+   "confirmed_by": "SOURCE",
+   "source_ref": "RootHelper.java:296",
    "path_status": "UNCHECKED"
   },
   "RootHelper.runShellCommandWithCallback": {
-   "env": [],
+   "env": [
+    {
+     "kinds": [
+      "other"
+     ],
+     "text": "outside the app: a rooted device with root explorer on, browsing outside /storage and /sdcard: getFiles lists with a root shell (RootHelper.java:289-296)"
+    }
+   ],
    "state": [],
    "route_edge_classes": [
     "explicit",
     "standard"
    ],
    "explicit_standard_route": true,
-   "confirmed_by": "INFERRED",
+   "confirmed_by": "SOURCE",
    "source_ref": "RootHelper.java:50",
    "path_status": "UNCHECKED"
   },
@@ -25021,7 +24926,14 @@
    "path_status": "UNCHECKED"
   },
   "GzipExtractor.extractWithFilter": {
-   "env": [],
+   "env": [
+    {
+     "kinds": [
+      "other_app"
+     ],
+     "text": "an object of GzipExtractor is made in the app only on a route with an env gate (no <init> of the class is reachable without one), so the env action comes first"
+    }
+   ],
    "state": [
     {
      "kinds": [
@@ -25092,7 +25004,14 @@
    "path_status": "UNCHECKED"
   },
   "LzmaExtractor.extractWithFilter": {
-   "env": [],
+   "env": [
+    {
+     "kinds": [
+      "other_app"
+     ],
+     "text": "an object of LzmaExtractor is made in the app only on a route with an env gate (no <init> of the class is reachable without one), so the env action comes first"
+    }
+   ],
    "state": [
     {
      "kinds": [
@@ -25163,7 +25082,14 @@
    "path_status": "UNCHECKED"
   },
   "RarExtractor.extractWithFilter": {
-   "env": [],
+   "env": [
+    {
+     "kinds": [
+      "other_app"
+     ],
+     "text": "an object of RarExtractor is made in the app only on a route with an env gate (no <init> of the class is reachable without one), so the env action comes first"
+    }
+   ],
    "state": [
     {
      "kinds": [
@@ -25234,7 +25160,14 @@
    "path_status": "UNCHECKED"
   },
   "SevenZipExtractor.extractWithFilter": {
-   "env": [],
+   "env": [
+    {
+     "kinds": [
+      "other_app"
+     ],
+     "text": "an object of SevenZipExtractor is made in the app only on a route with an env gate (no <init> of the class is reachable without one), so the env action comes first"
+    }
+   ],
    "state": [
     {
      "kinds": [
@@ -25305,7 +25238,14 @@
    "path_status": "UNCHECKED"
   },
   "TarExtractor.extractWithFilter": {
-   "env": [],
+   "env": [
+    {
+     "kinds": [
+      "other_app"
+     ],
+     "text": "an object of TarExtractor is made in the app only on a route with an env gate (no <init> of the class is reachable without one), so the env action comes first"
+    }
+   ],
    "state": [
     {
      "kinds": [
@@ -25376,7 +25316,14 @@
    "path_status": "UNCHECKED"
   },
   "XzExtractor.extractWithFilter": {
-   "env": [],
+   "env": [
+    {
+     "kinds": [
+      "other_app"
+     ],
+     "text": "an object of XzExtractor is made in the app only on a route with an env gate (no <init> of the class is reachable without one), so the env action comes first"
+    }
+   ],
    "state": [
     {
      "kinds": [
@@ -31266,7 +31213,7 @@
      "kinds": [
       "network"
      ],
-     "text": "network: the existence of an SFTP file is checked on the server (HybridFile.java:1077-1078)"
+     "text": "network: the usable space of an SFTP destination is asked on the server (HybridFile.java:627-651)"
     }
    ],
    "state": [],
@@ -31276,7 +31223,7 @@
    ],
    "explicit_standard_route": true,
    "confirmed_by": "SOURCE",
-   "source_ref": "HybridFile.java:1078",
+   "source_ref": "HybridFile.java:651",
    "path_status": "UNCHECKED"
   },
   "SFtpClientTemplate.<init>(String,boolean)": {
@@ -31285,7 +31232,7 @@
      "kinds": [
       "network"
      ],
-     "text": "network: the existence of an SFTP file is checked on the server (HybridFile.java:1077-1078)"
+     "text": "network: the usable space of an SFTP destination is asked on the server (HybridFile.java:627-651)"
     }
    ],
    "state": [],
@@ -31399,7 +31346,7 @@
    ],
    "explicit_standard_route": true,
    "confirmed_by": "SOURCE",
-   "source_ref": "HybridFile.java:1078",
+   "source_ref": "HybridFile.java:651",
    "path_status": "UNCHECKED"
   },
   "SshClientUtils.execute(SshClientSessionTemplate)": {
@@ -31434,15 +31381,15 @@
    "path_status": "UNCHECKED"
   },
   "SshClientUtils.extractBaseUriFrom": {
-   "env": [],
-   "state": [
+   "env": [
     {
      "kinds": [
-      "data"
+      "network"
      ],
-     "text": "a saved SFTP connection exists (the drawer shows an ssh:/ entry); the baseline has none"
+     "text": "a saved SFTP connection exists only after a connect to a real SSH server (SftpConnectDialog.java:343-354; SshConnectionPool.java:146); the emulator network has none"
     }
    ],
+   "state": [],
    "route_edge_classes": [
     "explicit",
     "standard"
@@ -31634,15 +31581,15 @@
    "path_status": "UNCHECKED"
   },
   "SshConnectionPool.create(String)": {
-   "env": [],
-   "state": [
+   "env": [
     {
      "kinds": [
-      "data"
+      "network"
      ],
-     "text": "a saved SFTP connection exists (the drawer shows an ssh:/ entry); the baseline has none"
+     "text": "a saved SFTP connection exists only after a connect to a real SSH server (SftpConnectDialog.java:343-354; SshConnectionPool.java:146); the emulator network has none"
     }
    ],
+   "state": [],
    "route_edge_classes": [
     "explicit",
     "standard"
@@ -31653,21 +31600,15 @@
    "path_status": "UNCHECKED"
   },
   "SshConnectionPool.create(String,int,String,String,String,KeyPair)": {
-   "env": [],
-   "state": [
+   "env": [
     {
      "kinds": [
-      "data"
+      "network"
      ],
-     "text": "a saved SFTP connection exists (the drawer shows an ssh:/ entry); the baseline has none"
-    },
-    {
-     "kinds": [
-      "data"
-     ],
-     "text": "a saved SFTP connection has a stored host key (:213); the baseline has none"
+     "text": "a saved SFTP connection exists only after a connect to a real SSH server (SftpConnectDialog.java:343-354; SshConnectionPool.java:146); the emulator network has none"
     }
    ],
+   "state": [],
    "route_edge_classes": [
     "explicit",
     "standard"
@@ -31683,13 +31624,13 @@
      "kinds": [
       "network"
      ],
-     "text": "network: an SSH server answers the host fingerprint request for the typed host (GetSshHostFingerprintTask, :203-205)"
+     "text": "a saved SFTP connection exists only after a connect to a real SSH server (SftpConnectDialog.java:343-354; SshConnectionPool.java:146); the emulator network has none"
     },
     {
      "kinds": [
       "network"
      ],
-     "text": "network: a new SFTP server answers with its host key and Yes is pressed in the verification dialog (SftpConnectDialog.java:202-226)"
+     "text": "network: a pooled SFTP connection is no longer valid, so it is expired (SshConnectionPool.java:117-119)"
     }
    ],
    "state": [],
@@ -31698,8 +31639,8 @@
     "standard"
    ],
    "explicit_standard_route": true,
-   "confirmed_by": "INFERRED",
-   "source_ref": "SshConnectionPool.java:160",
+   "confirmed_by": "SOURCE",
+   "source_ref": "SshConnectionPool.java:119",
    "path_status": "UNCHECKED"
   },
   "SshConnectionPool.expungeAllConnections": {
@@ -31715,15 +31656,15 @@
    "path_status": "UNCHECKED"
   },
   "SshConnectionPool.getConnection(String)": {
-   "env": [],
-   "state": [
+   "env": [
     {
      "kinds": [
-      "data"
+      "network"
      ],
-     "text": "a saved SFTP connection exists (the drawer shows an ssh:/ entry); the baseline has none"
+     "text": "a saved SFTP connection exists only after a connect to a real SSH server (SftpConnectDialog.java:343-354; SshConnectionPool.java:146); the emulator network has none"
     }
    ],
+   "state": [],
    "route_edge_classes": [
     "explicit",
     "standard"
@@ -31739,13 +31680,13 @@
      "kinds": [
       "network"
      ],
-     "text": "network: an SSH server answers the host fingerprint request for the typed host (GetSshHostFingerprintTask, :203-205)"
+     "text": "a saved SFTP connection exists only after a connect to a real SSH server (SftpConnectDialog.java:343-354; SshConnectionPool.java:146); the emulator network has none"
     },
     {
      "kinds": [
       "network"
      ],
-     "text": "network: a new SFTP server answers with its host key and Yes is pressed in the verification dialog (SftpConnectDialog.java:202-226)"
+     "text": "network: the SSH server answers with a host key that differs from the saved one: the update-host-key prompt appears only then (SftpConnectDialog.java:183-193)"
     }
    ],
    "state": [],
@@ -31833,13 +31774,13 @@
      "kinds": [
       "network"
      ],
-     "text": "network: an SSH server answers the host fingerprint request for the typed host (GetSshHostFingerprintTask, :203-205)"
+     "text": "a saved SFTP connection exists only after a connect to a real SSH server (SftpConnectDialog.java:343-354; SshConnectionPool.java:146); the emulator network has none"
     },
     {
      "kinds": [
       "network"
      ],
-     "text": "network: a new SFTP server answers with its host key and Yes is pressed in the verification dialog (SftpConnectDialog.java:202-226)"
+     "text": "network: a pooled SFTP connection exists, so it is validated (SshConnectionPool.java:116-117)"
     }
    ],
    "state": [],
@@ -31848,8 +31789,8 @@
     "standard"
    ],
    "explicit_standard_route": true,
-   "confirmed_by": "INFERRED",
-   "source_ref": "SshConnectionPool.java:158",
+   "confirmed_by": "SOURCE",
+   "source_ref": "SshConnectionPool.java:117",
    "path_status": "UNCHECKED"
   },
   "SshConnectionPool$AsyncRemoveConnection.<init>": {
@@ -31910,15 +31851,15 @@
    "path_status": "SOURCE_OK"
   },
   "SshConnectionPool$ConnectionInfo.<init>": {
-   "env": [],
-   "state": [
+   "env": [
     {
      "kinds": [
-      "data"
+      "network"
      ],
-     "text": "a saved SFTP connection exists (the drawer shows an ssh:/ entry); the baseline has none"
+     "text": "a saved SFTP connection exists only after a connect to a real SSH server (SftpConnectDialog.java:343-354; SshConnectionPool.java:146); the emulator network has none"
     }
    ],
+   "state": [],
    "route_edge_classes": [
     "explicit",
     "standard"
@@ -33930,7 +33871,14 @@
   },
   "MainFragment.getBackElement": {
    "env": [],
-   "state": [],
+   "state": [
+    {
+     "kinds": [
+      "settings"
+     ],
+     "text": "res/xml/preferences.xml:95-99; the back row is added only with Show back button on (goBack_checkbox, default false)"
+    }
+   ],
    "route_edge_classes": [
     "explicit",
     "standard"
@@ -34458,15 +34406,22 @@
    "path_status": "UNCHECKED"
   },
   "MainFragment.returnIntentResults": {
-   "env": [],
+   "env": [
+    {
+     "kinds": [
+      "other_app"
+     ],
+     "text": "outside package: another app opened Amaze to pick a file (ACTION_GET_CONTENT, mReturnIntent), so a file tap returns it (MainFragment.java:908-910)"
+    }
+   ],
    "state": [],
    "route_edge_classes": [
     "explicit",
     "standard"
    ],
    "explicit_standard_route": true,
-   "confirmed_by": "INFERRED",
-   "source_ref": "ItemPopupMenu.java:202",
+   "confirmed_by": "SOURCE",
+   "source_ref": "fragments/MainFragment.java:908",
    "path_status": "UNCHECKED"
   },
   "MainFragment.setGridLayoutSpanSizeLookup": {
@@ -35268,7 +35223,14 @@
    "path_status": "SOURCE_OK"
   },
   "ProcessViewerFragment$CustomServiceConnection$1.lambda$onUpdate$0": {
-   "env": [],
+   "env": [
+    {
+     "kinds": [
+      "system_event"
+     ],
+     "text": "an object of ProcessViewerFragment$CustomServiceConnection$1 is made in the app only on a route with an env gate (no <init> of the class is reachable without one), so the env action comes first"
+    }
+   ],
    "state": [
     {
      "kinds": [
@@ -35299,7 +35261,14 @@
    "path_status": "SOURCE_OK"
   },
   "ProcessViewerFragment$CustomServiceConnection$1.onUpdate": {
-   "env": [],
+   "env": [
+    {
+     "kinds": [
+      "system_event"
+     ],
+     "text": "an object of ProcessViewerFragment$CustomServiceConnection$1 is made in the app only on a route with an env gate (no <init> of the class is reachable without one), so the env action comes first"
+    }
+   ],
    "state": [
     {
      "kinds": [
@@ -35324,7 +35293,14 @@
    "path_status": "UNCHECKED"
   },
   "ProcessViewerFragment$CustomServiceConnection$1.refresh": {
-   "env": [],
+   "env": [
+    {
+     "kinds": [
+      "system_event"
+     ],
+     "text": "an object of ProcessViewerFragment$CustomServiceConnection$1 is made in the app only on a route with an env gate (no <init> of the class is reachable without one), so the env action comes first"
+    }
+   ],
    "state": [
     {
      "kinds": [
@@ -35743,7 +35719,14 @@
   },
   "ColorPref.colorChangeDialog": {
    "env": [],
-   "state": [],
+   "state": [
+    {
+     "kinds": [
+      "settings"
+     ],
+     "text": "ui/dialogs/ColorPickerDialog.java:43-44,102-110; the Primary, Primary two, Accent and Icon colour rows are enabled only when the stored colour config is Custom (PREFERENCE_COLOR_CONFIG == CUSTOM_INDEX; the default is a preset), so Custom is chosen first"
+    }
+   ],
    "route_edge_classes": [
     "explicit",
     "standard"
@@ -35774,12 +35757,19 @@
    ],
    "explicit_standard_route": true,
    "confirmed_by": "INFERRED",
-   "source_ref": "ColorPref.java:163",
+   "source_ref": "fragments/preference_fragments/ColorPref.java:227",
    "path_status": "UNCHECKED"
   },
   "ColorPref.lambda$colorChangeDialog$0": {
    "env": [],
-   "state": [],
+   "state": [
+    {
+     "kinds": [
+      "settings"
+     ],
+     "text": "ui/dialogs/ColorPickerDialog.java:43-44,102-110; the Primary, Primary two, Accent and Icon colour rows are enabled only when the stored colour config is Custom (PREFERENCE_COLOR_CONFIG == CUSTOM_INDEX; the default is a preset), so Custom is chosen first"
+    }
+   ],
    "route_edge_classes": [
     "explicit",
     "standard"
@@ -35935,7 +35925,14 @@
   },
   "ColorPref$1.<init>": {
    "env": [],
-   "state": [],
+   "state": [
+    {
+     "kinds": [
+      "settings"
+     ],
+     "text": "ui/dialogs/ColorPickerDialog.java:43-44,102-110; the Primary, Primary two, Accent and Icon colour rows are enabled only when the stored colour config is Custom (PREFERENCE_COLOR_CONFIG == CUSTOM_INDEX; the default is a preset), so Custom is chosen first"
+    }
+   ],
    "route_edge_classes": [
     "explicit",
     "standard"
@@ -35947,7 +35944,14 @@
   },
   "ColorPref$1.onNeutral": {
    "env": [],
-   "state": [],
+   "state": [
+    {
+     "kinds": [
+      "settings"
+     ],
+     "text": "ui/dialogs/ColorPickerDialog.java:43-44,102-110; the Primary, Primary two, Accent and Icon colour rows are enabled only when the stored colour config is Custom (PREFERENCE_COLOR_CONFIG == CUSTOM_INDEX; the default is a preset), so Custom is chosen first"
+    }
+   ],
    "route_edge_classes": [
     "explicit",
     "standard"
@@ -36529,7 +36533,14 @@
   },
   "ColorPreference.<clinit>": {
    "env": [],
-   "state": [],
+   "state": [
+    {
+     "kinds": [
+      "settings"
+     ],
+     "text": "ui/dialogs/ColorPickerDialog.java:43-44,102-110; the Primary, Primary two, Accent and Icon colour rows are enabled only when the stored colour config is Custom (PREFERENCE_COLOR_CONFIG == CUSTOM_INDEX; the default is a preset), so Custom is chosen first"
+    }
+   ],
    "route_edge_classes": [
     "explicit",
     "standard"
@@ -36573,15 +36584,15 @@
    "path_status": "UNCHECKED"
   },
   "ColorPreferenceHelper.correctForIndex": {
-   "env": [],
-   "state": [
+   "env": [
     {
      "kinds": [
-      "settings"
+      "other"
      ],
-     "text": "the preferences come from an older version that used the old colour system (isUsingOldColorsSystem); a fresh install has none"
+     "text": "the preferences of an older app version that used the old colour system: a fresh install has none"
     }
    ],
+   "state": [],
    "route_edge_classes": [
     "explicit",
     "standard"
@@ -36592,15 +36603,15 @@
    "path_status": "UNCHECKED"
   },
   "ColorPreferenceHelper.correctToNewColorsSystem": {
-   "env": [],
-   "state": [
+   "env": [
     {
      "kinds": [
-      "settings"
+      "other"
      ],
-     "text": "the preferences come from an older version that used the old colour system (isUsingOldColorsSystem); a fresh install has none"
+     "text": "the preferences of an older app version that used the old colour system: a fresh install has none"
     }
    ],
+   "state": [],
    "route_edge_classes": [
     "explicit",
     "standard"
@@ -37482,7 +37493,14 @@
   },
   "GeneralDialogCreation.lambda$showEncryptWithPresetPasswordSaveAsDialog$12": {
    "env": [],
-   "state": [],
+   "state": [
+    {
+     "kinds": [
+      "settings"
+     ],
+     "text": "a master password is set: the Encrypt item opens the save-as dialog with the preset password only when PREFERENCE_CRYPT_MASTER_PASSWORD is not empty (ItemPopupMenu.java:158-160); it is empty by default and is set in the app's encryption settings"
+    }
+   ],
    "route_edge_classes": [
     "explicit",
     "standard"
@@ -37494,7 +37512,14 @@
   },
   "GeneralDialogCreation.lambda$showEncryptWithPresetPasswordSaveAsDialog$13": {
    "env": [],
-   "state": [],
+   "state": [
+    {
+     "kinds": [
+      "settings"
+     ],
+     "text": "a master password is set: the Encrypt item opens the save-as dialog with the preset password only when PREFERENCE_CRYPT_MASTER_PASSWORD is not empty (ItemPopupMenu.java:158-160); it is empty by default and is set in the app's encryption settings"
+    }
+   ],
    "route_edge_classes": [
     "explicit",
     "standard"
@@ -37996,14 +38021,21 @@
   },
   "GeneralDialogCreation.showEncryptWithPresetPasswordSaveAsDialog": {
    "env": [],
-   "state": [],
+   "state": [
+    {
+     "kinds": [
+      "settings"
+     ],
+     "text": "a master password is set: the Encrypt item opens the save-as dialog with the preset password only when PREFERENCE_CRYPT_MASTER_PASSWORD is not empty (ItemPopupMenu.java:158-160); it is empty by default and is set in the app's encryption settings"
+    }
+   ],
    "route_edge_classes": [
     "explicit",
     "standard"
    ],
    "explicit_standard_route": true,
    "confirmed_by": "INFERRED",
-   "source_ref": "ItemPopupMenu.java:164",
+   "source_ref": "ItemPopupMenu.java:160-166,",
    "path_status": "UNCHECKED"
   },
   "GeneralDialogCreation.showHiddenDialog": {
@@ -38487,13 +38519,13 @@
      "kinds": [
       "network"
      ],
-     "text": "network: an SSH server answers the host fingerprint request for the typed host (GetSshHostFingerprintTask, :203-205)"
+     "text": "a saved SFTP connection exists only after a connect to a real SSH server (SftpConnectDialog.java:343-354; SshConnectionPool.java:146); the emulator network has none"
     },
     {
      "kinds": [
       "network"
      ],
-     "text": "network: a new SFTP server answers with its host key and Yes is pressed in the verification dialog (SftpConnectDialog.java:202-226)"
+     "text": "network: the SSH server answers with a host key that differs from the saved one: the update-host-key prompt appears only then (SftpConnectDialog.java:183-193)"
     }
    ],
    "state": [],
@@ -38503,56 +38535,44 @@
    ],
    "explicit_standard_route": true,
    "confirmed_by": "INFERRED",
-   "source_ref": "SftpConnectDialog.java:221",
+   "source_ref": "SftpConnectDialog.java:191",
    "path_status": "UNCHECKED"
   },
   "SftpConnectDialog.getPemContents": {
-   "env": [],
-   "state": [
+   "env": [
     {
      "kinds": [
-      "data"
+      "network"
      ],
-     "text": "a saved SFTP connection exists (the edit dialog opens from its drawer entry); the baseline has none"
+     "text": "a saved SFTP connection exists only after a connect to a real SSH server (SftpConnectDialog.java:343-354; SshConnectionPool.java:146); the emulator network has none"
     },
     {
      "kinds": [
-      "data"
+      "network"
      ],
-     "text": "a saved SFTP connection is edited: the dialog removes the saved entry in the background only when it is in the saved list (containsServer != -1, SftpConnectDialog.java:244-251); the lambda name of this hand edge is not checked against the bytecode"
-    },
-    {
-     "kinds": [
-      "data"
-     ],
-     "text": "app state: a saved SFTP connection is edited (the else branch, SftpConnectDialog.java:373), so the update stores its key contents (:388)"
+     "text": "network: the SSH server answers with a host key that differs from the saved one: the update-host-key prompt appears only then (SftpConnectDialog.java:183-193)"
     }
    ],
+   "state": [],
    "route_edge_classes": [
     "explicit",
     "standard"
    ],
    "explicit_standard_route": true,
    "confirmed_by": "INFERRED",
-   "source_ref": "SftpConnectDialog.java:388",
+   "source_ref": "SftpConnectDialog.java:350",
    "path_status": "UNCHECKED"
   },
   "SftpConnectDialog.lambda$authenticateAndSaveSetup$15": {
-   "env": [],
-   "state": [
+   "env": [
     {
      "kinds": [
-      "data"
+      "network"
      ],
-     "text": "a saved SFTP connection exists (the edit dialog opens from its drawer entry); the baseline has none"
-    },
-    {
-     "kinds": [
-      "data"
-     ],
-     "text": "a saved SFTP connection is edited: the dialog removes the saved entry in the background only when it is in the saved list (containsServer != -1, SftpConnectDialog.java:244-251); the lambda name of this hand edge is not checked against the bytecode"
+     "text": "a saved SFTP connection exists only after a connect to a real SSH server (SftpConnectDialog.java:343-354; SshConnectionPool.java:146); the emulator network has none"
     }
    ],
+   "state": [],
    "route_edge_classes": [
     "explicit",
     "standard"
@@ -38563,21 +38583,15 @@
    "path_status": "UNCHECKED"
   },
   "SftpConnectDialog.lambda$null$11": {
-   "env": [],
-   "state": [
+   "env": [
     {
      "kinds": [
-      "data"
+      "network"
      ],
-     "text": "a saved SFTP connection exists (the edit dialog opens from its drawer entry); the baseline has none"
-    },
-    {
-     "kinds": [
-      "data"
-     ],
-     "text": "a saved SFTP connection is edited and the old server entry is removed (:247-249); the baseline has none"
+     "text": "a saved SFTP connection exists only after a connect to a real SSH server (SftpConnectDialog.java:343-354; SshConnectionPool.java:146); the emulator network has none"
     }
    ],
+   "state": [],
    "route_edge_classes": [
     "explicit",
     "standard"
@@ -38588,15 +38602,15 @@
    "path_status": "UNCHECKED"
   },
   "SftpConnectDialog.lambda$null$2": {
-   "env": [],
-   "state": [
+   "env": [
     {
      "kinds": [
-      "data"
+      "network"
      ],
-     "text": "a saved SFTP connection with its host key exists (edit mode of the dialog); the baseline has none"
+     "text": "a saved SFTP connection exists only after a connect to a real SSH server (SftpConnectDialog.java:343-354; SshConnectionPool.java:146); the emulator network has none"
     }
    ],
+   "state": [],
    "route_edge_classes": [
     "explicit",
     "standard"
@@ -38612,17 +38626,16 @@
      "kinds": [
       "network"
      ],
+     "text": "a saved SFTP connection exists only after a connect to a real SSH server (SftpConnectDialog.java:343-354; SshConnectionPool.java:146); the emulator network has none"
+    },
+    {
+     "kinds": [
+      "network"
+     ],
      "text": "network: the SSH server is reachable: the host-fingerprint task's callback runs after it connected to the typed host (SftpConnectDialog.java:176-180)"
     }
    ],
-   "state": [
-    {
-     "kinds": [
-      "data"
-     ],
-     "text": "a saved SFTP connection with its host key exists (edit mode of the dialog); the baseline has none"
-    }
-   ],
+   "state": [],
    "route_edge_classes": [
     "explicit",
     "standard"
@@ -38638,17 +38651,16 @@
      "kinds": [
       "network"
      ],
+     "text": "a saved SFTP connection exists only after a connect to a real SSH server (SftpConnectDialog.java:343-354; SshConnectionPool.java:146); the emulator network has none"
+    },
+    {
+     "kinds": [
+      "network"
+     ],
      "text": "network: the SFTP server of a saved connection answers with its host key (SftpConnectDialog.java:176-181)"
     }
    ],
-   "state": [
-    {
-     "kinds": [
-      "data"
-     ],
-     "text": "a saved SFTP connection with its host key exists (edit mode of the dialog); the baseline has none"
-    }
-   ],
+   "state": [],
    "route_edge_classes": [
     "explicit",
     "standard"
@@ -38664,17 +38676,16 @@
      "kinds": [
       "network"
      ],
+     "text": "a saved SFTP connection exists only after a connect to a real SSH server (SftpConnectDialog.java:343-354; SshConnectionPool.java:146); the emulator network has none"
+    },
+    {
+     "kinds": [
+      "network"
+     ],
      "text": "network: the SFTP server of a saved connection answers with its host key (SftpConnectDialog.java:176-181)"
     }
    ],
-   "state": [
-    {
-     "kinds": [
-      "data"
-     ],
-     "text": "a saved SFTP connection with its host key exists (edit mode of the dialog); the baseline has none"
-    }
-   ],
+   "state": [],
    "route_edge_classes": [
     "explicit",
     "standard"
@@ -38797,15 +38808,15 @@
    "path_status": "UNCHECKED"
   },
   "SftpConnectDialog.lambda$onCreateDialog$10": {
-   "env": [],
-   "state": [
+   "env": [
     {
      "kinds": [
-      "data"
+      "network"
      ],
-     "text": "app state: a saved SFTP connection is edited, so the dialog gets the delete and cancel buttons (SftpConnectDialog.java:235-253)"
+     "text": "a saved SFTP connection exists only after a connect to a real SSH server (SftpConnectDialog.java:343-354; SshConnectionPool.java:146); the emulator network has none"
     }
    ],
+   "state": [],
    "route_edge_classes": [
     "explicit",
     "standard"
@@ -38816,15 +38827,15 @@
    "path_status": "UNCHECKED"
   },
   "SftpConnectDialog.lambda$onCreateDialog$12": {
-   "env": [],
-   "state": [
+   "env": [
     {
      "kinds": [
-      "data"
+      "network"
      ],
-     "text": "a saved SFTP connection exists (the edit dialog opens from its drawer entry); the baseline has none"
+     "text": "a saved SFTP connection exists only after a connect to a real SSH server (SftpConnectDialog.java:343-354; SshConnectionPool.java:146); the emulator network has none"
     }
    ],
+   "state": [],
    "route_edge_classes": [
     "explicit",
     "standard"
@@ -39757,7 +39768,14 @@
   },
   "CheckableCircleView.<init>": {
    "env": [],
-   "state": [],
+   "state": [
+    {
+     "kinds": [
+      "settings"
+     ],
+     "text": "ui/dialogs/ColorPickerDialog.java:43-44,102-110; the Primary, Primary two, Accent and Icon colour rows are enabled only when the stored colour config is Custom (PREFERENCE_COLOR_CONFIG == CUSTOM_INDEX; the default is a preset), so Custom is chosen first"
+    }
+   ],
    "route_edge_classes": [
     "explicit",
     "standard"
@@ -39769,7 +39787,14 @@
   },
   "CheckableCircleView.onDraw": {
    "env": [],
-   "state": [],
+   "state": [
+    {
+     "kinds": [
+      "settings"
+     ],
+     "text": "ui/dialogs/ColorPickerDialog.java:43-44,102-110; the Primary, Primary two, Accent and Icon colour rows are enabled only when the stored colour config is Custom (PREFERENCE_COLOR_CONFIG == CUSTOM_INDEX; the default is a preset), so Custom is chosen first"
+    }
+   ],
    "route_edge_classes": [
     "explicit",
     "standard"
@@ -39781,7 +39806,14 @@
   },
   "CheckableCircleView.setChecked": {
    "env": [],
-   "state": [],
+   "state": [
+    {
+     "kinds": [
+      "settings"
+     ],
+     "text": "ui/dialogs/ColorPickerDialog.java:43-44,102-110; the Primary, Primary two, Accent and Icon colour rows are enabled only when the stored colour config is Custom (PREFERENCE_COLOR_CONFIG == CUSTOM_INDEX; the default is a preset), so Custom is chosen first"
+    }
+   ],
    "route_edge_classes": [
     "explicit",
     "standard"
@@ -39793,7 +39825,14 @@
   },
   "CheckableCircleView.setColor": {
    "env": [],
-   "state": [],
+   "state": [
+    {
+     "kinds": [
+      "settings"
+     ],
+     "text": "ui/dialogs/ColorPickerDialog.java:43-44,102-110; the Primary, Primary two, Accent and Icon colour rows are enabled only when the stored colour config is Custom (PREFERENCE_COLOR_CONFIG == CUSTOM_INDEX; the default is a preset), so Custom is chosen first"
+    }
+   ],
    "route_edge_classes": [
     "explicit",
     "standard"
@@ -42248,16 +42287,13 @@
    "path_status": "UNCHECKED"
   },
   "SearchView$1.onAnimationRepeat": {
-   "env": [],
-   "state": [],
-   "route_edge_classes": [
-    "explicit",
-    "standard"
-   ],
-   "explicit_standard_route": true,
+   "unreachable": {
+    "kind": "framework_never_calls",
+    "text": "round 3: the animator of this listener never gets a repeat count (no setRepeatCount in its source file), so the framework never calls onAnimationRepeat"
+   },
    "confirmed_by": "SOURCE",
-   "source_ref": "SearchView.java:108-109",
-   "path_status": "UNCHECKED"
+   "source_ref": "INFERRED android.animation (source not in the framework tree read): Animator listeners get onAnimationRepeat only for a repeating animator; SRC no setRepeatCount in the listener file",
+   "path_status": null
   },
   "SearchView$1.onAnimationStart": {
    "env": [],
@@ -42308,16 +42344,13 @@
    "path_status": "UNCHECKED"
   },
   "SearchView$2.onAnimationRepeat": {
-   "env": [],
-   "state": [],
-   "route_edge_classes": [
-    "explicit",
-    "standard"
-   ],
-   "explicit_standard_route": true,
+   "unreachable": {
+    "kind": "framework_never_calls",
+    "text": "round 3: the animator of this listener never gets a repeat count (no setRepeatCount in its source file), so the framework never calls onAnimationRepeat"
+   },
    "confirmed_by": "SOURCE",
-   "source_ref": "SearchView.java:152-153",
-   "path_status": "UNCHECKED"
+   "source_ref": "INFERRED android.animation (source not in the framework tree read): Animator listeners get onAnimationRepeat only for a repeating animator; SRC no setRepeatCount in the listener file",
+   "path_status": null
   },
   "SearchView$2.onAnimationStart": {
    "env": [],
@@ -42842,15 +42875,13 @@
    "path_status": "UNCHECKED"
   },
   "Drawer.onConfigurationChanged": {
-   "env": [],
-   "state": [],
-   "route_edge_classes": [
-    "standard"
-   ],
-   "explicit_standard_route": true,
+   "unreachable": {
+    "kind": "framework_never_calls",
+    "text": "round 3: called only from MainActivity.onConfigurationChanged, which the framework never calls (no android:configChanges in the manifest)"
+   },
    "confirmed_by": "SOURCE",
-   "source_ref": "MainActivity.java:1070",
-   "path_status": "UNCHECKED"
+   "source_ref": "SRC AndroidManifest.xml (no android:configChanges)",
+   "path_status": null
   },
   "Drawer.onDrawerClosed": {
    "env": [],
@@ -43075,15 +43106,15 @@
    "path_status": "UNCHECKED"
   },
   "Drawer$2.<init>": {
-   "env": [],
-   "state": [
+   "env": [
     {
      "kinds": [
-      "settings"
+      "other_app"
      ],
-     "text": "a custom drawer header image is set (PREFERENCE_DRAWER_HEADER_PATH, unset by default)"
+     "text": "the drawer header image is set only from the result of the system image picker (Drawer.java:152,497-506)"
     }
    ],
+   "state": [],
    "route_edge_classes": [
     "explicit",
     "standard"
@@ -43099,17 +43130,16 @@
      "kinds": [
       "other_app"
      ],
+     "text": "the drawer header image is set only from the result of the system image picker (Drawer.java:152,497-506)"
+    },
+    {
+     "kinds": [
+      "other_app"
+     ],
      "text": "outside package: a drawer header image was picked in another app (Drawer.java:152, 498-505), so the image loader reports its result; Volley cannot load the content uri, so it errors (:665)"
     }
    ],
-   "state": [
-    {
-     "kinds": [
-      "settings"
-     ],
-     "text": "a custom drawer header image is set (PREFERENCE_DRAWER_HEADER_PATH, unset by default)"
-    }
-   ],
+   "state": [],
    "route_edge_classes": [
     "explicit",
     "standard"
@@ -43125,17 +43155,16 @@
      "kinds": [
       "other_app"
      ],
+     "text": "the drawer header image is set only from the result of the system image picker (Drawer.java:152,497-506)"
+    },
+    {
+     "kinds": [
+      "other_app"
+     ],
      "text": "outside package: a drawer header image was picked in another app (Drawer.java:152, 498-505), so the image loader answers at once from its cache check (:659-660)"
     }
    ],
-   "state": [
-    {
-     "kinds": [
-      "settings"
-     ],
-     "text": "a custom drawer header image is set (PREFERENCE_DRAWER_HEADER_PATH, unset by default)"
-    }
-   ],
+   "state": [],
    "route_edge_classes": [
     "explicit",
     "standard"
@@ -43772,7 +43801,7 @@
      "kinds": [
       "data"
      ],
-     "text": "a saved SFTP connection exists (the drawer shows an ssh:/ entry); the baseline has none"
+     "text": "a saved SMB connection exists (the drawer shows an smb:/ entry); the baseline has none"
     }
    ],
    "route_edge_classes": [
@@ -43780,8 +43809,8 @@
     "standard"
    ],
    "explicit_standard_route": true,
-   "confirmed_by": "SOURCE",
-   "source_ref": "MainActivity.java:1639",
+   "confirmed_by": "INFERRED",
+   "source_ref": "MainActivity.java:1697",
    "path_status": "UNCHECKED"
   },
   "DataUtils.findLongestContainingDrawerItem": {
@@ -45132,8 +45161,8 @@
     "standard"
    ],
    "explicit_standard_route": true,
-   "confirmed_by": "SOURCE",
-   "source_ref": "Operations.java:172",
+   "confirmed_by": "INFERRED",
+   "source_ref": "filesystem/Operations.java",
    "path_status": "UNCHECKED"
   },
   "MainActivityHelper$2.invalidName": {
@@ -45168,7 +45197,7 @@
     "standard"
    ],
    "explicit_standard_route": true,
-   "confirmed_by": "SOURCE",
+   "confirmed_by": "INFERRED",
    "source_ref": "utils/MainActivityHelper.java:267-273:",
    "path_status": "UNCHECKED"
   },
@@ -45185,7 +45214,14 @@
    "path_status": "UNCHECKED"
   },
   "MainActivityHelper$2.lambda$launchSAF$1": {
-   "env": [],
+   "env": [
+    {
+     "kinds": [
+      "hardware"
+     ],
+     "text": "a removable SD card holds the folder and the app cannot write to it directly (checkFolder returns 2, filesystem/Operations.java:300-305,491-520; filesystem/FileUtil.java:739-759,813); the API 27 emulator has no removable card"
+    }
+   ],
    "state": [],
    "route_edge_classes": [
     "explicit",
@@ -45197,7 +45233,14 @@
    "path_status": "UNCHECKED"
   },
   "MainActivityHelper$2.launchSAF(HybridFile)": {
-   "env": [],
+   "env": [
+    {
+     "kinds": [
+      "hardware"
+     ],
+     "text": "hardware: the target folder is on a removable SD card that needs the SAF permission (checkFolder mode 2), as for E89a1e9d8"
+    }
+   ],
    "state": [],
    "route_edge_classes": [
     "explicit",
@@ -45205,11 +45248,18 @@
    ],
    "explicit_standard_route": true,
    "confirmed_by": "SOURCE",
-   "source_ref": "Operations.java:303",
+   "source_ref": "Operations.java:165",
    "path_status": "UNCHECKED"
   },
   "MainActivityHelper$2.launchSAF(HybridFile,HybridFile)": {
-   "env": [],
+   "env": [
+    {
+     "kinds": [
+      "hardware"
+     ],
+     "text": "a removable SD card holds the folder and the app cannot write to it directly (checkFolder returns 2, filesystem/Operations.java:300-305,491-520; filesystem/FileUtil.java:739-759,813); the API 27 emulator has no removable card"
+    }
+   ],
    "state": [],
    "route_edge_classes": [
     "explicit",
@@ -45305,7 +45355,14 @@
    "path_status": "UNCHECKED"
   },
   "MainActivityHelper$3.lambda$launchSAF$1": {
-   "env": [],
+   "env": [
+    {
+     "kinds": [
+      "hardware"
+     ],
+     "text": "a removable SD card holds the folder and the app cannot write to it directly (checkFolder returns 2, filesystem/Operations.java:300-305,491-520; filesystem/FileUtil.java:739-759,813); the API 27 emulator has no removable card"
+    }
+   ],
    "state": [],
    "route_edge_classes": [
     "explicit",
@@ -45317,7 +45374,14 @@
    "path_status": "UNCHECKED"
   },
   "MainActivityHelper$3.launchSAF(HybridFile)": {
-   "env": [],
+   "env": [
+    {
+     "kinds": [
+      "hardware"
+     ],
+     "text": "a removable SD card holds the folder and the app cannot write to it directly (checkFolder returns 2, filesystem/Operations.java:300-305,491-520; filesystem/FileUtil.java:739-759,813); the API 27 emulator has no removable card"
+    }
+   ],
    "state": [],
    "route_edge_classes": [
     "explicit",
@@ -45432,7 +45496,14 @@
    "path_status": "UNCHECKED"
   },
   "MainActivityHelper$4.lambda$launchSAF$1": {
-   "env": [],
+   "env": [
+    {
+     "kinds": [
+      "hardware"
+     ],
+     "text": "a removable SD card holds the folder and the app cannot write to it directly (checkFolder returns 2, filesystem/Operations.java:300-305,491-520; filesystem/FileUtil.java:739-759,813); the API 27 emulator has no removable card"
+    }
+   ],
    "state": [],
    "route_edge_classes": [
     "explicit",
@@ -45444,7 +45515,14 @@
    "path_status": "UNCHECKED"
   },
   "MainActivityHelper$4.launchSAF(HybridFile)": {
-   "env": [],
+   "env": [
+    {
+     "kinds": [
+      "hardware"
+     ],
+     "text": "a removable SD card holds the folder and the app cannot write to it directly (checkFolder returns 2, filesystem/Operations.java:300-305,491-520; filesystem/FileUtil.java:739-759,813); the API 27 emulator has no removable card"
+    }
+   ],
    "state": [],
    "route_edge_classes": [
     "explicit",
@@ -46059,15 +46137,22 @@
    "path_status": "UNCHECKED"
   },
   "RootUtils.<clinit>": {
-   "env": [],
+   "env": [
+    {
+     "kinds": [
+      "other"
+     ],
+     "text": "outside the app: a rooted device with root explorer on: a file outside the storage is deleted with root (HybridFile.java:1224-1234), as for Ecbae7ee1"
+    }
+   ],
    "state": [],
    "route_edge_classes": [
     "explicit",
     "standard"
    ],
    "explicit_standard_route": true,
-   "confirmed_by": "SOURCE",
-   "source_ref": "Operations.java:175",
+   "confirmed_by": "INFERRED",
+   "source_ref": "HybridFile.java:1234",
    "path_status": "UNCHECKED"
   },
   "RootUtils.<init>": {
@@ -46131,19 +46216,20 @@
    "path_status": "UNCHECKED"
   },
   "RootUtils.copy": {
-   "env": [],
+   "env": [
+    {
+     "kinds": [
+      "other"
+     ],
+     "text": "outside the app: a rooted device with root explorer on: a file the app cannot write is opened in the text editor, so it is copied with root (ReadFileTask.java:58-75), as for Ecbae7ee1"
+    }
+   ],
    "state": [
     {
      "kinds": [
       "file"
      ],
-     "text": "a file path (not a folder) is pending when Back is pressed on the FTP page, so it is opened as a file; the baseline has no such file"
-    },
-    {
-     "kinds": [
-      "file"
-     ],
-     "text": "a database (.db) file exists in the browsed folder (openFile starts the viewer only for a .db file, FileUtils.java:755-757); the baseline storage has none"
+     "text": "a text file exists in the browsed folder (the baseline storage has none; New file in the app creates one)"
     }
    ],
    "route_edge_classes": [
@@ -46152,7 +46238,7 @@
    ],
    "explicit_standard_route": true,
    "confirmed_by": "INFERRED",
-   "source_ref": "DatabaseViewerActivity.java:165",
+   "source_ref": "ReadFileTask.java:75",
    "path_status": "UNCHECKED"
   },
   "RootUtils.delete": {
@@ -46247,32 +46333,33 @@
    "path_status": "UNCHECKED"
   },
   "RootUtils.mountFileSystemRO": {
-   "env": [],
-   "state": [
+   "env": [
     {
      "kinds": [
-      "file"
+      "other"
      ],
-     "text": "a file path (not a folder) is pending when Back is pressed on the FTP page, so it is opened as a file; the baseline has no such file"
-    },
-    {
-     "kinds": [
-      "file"
-     ],
-     "text": "a database (.db) file exists in the browsed folder (openFile starts the viewer only for a .db file, FileUtils.java:755-757); the baseline storage has none"
+     "text": "outside the app: a rooted device with root explorer on: a folder that could not be made normally is made through the root shell (Operations.java:170-175)"
     }
    ],
+   "state": [],
    "route_edge_classes": [
     "explicit",
     "standard"
    ],
    "explicit_standard_route": true,
-   "confirmed_by": "INFERRED",
-   "source_ref": "RootUtils.java:99",
+   "confirmed_by": "SOURCE",
+   "source_ref": "RootUtils.java:146",
    "path_status": "UNCHECKED"
   },
   "RootUtils.mountFileSystemRW": {
-   "env": [],
+   "env": [
+    {
+     "kinds": [
+      "other"
+     ],
+     "text": "outside the app: a rooted device with root explorer on: a root file is deleted through the root shell (HybridFile.java:1232-1234)"
+    }
+   ],
    "state": [],
    "route_edge_classes": [
     "explicit",
@@ -46280,7 +46367,7 @@
    ],
    "explicit_standard_route": true,
    "confirmed_by": "INFERRED",
-   "source_ref": "RootUtils.java:216",
+   "source_ref": "RootUtils.java:181",
    "path_status": "UNCHECKED"
   },
   "RootUtils.move": {
@@ -46341,7 +46428,14 @@
    "path_status": "UNCHECKED"
   },
   "RootUtils.rename": {
-   "env": [],
+   "env": [
+    {
+     "kinds": [
+      "other"
+     ],
+     "text": "outside the app: a rooted device with root explorer on: a file whose folder is not writable is renamed with root (FileUtil.java:406-409), as for Ecbae7ee1"
+    }
+   ],
    "state": [],
    "route_edge_classes": [
     "explicit",
@@ -46349,7 +46443,7 @@
    ],
    "explicit_standard_route": true,
    "confirmed_by": "INFERRED",
-   "source_ref": "Operations.java:465",
+   "source_ref": "FileUtil.java:409",
    "path_status": "UNCHECKED"
   },
   "ScreenUtils.<init>": {
@@ -47758,7 +47852,14 @@
   },
   "SmbUtil.getSmbDecryptedPath": {
    "env": [],
-   "state": [],
+   "state": [
+    {
+     "kinds": [
+      "data"
+     ],
+     "text": "the loop runs over saved SMB connections, none on a fresh install; one is saved first (no server is needed)"
+    }
+   ],
    "route_edge_classes": [
     "explicit",
     "standard"
@@ -49858,7 +49959,7 @@
     "standard"
    ],
    "explicit_standard_route": true,
-   "confirmed_by": "SOURCE",
+   "confirmed_by": "INFERRED",
    "source_ref": "CryptUtil.java:528",
    "path_status": "UNCHECKED"
   },
@@ -49920,8 +50021,8 @@
     "standard"
    ],
    "explicit_standard_route": true,
-   "confirmed_by": "SOURCE",
-   "source_ref": "SmbUtil.java:34",
+   "confirmed_by": "INFERRED",
+   "source_ref": "FtpServerFragment.java:552",
    "path_status": "UNCHECKED"
   },
   "CryptUtil.encrypt": {
@@ -51361,7 +51462,14 @@
    "path_status": "UNCHECKED"
   },
   "FileUtils$5.launchSAF(HybridFile)": {
-   "env": [],
+   "env": [
+    {
+     "kinds": [
+      "hardware"
+     ],
+     "text": "a removable SD card holds the folder and the app cannot write to it directly (checkFolder returns 2, filesystem/Operations.java:300-305,491-520; filesystem/FileUtil.java:739-759,813); the API 27 emulator has no removable card"
+    }
+   ],
    "state": [],
    "route_edge_classes": [
     "explicit",
@@ -51556,15 +51664,15 @@
    "path_status": "UNCHECKED"
   },
   "CloudIconDataFetcher.<init>": {
-   "env": [],
-   "state": [
+   "env": [
     {
      "kinds": [
-      "data"
+      "network"
      ],
-     "text": "a cloud, SMB or SFTP entry is shown (CloudIconModelLoader handles only those path prefixes, so Glide asks it for load data only then); the baseline has none"
+     "text": "a remote folder listing (SMB, SFTP or cloud) with an image, video or apk item is shown; it exists only after a real server answers (CloudIconModelLoader.java:34-40 handles only the IMAGE_FROMCLOUD model that LayoutElementParcelable.java:83-91 builds for such an item of a remote listing, LoadFilesListTask)"
     }
    ],
+   "state": [],
    "route_edge_classes": [
     "explicit",
     "non_standard",
@@ -51576,15 +51684,15 @@
    "path_status": "UNCHECKED"
   },
   "CloudIconDataFetcher.cancel": {
-   "env": [],
-   "state": [
+   "env": [
     {
      "kinds": [
-      "data"
+      "network"
      ],
-     "text": "a cloud, SMB or SFTP entry is shown (CloudIconModelLoader handles only those path prefixes, so Glide asks it for load data only then); the baseline has none"
+     "text": "a remote folder listing (SMB, SFTP or cloud) with an image, video or apk item is shown; it exists only after a real server answers (CloudIconModelLoader.java:34-40 handles only the IMAGE_FROMCLOUD model that LayoutElementParcelable.java:83-91 builds for such an item of a remote listing, LoadFilesListTask)"
     }
    ],
+   "state": [],
    "route_edge_classes": [
     "explicit",
     "non_standard",
@@ -51596,15 +51704,15 @@
    "path_status": "SOURCE_OK"
   },
   "CloudIconDataFetcher.cleanup": {
-   "env": [],
-   "state": [
+   "env": [
     {
      "kinds": [
-      "data"
+      "network"
      ],
-     "text": "a cloud, SMB or SFTP entry is shown (CloudIconModelLoader handles only those path prefixes, so Glide asks it for load data only then); the baseline has none"
+     "text": "network: a row of an SMB, SFTP or cloud folder with a thumbnail is shown, so Glide loads its icon data through the cloud icon loader (handles() takes only those paths)"
     }
    ],
+   "state": [],
    "route_edge_classes": [
     "explicit",
     "non_standard",
@@ -51612,19 +51720,19 @@
    ],
    "explicit_standard_route": false,
    "confirmed_by": "INFERRED",
-   "source_ref": "com/amaze/filemanager/utils/glide/CloudIconDataFetcher.java:47-51,",
+   "source_ref": "utils/glide/CloudIconDataFetcher.java:48-55",
    "path_status": "UNCHECKED"
   },
   "CloudIconDataFetcher.getDataClass": {
-   "env": [],
-   "state": [
+   "env": [
     {
      "kinds": [
-      "data"
+      "network"
      ],
-     "text": "a cloud, SMB or SFTP entry is shown (CloudIconModelLoader handles only those path prefixes, so Glide asks it for load data only then); the baseline has none"
+     "text": "a remote folder listing (SMB, SFTP or cloud) with an image, video or apk item is shown; it exists only after a real server answers (CloudIconModelLoader.java:34-40 handles only the IMAGE_FROMCLOUD model that LayoutElementParcelable.java:83-91 builds for such an item of a remote listing, LoadFilesListTask)"
     }
    ],
+   "state": [],
    "route_edge_classes": [
     "explicit",
     "non_standard",
@@ -51636,15 +51744,15 @@
    "path_status": "UNCHECKED"
   },
   "CloudIconDataFetcher.getDataSource": {
-   "env": [],
-   "state": [
+   "env": [
     {
      "kinds": [
-      "data"
+      "network"
      ],
-     "text": "a cloud, SMB or SFTP entry is shown (CloudIconModelLoader handles only those path prefixes, so Glide asks it for load data only then); the baseline has none"
+     "text": "a remote folder listing (SMB, SFTP or cloud) with an image, video or apk item is shown; it exists only after a real server answers (CloudIconModelLoader.java:34-40 handles only the IMAGE_FROMCLOUD model that LayoutElementParcelable.java:83-91 builds for such an item of a remote listing, LoadFilesListTask)"
     }
    ],
+   "state": [],
    "route_edge_classes": [
     "explicit",
     "non_standard",
@@ -51656,15 +51764,15 @@
    "path_status": "UNCHECKED"
   },
   "CloudIconDataFetcher.loadData": {
-   "env": [],
-   "state": [
+   "env": [
     {
      "kinds": [
-      "data"
+      "network"
      ],
-     "text": "a cloud, SMB or SFTP entry is shown (CloudIconModelLoader handles only those path prefixes, so Glide asks it for load data only then); the baseline has none"
+     "text": "network: a row of an SMB, SFTP or cloud folder with a thumbnail is shown, so Glide loads its icon data through the cloud icon loader (handles() takes only those paths)"
     }
    ],
+   "state": [],
    "route_edge_classes": [
     "explicit",
     "non_standard",
@@ -51672,7 +51780,7 @@
    ],
    "explicit_standard_route": false,
    "confirmed_by": "INFERRED",
-   "source_ref": "com/amaze/filemanager/utils/glide/CloudIconDataFetcher.java:33-42,",
+   "source_ref": null,
    "path_status": "UNCHECKED"
   },
   "CloudIconModelFactory.<init>": {
@@ -51724,15 +51832,15 @@
    "path_status": "UNCHECKED"
   },
   "CloudIconModelLoader.buildLoadData": {
-   "env": [],
-   "state": [
+   "env": [
     {
      "kinds": [
-      "data"
+      "network"
      ],
-     "text": "a cloud, SMB or SFTP entry is shown (CloudIconModelLoader handles only those path prefixes, so Glide asks it for load data only then); the baseline has none"
+     "text": "a remote folder listing (SMB, SFTP or cloud) with an image, video or apk item is shown; it exists only after a real server answers (CloudIconModelLoader.java:34-40 handles only the IMAGE_FROMCLOUD model that LayoutElementParcelable.java:83-91 builds for such an item of a remote listing, LoadFilesListTask)"
     }
    ],
+   "state": [],
    "route_edge_classes": [
     "explicit",
     "non_standard",
@@ -56129,17 +56237,17 @@
    "guard": null,
    "reads": [],
    "writes": [],
-   "note": null,
-   "needs_state": "a saved SFTP connection exists (the drawer shows an ssh:/ entry); the baseline has none",
+   "note": "round 2 B: state gate moved to env (was: a saved SFTP connection exists (the drawer shows an ssh:/ entry); the baseline has none)",
+   "needs_state": null,
    "evidence": "INFERRED from dialog usage",
-   "env": null,
+   "env": "a saved SFTP connection exists only after a connect to a real SSH server (SftpConnectDialog.java:343-354; SshConnectionPool.java:146); the emulator network has none",
    "edge_class": "explicit",
    "via": null,
-   "env_kinds": [],
-   "state_kinds": [
-    "data"
+   "env_kinds": [
+    "network"
    ],
-   "id": "Ea23d1915",
+   "state_kinds": [],
+   "id": "Eb18c3251",
    "class_basis": "default"
   },
   {
@@ -56531,13 +56639,13 @@
   {
    "src": "DbViewerTask.doInBackground",
    "dst": "DbViewerTask.onCancelled",
-   "kind": "FRAMEWORK",
+   "kind": "REGISTER",
    "trigger": "isCancelled check can lead to onCancelled",
    "gui": [],
    "guard": null,
    "reads": [],
    "writes": [],
-   "note": null,
+   "note": "round 2 C: never runs, kept as a REGISTER record: the framework calls onCancelled only after cancel(), and no file that creates DbViewerTask calls cancel (fw AsyncTask.java:462,479)",
    "needs_state": null,
    "evidence": "SRC DbViewerTask.java:135,148",
    "env": null,
@@ -56545,8 +56653,8 @@
    "via": null,
    "env_kinds": [],
    "state_kinds": [],
-   "id": "Edb7a01d5",
-   "class_basis": "default"
+   "id": "Ecda72656",
+   "class_basis": "authored"
   },
   {
    "src": "MainActivityHelper.deleteFiles",
@@ -58165,15 +58273,17 @@
    "guard": null,
    "reads": [],
    "writes": [],
-   "note": null,
-   "needs_state": null,
+   "note": "round 3: state gate from r3_judged.csv",
+   "needs_state": "ui/dialogs/ColorPickerDialog.java:43-44,102-110; the Primary, Primary two, Accent and Icon colour rows are enabled only when the stored colour config is Custom (PREFERENCE_COLOR_CONFIG == CUSTOM_INDEX; the default is a preset), so Custom is chosen first",
    "evidence": "SRC ColorPref.java:95-103",
    "env": null,
    "edge_class": "explicit",
    "via": null,
    "env_kinds": [],
-   "state_kinds": [],
-   "id": "E26b8e67d",
+   "state_kinds": [
+    "settings"
+   ],
+   "id": "E13fc766a",
    "class_basis": "default"
   },
   {
@@ -63344,17 +63454,17 @@
    "guard": null,
    "reads": [],
    "writes": [],
-   "note": null,
-   "needs_state": "a custom drawer header image is set (PREFERENCE_DRAWER_HEADER_PATH, unset by default)",
+   "note": "round 3b T: the state can be made only after an env action (was state: a custom drawer header image is set (PREFERENCE_DRAWER_HEADER_PATH, unset by default))",
+   "needs_state": null,
    "evidence": "SRC Drawer.java:657 shows mImageLoader.get(path1, new ImageLoader.ImageListener() {",
-   "env": null,
+   "env": "the drawer header image is set only from the result of the system image picker (Drawer.java:152,497-506)",
    "edge_class": "explicit",
    "via": null,
-   "env_kinds": [],
-   "state_kinds": [
-    "settings"
+   "env_kinds": [
+    "other_app"
    ],
-   "id": "E07594d60",
+   "state_kinds": [],
+   "id": "E97e07bd8",
    "class_basis": "default"
   },
   {
@@ -66018,15 +66128,17 @@
    "guard": null,
    "reads": [],
    "writes": [],
-   "note": null,
+   "note": "round 2 B: removable SD card",
    "needs_state": null,
    "evidence": "SRC filesystem/Operations.java:165 calls errorCallBack.launchSAF(file); SRC files/FileUtils.java:1033-1035 defines empty callback",
-   "env": null,
+   "env": "a removable SD card holds the folder and the app cannot write to it directly (checkFolder returns 2, filesystem/Operations.java:300-305,491-520; filesystem/FileUtil.java:739-759,813); the API 27 emulator has no removable card",
    "edge_class": "explicit",
    "via": null,
-   "env_kinds": [],
+   "env_kinds": [
+    "hardware"
+   ],
    "state_kinds": [],
-   "id": "E10850c8e",
+   "id": "E2b2c130e",
    "class_basis": "default"
   },
   {
@@ -72749,15 +72861,17 @@
    "guard": null,
    "reads": [],
    "writes": [],
-   "note": null,
-   "needs_state": null,
+   "note": "round 3: state gate from r3_judged.csv",
+   "needs_state": "ui/dialogs/ColorPickerDialog.java:43-44,102-110; the Primary, Primary two, Accent and Icon colour rows are enabled only when the stored colour config is Custom (PREFERENCE_COLOR_CONFIG == CUSTOM_INDEX; the default is a preset), so Custom is chosen first",
    "evidence": "SRC ColorPref.java:95-103",
    "env": null,
    "edge_class": "explicit",
    "via": null,
    "env_kinds": [],
-   "state_kinds": [],
-   "id": "E26b8e67d-2",
+   "state_kinds": [
+    "settings"
+   ],
+   "id": "E13fc766a-2",
    "class_basis": "default"
   },
   {
@@ -80063,13 +80177,13 @@
   {
    "src": "MainActivity.onConfigurationChanged",
    "dst": "Drawer.onConfigurationChanged",
-   "kind": "LIFECYCLE",
+   "kind": "REGISTER",
    "trigger": "Pass config changes to drawer",
    "gui": [],
    "guard": null,
    "reads": [],
    "writes": [],
-   "note": null,
+   "note": "round 3: never runs, kept as a REGISTER record: called only from MainActivity.onConfigurationChanged, which the framework never calls (no android:configChanges in the manifest)",
    "needs_state": null,
    "evidence": "SRC MainActivity.java:1070 shows drawer.onConfigurationChanged(newConfig)",
    "env": null,
@@ -80077,8 +80191,8 @@
    "via": null,
    "env_kinds": [],
    "state_kinds": [],
-   "id": "E437ce5d6",
-   "class_basis": "default"
+   "id": "E97e67839",
+   "class_basis": "authored"
   },
   {
    "src": "MainActivity.onOptionsItemSelected",
@@ -80351,17 +80465,17 @@
    "guard": null,
    "reads": [],
    "writes": [],
-   "note": null,
-   "needs_state": "a custom drawer header image is set (PREFERENCE_DRAWER_HEADER_PATH, unset by default)",
+   "note": "round 3b T: the state can be made only after an env action (was state: a custom drawer header image is set (PREFERENCE_DRAWER_HEADER_PATH, unset by default))",
+   "needs_state": null,
    "evidence": "SRC Drawer.java:657 shows new ImageLoader.ImageListener() { ... }",
-   "env": null,
+   "env": "the drawer header image is set only from the result of the system image picker (Drawer.java:152,497-506)",
    "edge_class": "explicit",
    "via": null,
-   "env_kinds": [],
-   "state_kinds": [
-    "settings"
+   "env_kinds": [
+    "other_app"
    ],
-   "id": "E73761eec",
+   "state_kinds": [],
+   "id": "E4b1aac9b",
    "class_basis": "default"
   },
   {
@@ -82159,13 +82273,13 @@
   {
    "src": "S_ENTRY",
    "dst": "MainActivity.onConfigurationChanged",
-   "kind": "LIFECYCLE",
+   "kind": "REGISTER",
    "trigger": "Framework calls onConfigurationChanged on config change",
    "gui": [],
    "guard": null,
    "reads": [],
    "writes": [],
-   "note": null,
+   "note": "round 3: never runs, kept as a REGISTER record: the activity declares no android:configChanges in the manifest, so a configuration change recreates it and the framework never calls onConfigurationChanged",
    "needs_state": null,
    "evidence": "FW-SRC Activity.java onConfigurationChanged lifecycle",
    "env": null,
@@ -82173,8 +82287,8 @@
    "via": null,
    "env_kinds": [],
    "state_kinds": [],
-   "id": "Eb37a39aa",
-   "class_basis": "default"
+   "id": "E53ac3ac6",
+   "class_basis": "authored"
   },
   {
    "src": "S_ENTRY",
@@ -85348,15 +85462,17 @@
    "guard": null,
    "reads": [],
    "writes": [],
-   "note": null,
-   "needs_state": null,
+   "note": "round 3: state gate from r3_judged.csv",
+   "needs_state": "res/xml/preferences.xml:95-99; the back row is added only with Show back button on (goBack_checkbox, default false)",
    "evidence": "SRC fragments/MainFragment.java:1093",
    "env": null,
    "edge_class": "explicit",
    "via": null,
    "env_kinds": [],
-   "state_kinds": [],
-   "id": "E9e8ebc4f",
+   "state_kinds": [
+    "settings"
+   ],
+   "id": "E3a10fa89",
    "class_basis": "default"
   },
   {
@@ -87194,15 +87310,17 @@
    "guard": null,
    "reads": [],
    "writes": [],
-   "note": null,
-   "needs_state": null,
+   "note": "round 3: state gate from r3_judged.csv",
+   "needs_state": "res/xml/preferences.xml:95-99; the back row is added only with Show back button on (goBack_checkbox, default false)",
    "evidence": "SRC fragments/MainFragment.java:1093",
    "env": null,
    "edge_class": "explicit",
    "via": null,
    "env_kinds": [],
-   "state_kinds": [],
-   "id": "E9e8ebc4f-2",
+   "state_kinds": [
+    "settings"
+   ],
+   "id": "E3a10fa89-2",
    "class_basis": "default"
   },
   {
@@ -96617,13 +96735,13 @@
   {
    "src": "BasicActivity.<init>",
    "dst": "MainActivity.onConfigurationChanged",
-   "kind": "LIFECYCLE",
+   "kind": "REGISTER",
    "trigger": "Framework calls onConfigurationChanged when device configuration changes",
    "gui": [],
    "guard": null,
    "reads": [],
    "writes": [],
-   "note": null,
+   "note": "round 3: never runs, kept as a REGISTER record: the activity declares no android:configChanges in the manifest, so a configuration change recreates it and the framework never calls onConfigurationChanged",
    "needs_state": null,
    "evidence": "SRC activities/MainActivity.java:1067; FW-SRC core/java/android/app/Activity.java (Activity lifecycle callbacks dispatched by ActivityThread)",
    "env": null,
@@ -96631,8 +96749,8 @@
    "via": null,
    "env_kinds": [],
    "state_kinds": [],
-   "id": "E7a3425b5",
-   "class_basis": "default"
+   "id": "E10b73df7",
+   "class_basis": "authored"
   },
   {
    "src": "BasicActivity.<init>",
@@ -96925,17 +97043,17 @@
    "guard": null,
    "reads": [],
    "writes": [],
-   "note": null,
-   "needs_state": "a saved SFTP connection exists (the edit dialog opens from its drawer entry); the baseline has none",
+   "note": "round 2 B: state gate moved to env (was: a saved SFTP connection exists (the edit dialog opens from its drawer entry); the baseline has none)",
+   "needs_state": null,
    "evidence": "SRC SftpConnectDialog.java:236 if(edit) { dialogBuilder.negativeText(R.string.delete).onNegative((dialog, which) -> {...",
-   "env": null,
+   "env": "a saved SFTP connection exists only after a connect to a real SSH server (SftpConnectDialog.java:343-354; SshConnectionPool.java:146); the emulator network has none",
    "edge_class": "standard",
    "via": null,
-   "env_kinds": [],
-   "state_kinds": [
-    "data"
+   "env_kinds": [
+    "network"
    ],
-   "id": "Effc44528",
+   "state_kinds": [],
+   "id": "Eed8d580b",
    "class_basis": "default"
   },
   {
@@ -96947,17 +97065,17 @@
    "guard": null,
    "reads": [],
    "writes": [],
-   "note": null,
-   "needs_state": "app state: a saved SFTP connection is edited, so the dialog gets the delete and cancel buttons (SftpConnectDialog.java:235-253)",
+   "note": "round 2 B: state gate moved to env (was: app state: a saved SFTP connection is edited, so the dialog gets the delete and cancel buttons (SftpConnectDialog.java:235-253))",
+   "needs_state": null,
    "evidence": "SRC SftpConnectDialog.java:253 }).neutralText(R.string.cancel).onNeutral((dialog, which) -> dialog.dismiss());",
-   "env": null,
+   "env": "a saved SFTP connection exists only after a connect to a real SSH server (SftpConnectDialog.java:343-354; SshConnectionPool.java:146); the emulator network has none",
    "edge_class": "standard",
    "via": null,
-   "env_kinds": [],
-   "state_kinds": [
-    "data"
+   "env_kinds": [
+    "network"
    ],
-   "id": "Ec125b591",
+   "state_kinds": [],
+   "id": "Ea5ed7bed",
    "class_basis": "default"
   },
   {
@@ -97235,17 +97353,17 @@
    "guard": null,
    "reads": [],
    "writes": [],
-   "note": null,
-   "needs_state": "a saved SFTP connection is edited and the old server entry is removed (:247-249); the baseline has none",
+   "note": "round 2 B: state gate moved to env (was: a saved SFTP connection is edited and the old server entry is removed (:247-249); the baseline has none)",
+   "needs_state": null,
    "evidence": "SRC SftpConnectDialog.java:247-249 AppConfig.runInBackground(() -> { utilsHandler.removeFromDatabase(...); });",
-   "env": null,
+   "env": "a saved SFTP connection exists only after a connect to a real SSH server (SftpConnectDialog.java:343-354; SshConnectionPool.java:146); the emulator network has none",
    "edge_class": "standard",
    "via": null,
-   "env_kinds": [],
-   "state_kinds": [
-    "data"
+   "env_kinds": [
+    "network"
    ],
-   "id": "Ed3d492de",
+   "state_kinds": [],
+   "id": "E7c5fd98e",
    "class_basis": "default"
   },
   {
@@ -97719,17 +97837,17 @@
    "guard": null,
    "reads": [],
    "writes": [],
-   "note": null,
-   "needs_state": "app state: a saved SFTP connection is edited (the else branch, SftpConnectDialog.java:373), so the update stores its key contents (:388)",
+   "note": "round 2 B: state gate moved to env (was: app state: a saved SFTP connection is edited (the else branch, SftpConnectDialog.java:373), so the update stores its key contents (:388))",
+   "needs_state": null,
    "evidence": "SRC SftpConnectDialog.java:388 getPemContents());",
-   "env": null,
+   "env": "a saved SFTP connection exists only after a connect to a real SSH server (SftpConnectDialog.java:343-354; SshConnectionPool.java:146); the emulator network has none",
    "edge_class": "explicit",
    "via": null,
-   "env_kinds": [],
-   "state_kinds": [
-    "data"
+   "env_kinds": [
+    "network"
    ],
-   "id": "E7e4c30e2",
+   "state_kinds": [],
+   "id": "E6977a35c",
    "class_basis": "default"
   },
   {
@@ -98911,17 +99029,17 @@
    "guard": null,
    "reads": [],
    "writes": [],
-   "note": null,
-   "needs_state": "a saved SFTP connection is removed (case SFTP); the baseline has none",
+   "note": "round 2 B: state gate moved to env (was: a saved SFTP connection is removed (case SFTP); the baseline has none)",
+   "needs_state": null,
    "evidence": "SRC database/UtilsHandler.java:215: case SFTP: removeSftpPath(operationData.name, operationData.path);",
-   "env": null,
+   "env": "a saved SFTP connection exists only after a connect to a real SSH server (SftpConnectDialog.java:343-354; SshConnectionPool.java:146); the emulator network has none",
    "edge_class": "explicit",
    "via": null,
-   "env_kinds": [],
-   "state_kinds": [
-    "data"
+   "env_kinds": [
+    "network"
    ],
-   "id": "E1a0d2562",
+   "state_kinds": [],
+   "id": "E2350c9e3",
    "class_basis": "default"
   },
   {
@@ -101170,15 +101288,17 @@
    "guard": null,
    "reads": [],
    "writes": [],
-   "note": null,
+   "note": "round 2 B: removable SD card",
    "needs_state": null,
    "evidence": "SRC filesystem/Operations.java (Operations.rename detects need for SAF and calls callback.launchSAF); SRC utils/MainActivityHelper.java:278-289",
-   "env": null,
+   "env": "a removable SD card holds the folder and the app cannot write to it directly (checkFolder returns 2, filesystem/Operations.java:300-305,491-520; filesystem/FileUtil.java:739-759,813); the API 27 emulator has no removable card",
    "edge_class": "standard",
    "via": null,
-   "env_kinds": [],
+   "env_kinds": [
+    "hardware"
+   ],
    "state_kinds": [],
-   "id": "Eb24a1e71",
+   "id": "E4b797e73",
    "class_basis": "default"
   },
   {
@@ -101330,15 +101450,17 @@
    "guard": null,
    "reads": [],
    "writes": [],
-   "note": null,
+   "note": "round 2 B: removable SD card",
    "needs_state": null,
    "evidence": "SRC filesystem/Operations.java (Operations.mkfile detects need for SAF and calls callback.launchSAF); SRC utils/MainActivityHelper.java:410-420",
-   "env": null,
+   "env": "a removable SD card holds the folder and the app cannot write to it directly (checkFolder returns 2, filesystem/Operations.java:300-305,491-520; filesystem/FileUtil.java:739-759,813); the API 27 emulator has no removable card",
    "edge_class": "standard",
    "via": null,
-   "env_kinds": [],
+   "env_kinds": [
+    "hardware"
+   ],
    "state_kinds": [],
-   "id": "E5ac6a96b",
+   "id": "E2746d411",
    "class_basis": "default"
   },
   {
@@ -101808,13 +101930,13 @@
   {
    "src": "ZipService$CompressAsyncTask.<init>",
    "dst": "ZipService$CompressAsyncTask.onCancelled",
-   "kind": "ASYNC",
+   "kind": "REGISTER",
    "trigger": "AsyncTask framework calls onCancelled if task is cancelled",
    "gui": [],
    "guard": null,
    "reads": [],
    "writes": [],
-   "note": null,
+   "note": "round 2 C: never runs, kept as a REGISTER record: the framework calls onCancelled only after cancel(), and no file that creates ZipService$CompressAsyncTask calls cancel (fw AsyncTask.java:462,479)",
    "needs_state": null,
    "evidence": "SRC ZipService.java:236-242 overrides onCancelled(); AsyncTask framework calls this on UI thread if cancel() was called",
    "env": null,
@@ -101822,8 +101944,8 @@
    "via": null,
    "env_kinds": [],
    "state_kinds": [],
-   "id": "E6a11c22c",
-   "class_basis": "default"
+   "id": "E68f9cbf6",
+   "class_basis": "authored"
   },
   {
    "src": "ZipService$CompressAsyncTask.<init>",
@@ -101874,17 +101996,15 @@
    "guard": null,
    "reads": [],
    "writes": [],
-   "note": null,
-   "needs_state": "the storage permission was denied once before: the rationale dialog appears only when shouldShowRequestPermissionRationale is true (PermissionsActivity.java:86-89), which needs an earlier denial in the app",
+   "note": "round 2 D: a GUI action in the same sequence, not state (was: the storage permission was denied once before: the rationale dialog appears only when shouldShowRequestPermissionRationale is true (PermissionsActivity.java:86-89), which needs an earlier denial in the app)",
+   "needs_state": null,
    "evidence": "SRC activities/superclasses/PermissionsActivity.java:86-89 rationale.getActionButton(DialogAction.POSITIVE).setOnClickListener(v -> { ActivityCompat.requestPermissions(...); rationale.dismiss(); })",
    "env": null,
    "edge_class": "standard",
    "via": null,
    "env_kinds": [],
-   "state_kinds": [
-    "settings"
-   ],
-   "id": "E9a2e479f",
+   "state_kinds": [],
+   "id": "E086b3292",
    "class_basis": "default"
   },
   {
@@ -102566,17 +102686,15 @@
    "guard": null,
    "reads": [],
    "writes": [],
-   "note": null,
-   "needs_state": "the storage permission was denied once before: the rationale dialog appears only when shouldShowRequestPermissionRationale is true (PermissionsActivity.java:86-89), which needs an earlier denial in the app",
+   "note": "round 2 D: a GUI action in the same sequence, not state (was: the storage permission was denied once before: the rationale dialog appears only when shouldShowRequestPermissionRationale is true (PermissionsActivity.java:86-89), which needs an earlier denial in the app)",
+   "needs_state": null,
    "evidence": "SRC activities/superclasses/PermissionsActivity.java:86-89 rationale.getActionButton(DialogAction.POSITIVE).setOnClickListener(v -> { ActivityCompat.requestPermissions(...); rationale.dismiss(); })",
    "env": null,
    "edge_class": "standard",
    "via": null,
    "env_kinds": [],
-   "state_kinds": [
-    "settings"
-   ],
-   "id": "E9a2e479f-2",
+   "state_kinds": [],
+   "id": "E086b3292-2",
    "class_basis": "default"
   },
   {
@@ -106695,15 +106813,17 @@
    "guard": null,
    "reads": [],
    "writes": [],
-   "note": null,
+   "note": "round 2 B: removable SD card",
    "needs_state": null,
    "evidence": "SRC MainActivityHelper.java:453,468-476: Operations.mkdir(..., new Operations.ErrorCallBack() { @Override public void launchSAF(HybridFile file) { ... } }); mkdir invokes ErrorCallBack.launchSAF",
-   "env": null,
+   "env": "a removable SD card holds the folder and the app cannot write to it directly (checkFolder returns 2, filesystem/Operations.java:300-305,491-520; filesystem/FileUtil.java:739-759,813); the API 27 emulator has no removable card",
    "edge_class": "standard",
    "via": null,
-   "env_kinds": [],
+   "env_kinds": [
+    "hardware"
+   ],
    "state_kinds": [],
-   "id": "Ed7e70dc7",
+   "id": "E660f3065",
    "class_basis": "default"
   },
   {
@@ -108023,17 +108143,17 @@
    "guard": null,
    "reads": [],
    "writes": [],
-   "note": null,
-   "needs_state": "app state: a saved SFTP connection is edited, so the dialog gets the delete and cancel buttons (SftpConnectDialog.java:235-253)",
+   "note": "round 2 B: state gate moved to env (was: app state: a saved SFTP connection is edited, so the dialog gets the delete and cancel buttons (SftpConnectDialog.java:235-253))",
+   "needs_state": null,
    "evidence": "SRC SftpConnectDialog.java:233 shows .onNegative((dialog, which) -> dialog.dismiss())",
-   "env": null,
+   "env": "a saved SFTP connection exists only after a connect to a real SSH server (SftpConnectDialog.java:343-354; SshConnectionPool.java:146); the emulator network has none",
    "edge_class": "standard",
    "via": null,
-   "env_kinds": [],
-   "state_kinds": [
-    "data"
+   "env_kinds": [
+    "network"
    ],
-   "id": "Eca632532",
+   "state_kinds": [],
+   "id": "E9b505503",
    "class_basis": "default"
   },
   {
@@ -108167,17 +108287,17 @@
    "guard": null,
    "reads": [],
    "writes": [],
-   "note": null,
-   "needs_state": "a saved SFTP connection with its host key exists (edit mode of the dialog); the baseline has none",
+   "note": "round 2 B: state gate moved to env (was: a saved SFTP connection with its host key exists (edit mode of the dialog); the baseline has none)",
+   "needs_state": null,
    "evidence": "SRC SftpConnectDialog.java:180 shows lambda callback passed to removeConnection",
-   "env": null,
+   "env": "a saved SFTP connection exists only after a connect to a real SSH server (SftpConnectDialog.java:343-354; SshConnectionPool.java:146); the emulator network has none",
    "edge_class": "explicit",
    "via": null,
-   "env_kinds": [],
-   "state_kinds": [
-    "data"
+   "env_kinds": [
+    "network"
    ],
-   "id": "E1a78aad5",
+   "state_kinds": [],
+   "id": "E376749d1",
    "class_basis": "default"
   },
   {
@@ -108519,17 +108639,17 @@
    "guard": null,
    "reads": [],
    "writes": [],
-   "note": null,
-   "needs_state": "a saved SFTP connection is edited: the dialog removes the saved entry in the background only when it is in the saved list (containsServer != -1, SftpConnectDialog.java:244-251); the lambda name of this hand edge is not checked against the bytecode",
+   "note": "round 2 B: state gate moved to env (was: a saved SFTP connection is edited: the dialog removes the saved entry in the background only when it is in the saved list (containsServer != -1, SftpConnectDialog.java:244-251); the lambda name of this hand edge is not checked against the bytecode)",
+   "needs_state": null,
    "evidence": "SRC SftpConnectDialog.java:249 shows () -> { utilsHandler.removeFromDatabase(...) }",
-   "env": null,
+   "env": "a saved SFTP connection exists only after a connect to a real SSH server (SftpConnectDialog.java:343-354; SshConnectionPool.java:146); the emulator network has none",
    "edge_class": "explicit",
    "via": null,
-   "env_kinds": [],
-   "state_kinds": [
-    "data"
+   "env_kinds": [
+    "network"
    ],
-   "id": "E8d7df9a4",
+   "state_kinds": [],
+   "id": "Ee512d207",
    "class_basis": "default"
   },
   {
@@ -109263,17 +109383,17 @@
    "guard": null,
    "reads": [],
    "writes": [],
-   "note": null,
-   "needs_state": "a saved SFTP connection authenticates with a key (the key-provider branch, :129-131); the baseline has none",
+   "note": "round 2 B: state gate moved to env (was: a saved SFTP connection authenticates with a key (the key-provider branch, :129-131); the baseline has none)",
+   "needs_state": null,
    "evidence": "SRC SshAuthenticationTask.java:131: sshClient.authPublickey(username, new KeyProvider() {...});",
-   "env": null,
+   "env": "a saved SFTP connection exists only after a connect to a real SSH server (SftpConnectDialog.java:343-354; SshConnectionPool.java:146); the emulator network has none",
    "edge_class": "explicit",
    "via": null,
-   "env_kinds": [],
-   "state_kinds": [
-    "data"
+   "env_kinds": [
+    "network"
    ],
-   "id": "E8d447e22",
+   "state_kinds": [],
+   "id": "E11eb6ef3",
    "class_basis": "default"
   },
   {
@@ -109451,17 +109571,17 @@
    "guard": null,
    "reads": [],
    "writes": [],
-   "note": null,
-   "needs_state": "a cloud, SMB or SFTP entry is shown (CloudIconModelLoader handles only those path prefixes, so Glide asks it for load data only then); the baseline has none",
+   "note": "round 3b T: the state can be made only after an env action (was state: a cloud, SMB or SFTP entry is shown (CloudIconModelLoader handles only those path prefixes, so Glide asks it for load data only then); the baseline has none)",
+   "needs_state": null,
    "evidence": "INFERRED Glide source not read",
-   "env": null,
+   "env": "a remote folder listing (SMB, SFTP or cloud) with an image, video or apk item is shown; it exists only after a real server answers (CloudIconModelLoader.java:34-40 handles only the IMAGE_FROMCLOUD model that LayoutElementParcelable.java:83-91 builds for such an item of a remote listing, LoadFilesListTask)",
    "edge_class": "standard",
    "via": null,
-   "env_kinds": [],
-   "state_kinds": [
-    "data"
+   "env_kinds": [
+    "network"
    ],
-   "id": "Ebde26bb5",
+   "state_kinds": [],
+   "id": "E1d26bdb2",
    "class_basis": "default"
   },
   {
@@ -110201,17 +110321,17 @@
    "guard": null,
    "reads": [],
    "writes": [],
-   "note": null,
-   "needs_state": "a saved SFTP connection authenticates with a key (the key-provider branch, :129-131); the baseline has none",
+   "note": "round 2 B: state gate moved to env (was: a saved SFTP connection authenticates with a key (the key-provider branch, :129-131); the baseline has none)",
+   "needs_state": null,
    "evidence": "SRC asynchronous/asynctasks/ssh/SshAuthenticationTask.java:131 sshClient.authPublickey(username, new KeyProvider() {...})",
-   "env": null,
+   "env": "a saved SFTP connection exists only after a connect to a real SSH server (SftpConnectDialog.java:343-354; SshConnectionPool.java:146); the emulator network has none",
    "edge_class": "explicit",
    "via": null,
-   "env_kinds": [],
-   "state_kinds": [
-    "data"
+   "env_kinds": [
+    "network"
    ],
-   "id": "Ef8d9b08a",
+   "state_kinds": [],
+   "id": "E66db0495",
    "class_basis": "default"
   },
   {
@@ -111567,13 +111687,13 @@
   {
    "src": "SearchView$1.<init>",
    "dst": "SearchView$1.onAnimationRepeat",
-   "kind": "FRAMEWORK",
+   "kind": "REGISTER",
    "trigger": "Animator framework calls onAnimationRepeat if the reveal animation repeats",
    "gui": [],
    "guard": null,
    "reads": [],
    "writes": [],
-   "note": null,
+   "note": "round 3: never runs, kept as a REGISTER record: the animator of this listener never gets a repeat count (no setRepeatCount in its source file), so the framework never calls onAnimationRepeat",
    "needs_state": null,
    "evidence": "SRC SearchView.java:108-109 public void onAnimationRepeat(Animator animation) {}",
    "env": null,
@@ -111581,8 +111701,8 @@
    "via": null,
    "env_kinds": [],
    "state_kinds": [],
-   "id": "E4be107a0",
-   "class_basis": "default"
+   "id": "Eb359e5d8",
+   "class_basis": "authored"
   },
   {
    "src": "MainActivity.onBackPressed",
@@ -111687,13 +111807,13 @@
   {
    "src": "SearchView$2.<init>",
    "dst": "SearchView$2.onAnimationRepeat",
-   "kind": "FRAMEWORK",
+   "kind": "REGISTER",
    "trigger": "Animator framework calls onAnimationRepeat if the hide animation repeats",
    "gui": [],
    "guard": null,
    "reads": [],
    "writes": [],
-   "note": null,
+   "note": "round 3: never runs, kept as a REGISTER record: the animator of this listener never gets a repeat count (no setRepeatCount in its source file), so the framework never calls onAnimationRepeat",
    "needs_state": null,
    "evidence": "SRC SearchView.java:152-153 public void onAnimationRepeat(Animator animation) {}",
    "env": null,
@@ -111701,8 +111821,8 @@
    "via": null,
    "env_kinds": [],
    "state_kinds": [],
-   "id": "E9ed03b56",
-   "class_basis": "default"
+   "id": "E653895ff",
+   "class_basis": "authored"
   },
   {
    "src": "MainActivity.onCreate",
@@ -112705,17 +112825,17 @@
    "guard": null,
    "reads": [],
    "writes": [],
-   "note": null,
-   "needs_state": "a saved SFTP connection exists (the drawer shows an ssh:/ entry); the baseline has none",
+   "note": "round 2 B: state gate moved to env (was: a saved SFTP connection exists (the drawer shows an ssh:/ entry); the baseline has none)",
+   "needs_state": null,
    "evidence": "SRC filesystem/ssh/SshClientUtils.java:72 client = SshConnectionPool.getInstance().getConnection(template.url);",
-   "env": null,
+   "env": "a saved SFTP connection exists only after a connect to a real SSH server (SftpConnectDialog.java:343-354; SshConnectionPool.java:146); the emulator network has none",
    "edge_class": "explicit",
    "via": null,
-   "env_kinds": [],
-   "state_kinds": [
-    "data"
+   "env_kinds": [
+    "network"
    ],
-   "id": "Ea86b41dc",
+   "state_kinds": [],
+   "id": "Ed4f4ba37",
    "class_basis": "default"
   },
   {
@@ -112747,17 +112867,17 @@
    "guard": null,
    "reads": [],
    "writes": [],
-   "note": null,
-   "needs_state": "a saved SFTP connection uses a PEM key (pem not empty, :196); the baseline has none",
+   "note": "round 2 B: state gate moved to env (was: a saved SFTP connection uses a PEM key (pem not empty, :196); the baseline has none)",
+   "needs_state": null,
    "evidence": "SRC filesystem/ssh/SshConnectionPool.java:196-202 if(pem != null && !pem.isEmpty()) { ... new PemToKeyPairTask(pem, result -> { keyPair.set(result); latch.countDown(); }).execute(); ... }",
-   "env": null,
+   "env": "a saved SFTP connection exists only after a connect to a real SSH server (SftpConnectDialog.java:343-354; SshConnectionPool.java:146); the emulator network has none",
    "edge_class": "explicit",
    "via": null,
-   "env_kinds": [],
-   "state_kinds": [
-    "data"
+   "env_kinds": [
+    "network"
    ],
-   "id": "E06c6d4d2",
+   "state_kinds": [],
+   "id": "E9192ed88",
    "class_basis": "default"
   },
   {
@@ -113433,13 +113553,13 @@
   {
    "src": "PrepareCopyTask.startService",
    "dst": "HybridFileParcelable.describeContents",
-   "kind": "FRAMEWORK",
+   "kind": "REGISTER",
    "trigger": "starting the copy service with the parcelable source list makes the framework check Intent.hasFileDescriptors, whose Bundle walk asks each parcelable extra for describeContents",
    "gui": [],
    "guard": null,
    "reads": [],
    "writes": [],
-   "note": null,
+   "note": "round 2 C: never runs, kept as a REGISTER record: the framework calls describeContents of an app object only from hasFileDescriptors on unparcelled extras, which the activity start checks in system_server on parcelled data (Bundle.java:316-340; ActivityStarter.java:681)",
    "needs_state": null,
    "evidence": "SRC asynchronous/asynctasks/PrepareCopyTask.java:168-176 (putParcelableArrayListExtra, ServiceWatcherUtil.runService); INFERRED framework Intent.hasFileDescriptors -> Bundle.hasFileDescriptors (Q-R6-1)",
    "env": null,
@@ -113447,8 +113567,8 @@
    "via": null,
    "env_kinds": [],
    "state_kinds": [],
-   "id": "E5ef9c36f",
-   "class_basis": "default"
+   "id": "E89062ece",
+   "class_basis": "authored"
   },
   {
    "src": "PrefFrag.onCreate",
@@ -113926,16 +114046,18 @@
    "guard": null,
    "reads": [],
    "writes": [],
-   "note": null,
+   "note": "round 2 B: env gate from r2_judged.csv",
    "needs_state": null,
    "evidence": "SRC ItemPopupMenu.java:202 (bytecode)",
-   "env": null,
+   "env": "ui/views/ItemPopupMenu.java:201-202; Select is shown only when another app started Amaze to pick a file (mReturnIntent, a GET_CONTENT or ringtone picker request)",
    "edge_class": "explicit",
    "via": null,
-   "env_kinds": [],
+   "env_kinds": [
+    "other_app"
+   ],
    "state_kinds": [],
    "auto": true,
-   "id": "E38f63a72",
+   "id": "E3e46308b",
    "class_basis": "default"
   },
   {
@@ -114325,16 +114447,18 @@
    "guard": null,
    "reads": [],
    "writes": [],
-   "note": null,
-   "needs_state": null,
+   "note": "round 2 A: state gate from r2_judged.csv",
+   "needs_state": "the preset-password encrypt dialog opens only when a master password is set in the settings (default empty) or the fingerprint option is on",
    "evidence": "SRC ItemPopupMenu.java:164 (bytecode)",
    "env": null,
    "edge_class": "explicit",
    "via": null,
    "env_kinds": [],
-   "state_kinds": [],
+   "state_kinds": [
+    "settings"
+   ],
    "auto": true,
-   "id": "E2a974ee2",
+   "id": "E6582b74e",
    "class_basis": "default"
   },
   {
@@ -114493,18 +114617,18 @@
    "guard": null,
    "reads": [],
    "writes": [],
-   "note": null,
-   "needs_state": "the preferences come from an older version that used the old colour system (isUsingOldColorsSystem); a fresh install has none",
+   "note": "round 3b T: the state can be made only after an env action (was state: the preferences come from an older version that used the old colour system (isUsingOldColorsSystem); a fresh install has none)",
+   "needs_state": null,
    "evidence": "SRC ColorPreferenceHelper.java:82 (bytecode)",
-   "env": null,
+   "env": "the preferences of an older app version that used the old colour system: a fresh install has none",
    "edge_class": "explicit",
    "via": null,
-   "env_kinds": [],
-   "state_kinds": [
-    "settings"
+   "env_kinds": [
+    "other"
    ],
+   "state_kinds": [],
    "auto": true,
-   "id": "E8c0cce61",
+   "id": "Ec71931be",
    "class_basis": "default"
   },
   {
@@ -117840,16 +117964,18 @@
    "guard": null,
    "reads": [],
    "writes": [],
-   "note": null,
+   "note": "round 3: env gate from r3_judged.csv",
    "needs_state": null,
    "evidence": "SRC GeneralDialogCreation.java:1161 (bytecode)",
-   "env": null,
+   "env": "round 3b blind pass 1 (RootUtils): the permissions table is shown only in root mode (isRoot, GeneralDialogCreation.java:530), as for the round 2 root rule",
    "edge_class": "explicit",
    "via": null,
-   "env_kinds": [],
+   "env_kinds": [
+    "other"
+   ],
    "state_kinds": [],
    "auto": true,
-   "id": "E8692a243",
+   "id": "Ea77843b0",
    "class_basis": "default"
   },
   {
@@ -122045,18 +122171,18 @@
    "guard": null,
    "reads": [],
    "writes": [],
-   "note": null,
-   "needs_state": "a saved SFTP connection exists (the drawer shows an ssh:/ entry); the baseline has none",
+   "note": "round 2 B: state gate moved to env (was: a saved SFTP connection exists (the drawer shows an ssh:/ entry); the baseline has none)",
+   "needs_state": null,
    "evidence": "SRC Drawer.java:626 (bytecode)",
-   "env": null,
+   "env": "a saved SFTP connection exists only after a connect to a real SSH server (SftpConnectDialog.java:343-354; SshConnectionPool.java:146); the emulator network has none",
    "edge_class": "explicit",
    "via": null,
-   "env_kinds": [],
-   "state_kinds": [
-    "data"
+   "env_kinds": [
+    "network"
    ],
+   "state_kinds": [],
    "auto": true,
-   "id": "E4eecfd7d",
+   "id": "Ef622616e",
    "class_basis": "default"
   },
   {
@@ -123395,16 +123521,18 @@
    "guard": null,
    "reads": [],
    "writes": [],
-   "note": null,
-   "needs_state": null,
+   "note": "round 3: state gate from r3_judged.csv",
+   "needs_state": "the loop runs over saved SMB connections, none on a fresh install; one is saved first (no server is needed)",
    "evidence": "SRC UtilsHandler.java:344 (bytecode)",
    "env": null,
    "edge_class": "explicit",
    "via": null,
    "env_kinds": [],
-   "state_kinds": [],
+   "state_kinds": [
+    "data"
+   ],
    "auto": true,
-   "id": "E2105637a",
+   "id": "E990b8b03",
    "class_basis": "default"
   },
   {
@@ -125471,16 +125599,18 @@
    "guard": null,
    "reads": [],
    "writes": [],
-   "note": null,
-   "needs_state": null,
+   "note": "round 3: state gate from r3_judged.csv",
+   "needs_state": "the Recent files list loops over the stored history of opened files, which is empty on a fresh install; a file is opened first",
    "evidence": "SRC LoadFilesListTask.java:398 (bytecode)",
    "env": null,
    "edge_class": "explicit",
    "via": null,
    "env_kinds": [],
-   "state_kinds": [],
+   "state_kinds": [
+    "data"
+   ],
    "auto": true,
-   "id": "Eefeec8b5",
+   "id": "E0cc21b01",
    "class_basis": "default"
   },
   {
@@ -126777,16 +126907,18 @@
    "guard": null,
    "reads": [],
    "writes": [],
-   "note": null,
+   "note": "round 3: env gate from r3_judged.csv",
    "needs_state": null,
    "evidence": "SRC WriteFileAbstraction.java:104 (bytecode)",
-   "env": null,
+   "env": "round 3b blind pass 1 (RootUtils): this branch runs only in root mode on a rooted device (root explorer on, su), as for the round 2 root rule (the cached copy exists only after a root read)",
    "edge_class": "explicit",
    "via": null,
-   "env_kinds": [],
+   "env_kinds": [
+    "other"
+   ],
    "state_kinds": [],
    "auto": true,
-   "id": "E6917b3bf",
+   "id": "E33ff2542",
    "class_basis": "default"
   },
   {
@@ -127012,16 +127144,18 @@
    "guard": null,
    "reads": [],
    "writes": [],
-   "note": null,
+   "note": "round 3: env gate from r3_judged.csv",
    "needs_state": null,
    "evidence": "SRC ReadFileTask.java:75 (bytecode)",
-   "env": null,
+   "env": "round 3b blind pass 1 (RootUtils): this branch runs only in root mode on a rooted device (root explorer on, su), as for the round 2 root rule (isRootExplorer and an unwritable file)",
    "edge_class": "explicit",
    "via": null,
-   "env_kinds": [],
+   "env_kinds": [
+    "other"
+   ],
    "state_kinds": [],
    "auto": true,
-   "id": "E856ff155",
+   "id": "E9203532c",
    "class_basis": "default"
   },
   {
@@ -137876,16 +138010,18 @@
    "guard": null,
    "reads": [],
    "writes": [],
-   "note": null,
+   "note": "round 3: env gate from r3_judged.csv",
    "needs_state": null,
    "evidence": "SRC CopyService.java:430 (bytecode)",
-   "env": null,
+   "env": "round 3b blind pass 1 (RootUtils): this branch runs only in root mode on a rooted device (root explorer on, su), as for the round 2 root rule (source or target in root)",
    "edge_class": "explicit",
    "via": null,
-   "env_kinds": [],
+   "env_kinds": [
+    "other"
+   ],
    "state_kinds": [],
    "auto": true,
-   "id": "E5797f439",
+   "id": "E2b368a60",
    "class_basis": "default"
   },
   {
@@ -156054,18 +156190,18 @@
    "guard": null,
    "reads": [],
    "writes": [],
-   "note": null,
-   "needs_state": "a saved SFTP connection exists (the drawer shows an ssh:/ entry); the baseline has none",
+   "note": "round 2 B: state gate moved to env (was: a saved SFTP connection exists (the drawer shows an ssh:/ entry); the baseline has none)",
+   "needs_state": null,
    "evidence": "SRC CloudUtil.java:265 (bytecode)",
-   "env": null,
+   "env": "a saved SFTP connection exists only after a connect to a real SSH server (SftpConnectDialog.java:343-354; SshConnectionPool.java:146); the emulator network has none",
    "edge_class": "explicit",
    "via": null,
-   "env_kinds": [],
-   "state_kinds": [
-    "data"
+   "env_kinds": [
+    "network"
    ],
+   "state_kinds": [],
    "auto": true,
-   "id": "Efdab7231",
+   "id": "E3b67d8c3",
    "class_basis": "default"
   },
   {
@@ -160972,16 +161108,18 @@
    "guard": null,
    "reads": [],
    "writes": [],
-   "note": null,
+   "note": "round 3: env gate from r3_judged.csv",
    "needs_state": null,
    "evidence": "SRC Operations.java:313 (bytecode)",
-   "env": null,
+   "env": "round 3b: the root branch runs only with root mode on and a rooted device (rootMode), as for E5b5e627a",
    "edge_class": "explicit",
    "via": null,
-   "env_kinds": [],
+   "env_kinds": [
+    "other"
+   ],
    "state_kinds": [],
    "auto": true,
-   "id": "Ef77f4930",
+   "id": "E488b8f87",
    "class_basis": "default"
   },
   {
@@ -161226,16 +161364,18 @@
    "guard": null,
    "reads": [],
    "writes": [],
-   "note": null,
+   "note": "round 3: env gate from r3_judged.csv",
    "needs_state": null,
    "evidence": "SRC Operations.java:310 (bytecode)",
-   "env": null,
+   "env": "round 3b: the root branch runs only with root mode on and a rooted device (rootMode; the file was not made by the normal path), as for the round 2 root rule",
    "edge_class": "explicit",
    "via": null,
-   "env_kinds": [],
+   "env_kinds": [
+    "other"
+   ],
    "state_kinds": [],
    "auto": true,
-   "id": "E5b5e627a",
+   "id": "E1660ba36",
    "class_basis": "default"
   },
   {
@@ -161331,16 +161471,18 @@
    "guard": null,
    "reads": [],
    "writes": [],
-   "note": null,
+   "note": "round 2 B: removable SD card",
    "needs_state": null,
    "evidence": "SRC Operations.java:303 (bytecode)",
-   "env": null,
+   "env": "a removable SD card holds the folder and the app cannot write to it directly (checkFolder returns 2, filesystem/Operations.java:300-305,491-520; filesystem/FileUtil.java:739-759,813); the API 27 emulator has no removable card",
    "edge_class": "explicit",
    "via": null,
-   "env_kinds": [],
+   "env_kinds": [
+    "hardware"
+   ],
    "state_kinds": [],
    "auto": true,
-   "id": "E6c09d178",
+   "id": "E747fb892",
    "class_basis": "default"
   },
   {
@@ -161352,16 +161494,18 @@
    "guard": null,
    "reads": [],
    "writes": [],
-   "note": null,
+   "note": "round 2 B: removable SD card",
    "needs_state": null,
    "evidence": "SRC Operations.java:303 (bytecode)",
-   "env": null,
+   "env": "a removable SD card holds the folder and the app cannot write to it directly (checkFolder returns 2, filesystem/Operations.java:300-305,491-520; filesystem/FileUtil.java:739-759,813); the API 27 emulator has no removable card",
    "edge_class": "explicit",
    "via": null,
-   "env_kinds": [],
+   "env_kinds": [
+    "hardware"
+   ],
    "state_kinds": [],
    "auto": true,
-   "id": "E1e1fa2b8",
+   "id": "E5f2e6fab",
    "class_basis": "default"
   },
   {
@@ -161373,16 +161517,18 @@
    "guard": null,
    "reads": [],
    "writes": [],
-   "note": null,
+   "note": "round 2 B: removable SD card",
    "needs_state": null,
    "evidence": "SRC Operations.java:303 (bytecode)",
-   "env": null,
+   "env": "a removable SD card holds the folder and the app cannot write to it directly (checkFolder returns 2, filesystem/Operations.java:300-305,491-520; filesystem/FileUtil.java:739-759,813); the API 27 emulator has no removable card",
    "edge_class": "explicit",
    "via": null,
-   "env_kinds": [],
+   "env_kinds": [
+    "hardware"
+   ],
    "state_kinds": [],
    "auto": true,
-   "id": "Ecc1625e9",
+   "id": "E0fa352cd",
    "class_basis": "default"
   },
   {
@@ -161394,16 +161540,18 @@
    "guard": null,
    "reads": [],
    "writes": [],
-   "note": null,
+   "note": "round 2 B: removable SD card",
    "needs_state": null,
    "evidence": "SRC Operations.java:303 (bytecode)",
-   "env": null,
+   "env": "a removable SD card holds the folder and the app cannot write to it directly (checkFolder returns 2, filesystem/Operations.java:300-305,491-520; filesystem/FileUtil.java:739-759,813); the API 27 emulator has no removable card",
    "edge_class": "explicit",
    "via": null,
-   "env_kinds": [],
+   "env_kinds": [
+    "hardware"
+   ],
    "state_kinds": [],
    "auto": true,
-   "id": "Ef6731a2a",
+   "id": "E35a858d8",
    "class_basis": "default"
   },
   {
@@ -163565,16 +163713,18 @@
    "guard": null,
    "reads": [],
    "writes": [],
-   "note": null,
+   "note": "round 3: env gate from r3_judged.csv",
    "needs_state": null,
    "evidence": "SRC Operations.java:175 (bytecode)",
-   "env": null,
+   "env": "round 3b: the root branch runs only with root mode on and a rooted device (rootMode), as for the round 2 root rule",
    "edge_class": "explicit",
    "via": null,
-   "env_kinds": [],
+   "env_kinds": [
+    "other"
+   ],
    "state_kinds": [],
    "auto": true,
-   "id": "E32e545ae",
+   "id": "E912bedae",
    "class_basis": "default"
   },
   {
@@ -163819,16 +163969,18 @@
    "guard": null,
    "reads": [],
    "writes": [],
-   "note": null,
+   "note": "round 2 B: env gate from r2_judged.csv",
    "needs_state": null,
    "evidence": "SRC Operations.java:172 (bytecode)",
-   "env": null,
+   "env": "the exists callback on this line runs only in root mode after a non-root check failed: root mode needs a rooted device (su), which the emulator image does not grant",
    "edge_class": "explicit",
    "via": null,
-   "env_kinds": [],
+   "env_kinds": [
+    "other"
+   ],
    "state_kinds": [],
    "auto": true,
-   "id": "E0fa65135",
+   "id": "E0473338d",
    "class_basis": "default"
   },
   {
@@ -163924,16 +164076,18 @@
    "guard": null,
    "reads": [],
    "writes": [],
-   "note": null,
+   "note": "round 2 B: removable SD card",
    "needs_state": null,
    "evidence": "SRC Operations.java:165 (bytecode)",
-   "env": null,
+   "env": "a removable SD card holds the folder and the app cannot write to it directly (checkFolder returns 2, filesystem/Operations.java:300-305,491-520; filesystem/FileUtil.java:739-759,813); the API 27 emulator has no removable card",
    "edge_class": "explicit",
    "via": null,
-   "env_kinds": [],
+   "env_kinds": [
+    "hardware"
+   ],
    "state_kinds": [],
    "auto": true,
-   "id": "Ec9944b52",
+   "id": "E1ce70e8a",
    "class_basis": "default"
   },
   {
@@ -163945,16 +164099,18 @@
    "guard": null,
    "reads": [],
    "writes": [],
-   "note": null,
+   "note": "round 2 B: removable SD card",
    "needs_state": null,
    "evidence": "SRC Operations.java:165 (bytecode)",
-   "env": null,
+   "env": "a removable SD card holds the folder and the app cannot write to it directly (checkFolder returns 2, filesystem/Operations.java:300-305,491-520; filesystem/FileUtil.java:739-759,813); the API 27 emulator has no removable card",
    "edge_class": "explicit",
    "via": null,
-   "env_kinds": [],
+   "env_kinds": [
+    "hardware"
+   ],
    "state_kinds": [],
    "auto": true,
-   "id": "E93080034",
+   "id": "Ee2b9374a",
    "class_basis": "default"
   },
   {
@@ -163989,16 +164145,18 @@
    "guard": null,
    "reads": [],
    "writes": [],
-   "note": null,
+   "note": "round 2 B: removable SD card",
    "needs_state": null,
    "evidence": "SRC Operations.java:165 (bytecode)",
-   "env": null,
+   "env": "a removable SD card holds the folder and the app cannot write to it directly (checkFolder returns 2, filesystem/Operations.java:300-305,491-520; filesystem/FileUtil.java:739-759,813); the API 27 emulator has no removable card",
    "edge_class": "explicit",
    "via": null,
-   "env_kinds": [],
+   "env_kinds": [
+    "hardware"
+   ],
    "state_kinds": [],
    "auto": true,
-   "id": "E8a61d714",
+   "id": "Ef06c6a60",
    "class_basis": "default"
   },
   {
@@ -164537,16 +164695,18 @@
    "guard": null,
    "reads": [],
    "writes": [],
-   "note": null,
+   "note": "round 3: env gate from r3_judged.csv",
    "needs_state": null,
    "evidence": "SRC Operations.java:451 (bytecode)",
-   "env": null,
+   "env": "round 3b blind pass 1 (RootUtils): this branch runs only in root mode on a rooted device (root explorer on, su), as for the round 2 root rule (rootMode)",
    "edge_class": "explicit",
    "via": null,
-   "env_kinds": [],
+   "env_kinds": [
+    "other"
+   ],
    "state_kinds": [],
    "auto": true,
-   "id": "Ed27d4381",
+   "id": "E3cbaa57b",
    "class_basis": "default"
   },
   {
@@ -164684,16 +164844,18 @@
    "guard": null,
    "reads": [],
    "writes": [],
-   "note": null,
+   "note": "round 3: env gate from r3_judged.csv",
    "needs_state": null,
    "evidence": "SRC Operations.java:465 (bytecode)",
-   "env": null,
+   "env": "round 3b blind pass 1 (RootUtils): this branch runs only in root mode on a rooted device (root explorer on, su), as for the round 2 root rule (a file in ROOT mode)",
    "edge_class": "explicit",
    "via": null,
-   "env_kinds": [],
+   "env_kinds": [
+    "other"
+   ],
    "state_kinds": [],
    "auto": true,
-   "id": "E3a3fdefb",
+   "id": "E4a35a11b",
    "class_basis": "default"
   },
   {
@@ -164749,16 +164911,18 @@
    "guard": null,
    "reads": [],
    "writes": [],
-   "note": null,
+   "note": "round 2 B: removable SD card",
    "needs_state": null,
    "evidence": "SRC Operations.java:441 (bytecode)",
-   "env": null,
+   "env": "a removable SD card holds the folder and the app cannot write to it directly (checkFolder returns 2, filesystem/Operations.java:300-305,491-520; filesystem/FileUtil.java:739-759,813); the API 27 emulator has no removable card",
    "edge_class": "explicit",
    "via": null,
-   "env_kinds": [],
+   "env_kinds": [
+    "hardware"
+   ],
    "state_kinds": [],
    "auto": true,
-   "id": "E1e1a1433",
+   "id": "Ee08ec7b8",
    "class_basis": "default"
   },
   {
@@ -166645,16 +166809,18 @@
    "guard": null,
    "reads": [],
    "writes": [],
-   "note": null,
+   "note": "round 3: env gate from r3_judged.csv",
    "needs_state": null,
    "evidence": "SRC FileUtil.java:409 (bytecode)",
-   "env": null,
+   "env": "round 3b blind pass 1 (RootUtils): this branch runs only in root mode on a rooted device (root explorer on, su), as for the round 2 root rule (root)",
    "edge_class": "explicit",
    "via": null,
-   "env_kinds": [],
+   "env_kinds": [
+    "other"
+   ],
    "state_kinds": [],
    "auto": true,
-   "id": "E44bc48bb",
+   "id": "Ee145df99",
    "class_basis": "default"
   },
   {
@@ -169255,18 +169421,18 @@
    "guard": null,
    "reads": [],
    "writes": [],
-   "note": null,
-   "needs_state": "a saved SFTP connection exists (the drawer shows an ssh:/ entry); the baseline has none",
+   "note": "round 2 B: state gate moved to env (was: a saved SFTP connection exists (the drawer shows an ssh:/ entry); the baseline has none)",
+   "needs_state": null,
    "evidence": "SRC HybridFile.java:737 (bytecode)",
-   "env": null,
+   "env": "a saved SFTP connection exists only after a connect to a real SSH server (SftpConnectDialog.java:343-354; SshConnectionPool.java:146); the emulator network has none",
    "edge_class": "explicit",
    "via": null,
-   "env_kinds": [],
-   "state_kinds": [
-    "data"
+   "env_kinds": [
+    "network"
    ],
+   "state_kinds": [],
    "auto": true,
-   "id": "E11c2b9ce",
+   "id": "E4302f076",
    "class_basis": "default"
   },
   {
@@ -171387,18 +171553,18 @@
    "guard": null,
    "reads": [],
    "writes": [],
-   "note": null,
-   "needs_state": "a saved SFTP connection has a stored host key (:213); the baseline has none",
+   "note": "round 2 B: state gate moved to env (was: a saved SFTP connection has a stored host key (:213); the baseline has none)",
+   "needs_state": null,
    "evidence": "SRC SshConnectionPool.java:213 (bytecode)",
-   "env": null,
+   "env": "a saved SFTP connection exists only after a connect to a real SSH server (SftpConnectDialog.java:343-354; SshConnectionPool.java:146); the emulator network has none",
    "edge_class": "explicit",
    "via": null,
-   "env_kinds": [],
-   "state_kinds": [
-    "data"
+   "env_kinds": [
+    "network"
    ],
+   "state_kinds": [],
    "auto": true,
-   "id": "Ea0512c00",
+   "id": "Ec63f535f",
    "class_basis": "default"
   },
   {
@@ -186011,18 +186177,18 @@
    "guard": null,
    "reads": [],
    "writes": [],
-   "note": null,
-   "needs_state": "a saved SFTP connection without a password is edited: showSftpDialog reads its key name only when the saved URI has no password (MainActivity.java:1654-1656); a connection is saved in the app with the SFTP dialog",
+   "note": "round 2 B: state gate moved to env (was: a saved SFTP connection without a password is edited: showSftpDialog reads its key name only when the saved URI has no password (MainActivity.java:1654-1656); a connection is saved in the app with the SFTP dialog)",
+   "needs_state": null,
    "evidence": "SRC MainActivity.java:1656 (bytecode)",
-   "env": null,
+   "env": "a saved SFTP connection exists only after a connect to a real SSH server (SftpConnectDialog.java:343-354; SshConnectionPool.java:146); the emulator network has none",
    "edge_class": "explicit",
    "via": null,
-   "env_kinds": [],
-   "state_kinds": [
-    "data"
+   "env_kinds": [
+    "network"
    ],
+   "state_kinds": [],
    "auto": true,
-   "id": "E46b2b66f",
+   "id": "Ed9f714a2",
    "class_basis": "default"
   },
   {
@@ -189891,16 +190057,18 @@
    "guard": null,
    "reads": [],
    "writes": [],
-   "note": null,
+   "note": "round 3: env gate from r3_judged.csv",
    "needs_state": null,
    "evidence": "SRC DatabaseViewerActivity.java:165 (bytecode)",
-   "env": null,
+   "env": "round 3b blind pass 1 (RootUtils): this branch runs only in root mode on a rooted device (root explorer on, su), as for the round 2 root rule (isRootExplorer and an unreadable db)",
    "edge_class": "explicit",
    "via": null,
-   "env_kinds": [],
+   "env_kinds": [
+    "other"
+   ],
    "state_kinds": [],
    "auto": true,
-   "id": "Ee503543b",
+   "id": "E2ee6debc",
    "class_basis": "default"
   },
   {
@@ -189933,16 +190101,18 @@
    "guard": null,
    "reads": [],
    "writes": [],
-   "note": null,
+   "note": "round 3: env gate from r3_judged.csv",
    "needs_state": null,
    "evidence": "SRC DatabaseViewerActivity.java:165 (bytecode)",
-   "env": null,
+   "env": "round 3b blind pass 1 (RootUtils): this branch runs only in root mode on a rooted device (root explorer on, su), as for the round 2 root rule (isRootExplorer and an unreadable db)",
    "edge_class": "explicit",
    "via": null,
-   "env_kinds": [],
+   "env_kinds": [
+    "other"
+   ],
    "state_kinds": [],
    "auto": true,
-   "id": "Ee6378c7f",
+   "id": "Ee3675c5e",
    "class_basis": "default"
   },
   {
@@ -204530,7 +204700,7 @@
     "E23f4cc5e",
     "E18952e7d",
     "E3e591ceb",
-    "Ebde26bb5",
+    "E1d26bdb2",
     "Ef4cf00cb",
     "E0c630bc8"
    ],
@@ -204540,15 +204710,15 @@
     "standard"
    ],
    "explicit_standard_only": false,
-   "env": [],
-   "state": [
+   "env": [
     {
      "kinds": [
-      "data"
+      "network"
      ],
-     "text": "a cloud, SMB or SFTP entry is shown (CloudIconModelLoader handles only those path prefixes, so Glide asks it for load data only then); the baseline has none"
+     "text": "a remote folder listing (SMB, SFTP or cloud) with an image, video or apk item is shown; it exists only after a real server answers (CloudIconModelLoader.java:34-40 handles only the IMAGE_FROMCLOUD model that LayoutElementParcelable.java:83-91 builds for such an item of a remote listing, LoadFilesListTask)"
     }
    ],
+   "state": [],
    "verified_by": "SOURCE",
    "ref": "Drawer.java:99"
   },
@@ -205046,7 +205216,14 @@
     "standard"
    ],
    "explicit_standard_only": true,
-   "env": [],
+   "env": [
+    {
+     "kinds": [
+      "system_event"
+     ],
+     "text": "an object of ProcessViewerFragment$CustomServiceConnection$1 is made in the app only on a route with an env gate (no <init> of the class is reachable without one), so the env action comes first"
+    }
+   ],
    "state": [
     {
      "kinds": [
@@ -205185,20 +205362,21 @@
   {
    "method": "SshAuthenticationTask$1.getPublic",
    "edges": [
-    "E5346b2ef",
-    "Ed41d350b",
-    "E9d0ab6e6",
-    "E726aa731",
-    "E6be23934",
-    "Eefeec8b5",
-    "E8bc4bb72",
+    "E393625fa",
+    "E88f218aa",
+    "E51ddec28",
+    "Eba2f1368",
+    "Ec6f4d0a6",
+    "Ec80342ea",
+    "E10cd3ee6",
+    "Ea9e3675d",
     "Ed4036ed5",
-    "Ea86b41dc",
+    "Ed4f4ba37",
     "Ea09956cb",
-    "Ea0512c00",
+    "Ec63f535f",
     "E654a6440",
     "E6202e994",
-    "E8d447e22",
+    "E11eb6ef3",
     "E4d2c5dfc",
     "E7f65d2ff"
    ],
@@ -205212,6 +205390,12 @@
      "kinds": [
       "network"
      ],
+     "text": "a saved SFTP connection exists only after a connect to a real SSH server (SftpConnectDialog.java:343-354; SshConnectionPool.java:146); the emulator network has none"
+    },
+    {
+     "kinds": [
+      "network"
+     ],
      "text": "network: an SSH server at the saved or typed host is reachable (SshAuthenticationTask connects first)"
     },
     {
@@ -205221,28 +205405,9 @@
      "text": "network: an SSH server authenticates the user with a private key: the key provider's getType runs during the key login (SshAuthenticationTask.java:129-145), only while connected to the server"
     }
    ],
-   "state": [
-    {
-     "kinds": [
-      "data"
-     ],
-     "text": "a saved SFTP connection exists (the drawer shows an ssh:/ entry); the baseline has none"
-    },
-    {
-     "kinds": [
-      "data"
-     ],
-     "text": "a saved SFTP connection has a stored host key (:213); the baseline has none"
-    },
-    {
-     "kinds": [
-      "data"
-     ],
-     "text": "a saved SFTP connection authenticates with a key (the key-provider branch, :129-131); the baseline has none"
-    }
-   ],
+   "state": [],
    "verified_by": "SOURCE",
-   "ref": "SshConnectionPool.java:213"
+   "ref": "Drawer.java:612"
   },
   {
    "method": "SshConnectionPool$AsyncRemoveConnection.onPostExecute",
@@ -205517,11 +205682,11 @@
  ],
  "verification": {
   "label": {
-   "checked": 618,
-   "correct": 587,
-   "errors_found": 31,
+   "checked": 625,
+   "correct": 595,
+   "errors_found": 30,
    "unclear": 1,
-   "error_rate": 0.05
+   "error_rate": 0.048
   },
   "edge": {
    "checked": 16,
@@ -205537,7 +205702,7 @@
    "unclear": 0,
    "error_rate": 0.867
   },
-  "reachable_methods": 2450,
+  "reachable_methods": 2443,
   "device": {
    "routes": 30,
    "reached": 0,
