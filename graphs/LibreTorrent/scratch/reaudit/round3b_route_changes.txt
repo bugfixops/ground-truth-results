@@ -1,0 +1,13 @@
+Round 3b, step 2b (Kiro, 2026-11-10): sampled routes whose best route changed against the round-3 CI build 8a00f479. Every changed step was re-read from the source.
+
+FeedDao_Impl$11.finalize
+  20 steps -> 20 steps; same steps (edge id of step 20 only)
+  evidence: step 20 ($11.<init> -> $11.finalize) now carries ENV other: only the runtime's finalizer runs finalize when the object is garbage collected (FeedDao.java:97; FeedRepositoryImpl.java:200); verdict WRONG kept (no program code calls finalize)
+
+SettingsRepositoryImpl.proxyRequiresAuth(boolean)
+  18 steps -> 18 steps; same steps (edge id of step 18 only)
+  evidence: step 18 now carries STATE settings: the Requires authentication switch is enabled only after a proxy type other than None is chosen (ProxySettingsFragment.java:199-213; SessionSettings.java:55); verdict WRONG kept (the drawn route opens the proxy page through the wrong fragment)
+
+SafFileSystem.getParentDirUri
+  18 steps -> 0 steps; the method is dead
+  evidence: its only caller (CreateTorrentViewModel.downloadTorrent :357) runs after a build that rejects any seed that is not a file:// path (CreateTorrentViewModel.java:186-200); the path row stays WRONG with no edges; its unscriptable device row is kept as unclear

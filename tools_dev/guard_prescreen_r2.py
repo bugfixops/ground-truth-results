@@ -348,13 +348,65 @@ def flag_fields(L, cond, here):
     return out
 
 
-def screen_r3(app):
+ACCESSOR = re.compile(r'\b\w*(?:[Pp]refs?|[Pp]references|[Ss]ettings|[Rr]epository)\w*\s*\.\s*(?:get|is)?\w+\(\s*\)')
+ERROR_DST = re.compile(r'\.(onException|onError\w*|onFailure|onFailed|onCancelled\w*|showError\w*|lambda\$showError\w*|'
+                       r'lambda\$showDetailedMultiErrorDialog\w*|\w*ErrorDialog\w*)$')
+
+
+def enclosing_if(L, ln, here):
+    """(line, condition) of the if/else-if whose body holds line ln (a braced body, or the one statement after it)."""
+    lo = here[0] if here else max(1, ln - 40)
+    for k in range(ln, lo - 1, -1):
+        t = strip_code(L[k - 1])
+        m = re.search(r'\bif\s*\((.*)\)\s*\{?\s*$', t) or re.search(r'\bif\s*\((.*)\)\s*\S', t) if k == ln else \
+            re.search(r'\bif\s*\((.*)\)\s*\{?\s*$', t)
+        if not m:
+            continue
+        if k == ln or k == ln - 1:
+            return k, m.group(1)
+        depth = sum(strip_code(L[j - 1]).count('{') - strip_code(L[j - 1]).count('}') for j in range(k, ln))
+        if '{' in t and depth > 0:
+            return k, m.group(1)
+        return None
+    return None
+
+
+def accessor_locals(L, cond, here):
+    """Names tested in cond that the method assigns from a settings accessor call, or accessor calls in cond itself."""
+    out = [m.group(0) for m in ACCESSOR.finditer(cond)]
+    lo, hi = here if here else (1, len(L))
+    for name in set(re.findall(r'\b([a-z]\w*)\b', cond)) - {'true', 'false', 'null', 'this'}:
+        for i in range(lo, hi + 1):
+            c = strip_code(L[i - 1])
+            m = re.search(r'\b%s\s*=(?!=)\s*([^;]+)' % re.escape(name), c)
+            if m and ACCESSOR.search(m.group(1)) and not NOT_SETTING.search(m.group(1)):
+                out.append('%s = %s (:%d)' % (name, m.group(1).strip()[:80], i))
+                break
+    return out
+
+
+def in_catch(L, ln, here):
+    """True when line ln sits in a catch block of its method."""
+    lo = here[0] if here else max(1, ln - 40)
+    for k in range(ln, lo - 1, -1):
+        t = strip_code(L[k - 1])
+        if re.search(r'\bcatch\s*\(', t):
+            depth = sum(strip_code(L[j - 1]).count('{') - strip_code(L[j - 1]).count('}') for j in range(k, ln))
+            return depth > 0 or k == ln
+        if re.search(r'\btry\s*\{', t) or re.search(r'^\s*\}\s*$', t) and k < ln - 0:
+            depth = sum(strip_code(L[j - 1]).count('{') - strip_code(L[j - 1]).count('}') for j in range(k, ln))
+            if depth <= 0 and re.search(r'\btry\s*\{', t):
+                return False
+    return False
+
+
+def screen_r3(app, out_name='guard_steps_r3.csv'):
     g = json.load(open(glob.glob('graphs/%s/out/*_trigger_graph.json' % app)[0], encoding='utf-8'))
     E = {e['id']: e for e in g['edges']}
     sanity = {r['method']: r for r in csv.DictReader(open('graphs/%s/out/sanity_check.csv' % app, encoding='utf-8'))}
     S = 'graphs/%s/scratch/reaudit/' % app
     done = {}
-    for fn in ('w7_judged.csv', 'r2_judged.csv', 'r3_judged.csv'):
+    for fn in ('w7_judged.csv', 'r2_judged.csv', 'r3_judged.csv', 'r3b_judged.csv'):
         if os.path.exists(S + fn):
             for r in csv.DictReader(open(S + fn, encoding='utf-8')):
                 done.setdefault((r['src'], r['dst'], r['kind']), '%s:%s' % (fn.split('_')[0], r['decision']))
@@ -429,6 +481,31 @@ def screen_r3(app):
                 if sf:
                     flags.append('setting')
                     ev.extend(sf[:2])
+            # round 3b: a setting read through a settings object (pref.batteryControl(), AppSettings getters) into a local
+            # that the enclosing if tests (blind pass 1, LibreTorrent battery control and logging)
+            cl = ln
+            if callee:
+                for (f3, a3, b3) in refs:
+                    if src.find(f3) == p:
+                        hit = [j for j in range(a3, min(len(L), b3) + 1) if re.search(r'\b%s\s*\(' % re.escape(callee), strip_code(L[j - 1]))]
+                        if hit:
+                            cl = hit[0]
+                            break
+            here_c = method_of(L, cl) or here
+            if 'setting' not in flags:
+                ic = enclosing_if(L, cl, here_c)
+                if ic:
+                    acc = accessor_locals(L, ic[1], here_c)
+                    if acc:
+                        flags.append('setting')
+                        ev.append('setting accessor in the enclosing if at :%d (%s): %s' % (ic[0], ic[1][:120], '; '.join(acc[:2])))
+            # round 3b: an error-only path (blind pass 1, Aegis error dialog and onException): the step runs only after
+            # a failure: inside a catch block, or into an error callback or error dialog
+            if (ERROR_DST.search(e['dst'].split('@')[0].split('(')[0]) or ERROR_DST.search(e['src'].split('@')[0].split('(')[0])
+                    or in_catch(L, cl, here_c)):
+                flags.append('error_path')
+                ev.append('error-only path: %s' % ('inside a catch block at :%d' % cl if in_catch(L, cl, here_c)
+                                                    else 'error callback or dialog %s' % e['dst']))
             # flag_field
             ff = flag_fields(L, cond, here)
             if ff:
@@ -473,7 +550,7 @@ def screen_r3(app):
             continue
         out.append([i, e['kind'], e['src'], e['dst'], cited, '+'.join(dict.fromkeys(flags)), ' || '.join(ev)[:900],
                     done.get((e['src'], e['dst'], e['kind']), ''), n])
-    path = S + 'guard_steps_r3.csv'
+    path = S + out_name
     with open(path, 'w', newline='', encoding='utf-8') as f:
         w = csv.writer(f)
         w.writerow(['step', 'kind', 'src', 'dst', 'cited', 'flags', 'evidence', 'judged_before', 'targets'])
@@ -487,5 +564,7 @@ def screen_r3(app):
 if __name__ == '__main__':
     if sys.argv[1] == '--r3':
         screen_r3(sys.argv[2])
+    elif sys.argv[1] == '--r3b':
+        screen_r3(sys.argv[2], 'guard_steps_r3b.csv')
     else:
         screen(sys.argv[1])

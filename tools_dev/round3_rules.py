@@ -15,7 +15,64 @@ import os as _r3_os
 import re as _r3_re
 
 _R3_ROOT = _r3_os.path.normpath(_r3_os.path.join(GDIR, '..', '..'))
-R3_LOG = {'J': 0, 'P': 0, 'K': 0, 'R': 0, 'Q': 0, 'S': 0}
+R3_LOG = {'J': 0, 'P': 0, 'K': 0, 'R': 0, 'Q': 0, 'S': 0, 'T': 0}
+# Round 3b: with rule T some classes are created in-app only after an env action (VaultEntryIcon, BackupResult); a
+# method of such an object is env, not library (tools/build_graph.py ESR_CREATION_ENV).
+ESR_CREATION_ENV = True
+
+# ---------------------------------------------------------------- T (round 3b)
+# A state gate that in-app actions can create only after an env action (a picked file, an installed icon pack, a camera
+# or microphone, a real server, the system backup service, an older app version) is env, not state. Screen: every state
+# gate on the route of a state-class method, by keyword (picked, import, icon, backup, media, server, older ...); hits
+# judged from the source (graphs/<App>/scratch/reaudit/r3b_state_screen.txt). Patterns match the gate text.
+_R3T = {
+    'Aegis': [
+        (r'icons? (are |is )?not (marked )?optimised|icon that is not optimised|saved with icons not marked optimised',
+         'an entry icon that is not optimised yet: no baseline entry has an icon, and an icon comes only from a picked image or '
+         'an icon pack (system picker, another app; IconPacksManagerFragment, EditEntryActivity.java:147-158) or from the vault '
+         'of an older app version (Vault.java:92-93)', ['other_app']),
+        (r'import file|is imported|imported a vault file|import picker returned|icon picker returned|an icon pack is imported|'
+         r'export import',
+         'a file comes back from the system document picker (ACTION_GET_CONTENT; ImportExportPreferencesFragment.java:146-158, '
+         'WelcomeSlide, EditEntryActivity.java:147-158): an import file or icon exists in the app only after that pick',
+         ['other_app']),
+        (r'plaintext export was made|backup or export was made',
+         'an export file was saved in the system document creator (ACTION_CREATE_DOCUMENT, ImportExportPreferencesFragment.java:'
+         '494-500): the export flag is set only after that', ['other_app']),
+        (r'automatic backups are on|backups are on with|backups are on \(off by default|backups are off by default.*turning them off|'
+         r'backup result|backup ran',
+         'automatic backups are turned on only in the result of the system folder picker (ACTION_OPEN_DOCUMENT_TREE, '
+         'BackupsPreferencesFragment.java:79-89,175-189,263-264), and an Android backup result is written by the system backup '
+         'service; either needs the system first', ['other_app']),
+    ],
+    'AmazeFileManager': [
+        (r'^a cloud, SMB or SFTP entry is shown \(CloudIconModelLoader',
+         'a remote folder listing (SMB, SFTP or cloud) with an image, video or apk item is shown; it exists only after a real '
+         'server answers (CloudIconModelLoader.java:34-40 handles only the IMAGE_FROMCLOUD model that LayoutElementParcelable.'
+         'java:83-91 builds for such an item of a remote listing, LoadFilesListTask)', ['network']),
+        (r'preferences come from an older version',
+         'the preferences of an older app version that used the old colour system: a fresh install has none', ['other']),
+        (r'custom drawer header image is set',
+         'the drawer header image is set only from the result of the system image picker (Drawer.java:152,497-506)',
+         ['other_app']),
+    ],
+    'AnkiDroid': [
+        (r'unused media|unused files|media folder has|collection media folder|media file|sound or video in its fields.*'
+         r'(prepared|finishes|played|replayed)|card with a video|video file added|Hebrew text and media|media added to the note\) is '
+         r'studied and',
+         'a media file is in the collection: the sample deck has none, and the media editor adds one only from the camera, the '
+         'gallery picker or the microphone (multimediacard/fields/BasicImageFieldController, BasicAudioFieldController)',
+         ['hardware', 'other_app']),
+        (r'logged in to AnkiWeb',
+         'the user is logged in to AnkiWeb: the login needs the AnkiWeb server to answer (hkey, DeckPicker.java:1280-1283)',
+         ['network']),
+    ],
+    'MMEX': [
+        (r'a second database file is opened: picked or created in the system document picker',
+         'a second database file is opened: it comes only from the system document picker (open or create), and the recent '
+         'list holds only files opened that way (MainActivity.java:316-332, 1359-1364)', ['other_app']),
+    ],
+}
 
 
 def _r3_note(x, text):
@@ -27,7 +84,7 @@ _R3J = {}
 _r3_path = _r3_os.path.join(GDIR, 'scratch', 'reaudit', 'r3_judged.csv')
 if _r3_os.path.exists(_r3_path):
     for _r in _r3_csv.DictReader(open(_r3_path, encoding='utf-8')):
-        if _r['decision'] in ('STATE', 'ENV'):
+        if _r['decision'] in ('STATE', 'ENV', 'DEAD'):
             _R3J.setdefault((_r['src'], _r['dst'], _r['kind']), []).append(
                 (_r['decision'], _r['text'], [k for k in _r['kinds'].split('+') if k], _r.get('match') or ''))
 
@@ -100,6 +157,19 @@ def _r3_config_dead(cls):
 
 _R3_CFG_DEAD = set()
 
+_R3_REPEAT_CACHE = {}
+
+
+def _r3_repeats(m):
+    """True when the source file of m's outer class sets a repeat count (or the file is not found)."""
+    outer = m.rsplit('.', 1)[0].split('$')[0]
+    if outer not in _R3_REPEAT_CACHE:
+        ps = _r3_glob.glob(_r3_os.path.join(_R3_ROOT, 'final_java_only', R3_APP, 'app', '**', 'src', 'main', 'java', '**',
+                                            outer + '.java'), recursive=True)
+        _R3_REPEAT_CACHE[outer] = (not ps) or any(_r3_re.search(r'setRepeatCount|repeatCount', open(p, encoding='utf-8',
+                                                                        errors='replace').read()) for p in ps)
+    return _R3_REPEAT_CACHE[outer]
+
 # ---------------------------------------------------------------- R (MMEX)
 _R3_REC_EDITOR = 'RecurringTransactionEditActivity.onCreate'
 
@@ -130,6 +200,9 @@ def EDIT(x):
         elif _g[0] == 'ENV' and not x.get('env'):
             x['env'], x['env_kinds'] = _g[1], list(_g[2])
             _r3_note(x, 'round 3: env gate from r3_judged.csv')
+            R3_LOG['J'] += 1
+        elif _g[0] == 'DEAD' and x['kind'] != 'REGISTER':
+            _r3_kill(x, 'branch_never_taken', _g[1], 'SRC (r3_judged.csv)')
             R3_LOG['J'] += 1
     # P
     if R3_APP == 'Aegis' and x['kind'] != 'REGISTER':
@@ -176,6 +249,25 @@ def EDIT(x):
         _r3_note(x, 'round 3: a device fact, not a UI session (was: %s)' % x['needs_state'])
         x['needs_state'], x['state_kinds'] = None, []
         R3_LOG['S'] += 1
+    # T (round 3b): a state gate that in-app actions can create only after an env action is env
+    if x['kind'] != 'REGISTER' and x.get('needs_state'):
+        for _pat, _txt, _kinds in _R3T.get(R3_APP, ()):
+            if _r3_re.search(_pat, x['needs_state'], _r3_re.I):
+                _was = x['needs_state']
+                if not x.get('env'):
+                    x['env'], x['env_kinds'] = _txt, list(_kinds)
+                x['needs_state'], x['state_kinds'] = None, []
+                _r3_note(x, 'round 3b T: the state can be made only after an env action (was state: %s)' % _was[:300])
+                R3_LOG['T'] += 1
+                break
+    # U (round 3b, blind pass 1 AmazeFileManager SearchView$2.onAnimationRepeat): an Animator listener's
+    # onAnimationRepeat runs only for an animator with a repeat count; when the listener's source file never sets one
+    # (setRepeatCount / repeatCount), the framework never calls it
+    if x['kind'] != 'REGISTER' and bdst.endswith('.onAnimationRepeat') and not _r3_repeats(bdst):
+        _r3_kill(x, 'framework_never_calls', 'the animator of this listener never gets a repeat count (no setRepeatCount '
+                 'in its source file), so the framework never calls onAnimationRepeat',
+                 'INFERRED android.animation (source not in the framework tree read): Animator listeners get onAnimationRepeat only for a repeating animator; SRC no setRepeatCount in the listener file')
+        R3_LOG['U'] = R3_LOG.get('U', 0) + 1
     # bookkeeping for UNREACHABLE entries of killed targets
     if x['kind'] != 'REGISTER':
         _R3_LIVE.add(bdst)

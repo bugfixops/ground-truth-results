@@ -1,0 +1,77 @@
+Round 3b screen (Kiro, 2026-11-10): a state gate that in-app actions can make only after an env action is env.
+Population: the state gates on the routes of state-class methods; keyword hits (picked, import, icon, backup, media, server, older, ...) judged from the source.
+Hits 73; to env by rule T 3; kept: files, archives (Compress), .aze (Encrypt), SMB entries (no server needed), OTG through the SMB name (checked case AmazeFileManager-27) are made in the app.
+
+kept STATE	E005a7449	methods 81	an archive file exists and the user extracts it: ExtractService is not exported (AndroidManifest.xml:165-169), the app starts it for the chosen archive; the baseline storage has none
+kept STATE	E8519974b	methods 71	a file path (not a folder) is pending when Back is pressed on the FTP page, so it is opened as a file; the baseline has no such file
+kept STATE	Eb7cb030b	methods 49	a text file exists in the browsed folder (the baseline storage has none; New file in the app creates one)
+kept STATE	E395ee13b	methods 36	an .apk file exists in the browsed folder (openFile shows the package dialog only for an .apk, FileUtils.java:751-753); the baseline storage has none
+kept STATE	E737cf0c0	methods 26	a database (.db) file exists in the browsed folder (openFile starts the viewer only for a .db file, FileUtils.java:755-757); the baseline storage has none
+kept STATE	Efadaae5e	methods 24	the non-exported ZipService starts only from the in-app compress action, which needs files to compress; the baseline storage has none
+kept STATE	E9bb84da1	methods 24	a saved SMB connection exists (the drawer shows an smb:/ entry); the baseline has none
+kept STATE	E6cf44a07	methods 23	an archive file exists and is open in the archive viewer; the baseline storage has none
+kept STATE	Eb4cdd33f	methods 21	a file named like a tar.lzma archive is opened, so the decompressor is chosen by its extension (CompressedHelper.java:123-124; REAUDIT-R4-ARCHIVE name-level)
+kept STATE	E3db97ec3	methods 19	a valid archive is open in the archive viewer (result.exception == null, :412), so its entries create the views (:414); the baseline storage has none
+kept STATE	Ea8991ca8	methods 16	an archive file is open in the archive viewer (decompressor not null, :410; changePath executes the listing task at :420); the baseline storage has no archive
+kept STATE	E13fc766a	methods 13	ui/dialogs/ColorPickerDialog.java:43-44,102-110; the Primary, Primary two, Accent and Icon colour rows are enabled only when the stored colour config is Custom (PREFERENCE_COLOR_CONFIG == CUSTOM_INDEX; the default is a p
+kept STATE	E2c13c3ea	methods 12	an encrypted .aze file exists in the browsed folder (the baseline storage has none)
+kept STATE	E636b7236	methods 8	an archive is open in the archive viewer (the fragment's refresh listener is set in onActivityCreated, :149); the baseline storage has none
+ENV (rule T)	Ebde26bb5	methods 7	a cloud, SMB or SFTP entry is shown (CloudIconModelLoader handles only those path prefixes, so Glide asks it for load data only then); the baseline has none
+kept STATE	Eaf4f098d	methods 7	a file or folder was hidden: the hidden files dialog binds a row only for an entry in the hidden list (GeneralDialogCreation.java:1119-1121), which the app's Hide action fills; the baseline list is empty
+kept STATE	Ea29b44dc	methods 6	an archive is open in the archive viewer, so its adapter binds rows; the baseline storage has none
+kept STATE	E741d5d37	methods 5	a file named .apk is in the browsed folder with thumbnails on: onBindViewHolder loads the rounded APK thumbnail only for an APK row (RecyclerAdapter.java:731-733); a file with that name can be made with New file (the .ap
+kept STATE	E99645a70	methods 3	the target folder already has files with the names being pasted and no apply-to-all choice is made, so the conflict dialog is shown (PrepareCopyTask.java:223-225); the app makes such files by an earlier copy
+kept STATE	E79058631	methods 3	app state: a saved SMB connection is edited, and only then the negative button is Delete (SmbConnectDialog.java:218, 281-285), as for E13931bcc
+kept STATE	E4c8dda0d	methods 3	an archive file is open in the archive viewer (the shown fragment is CompressedExplorerFragment, :719); the baseline storage has no archive
+kept STATE	E22df019f	methods 3	an archive file is opened (CompressedHelper.isFileExtractable, FileUtils.java:754); the baseline storage has none (W8 correction: batch 7 had NONE)
+kept STATE	Ecdd56ca1	methods 2	the regex and match-content search settings are on: doInBackground runs searchRegExMatch only then (SearchAsyncTask.java:67-74); both checkboxes are off by default (advancedsearch_prefs.xml:3-11)
+kept STATE	Eb35313ea	methods 2	a saved SMB connection is edited: the Delete button of the SMB dialog exists only in edit mode (SmbConnectDialog.java:218, 283-284); a connection is saved in the app with the SMB dialog
+kept STATE	Eb2c004ad	methods 2	an .apk file is opened from the file list (install on API 26 and later asks for the install permission); the baseline storage has none
+kept STATE	Eafc870b6	methods 2	the regex search setting is on and match-content is off: doInBackground compiles the pattern and runs searchRegExFind only then (SearchAsyncTask.java:67-73); the regex checkbox has no default value, so it is off (advance
+kept STATE	Ea8a91db5	methods 2	an archive with entries is open in the archive viewer: RecyclerView asks the view type of each row after createViews sets the adapter (CompressedExplorerFragment.java:450); a zip made with the app's compress action has r
+ENV (rule T)	E8c0cce61	methods 2	the preferences come from an older version that used the old colour system (isUsingOldColorsSystem); a fresh install has none
+kept STATE	E4d815772	methods 2	a file named .tar.bz2 or .tbz is extracted: getExtractorInstance picks the Bzip2 extractor by the name only (CompressedHelper.java:89-90); a file with that name can be made with New file, so this name-level step is state
+kept STATE	E470a68f4	methods 2	a .zip archive is open in the archive viewer (the decompressor is ZipDecompressor); the baseline storage has none
+kept STATE	E3f4d3946	methods 2	a USB OTG location is open: folderSize uses otgFolderSize only in OTG mode (HybridFile.java:582, 606); same gate as the other OTG rows (AmazeFileManager-27)
+kept STATE	E21eedb46	methods 2	an archive is extracted or opened (the extractors are the only users of the password cache, so its holder class initialises then)
+kept STATE	E1db11476	methods 2	a file named like a 7z archive is opened, so the decompressor is chosen by its extension (CompressedHelper.java:125-126; REAUDIT-R4-ARCHIVE name-level)
+kept STATE	E07680333	methods 2	an archive with entries is open in the archive viewer: RecyclerView creates the row holders after createViews sets the adapter (CompressedExplorerFragment.java:450); a zip made with the app's compress action has rows
+kept STATE	Efa7b9276	methods 1	the regular-expression and match-whole-name search settings are on: the matches lambda runs for each file name (SearchAsyncTask.java:72-74,147-148)
+kept STATE	Ef2f5b0f4	methods 1	entries are selected in the archive viewer and Select all toggles them off, so the action mode ends (CompressedExplorerFragment.java:314-320); a selection is STATE session (Q-R3-1)
+kept STATE	Eefff64aa	methods 1	a drawer entry for a USB OTG location exists and is tapped (meta.path contains OTGUtil.PREFIX_OTG; the && evaluates getUsbOtgRoot only then, Drawer.java:579-581)
+kept STATE	Eef1383e4	methods 1	a file (not only folders) is copied: copyFiles sets the target's modification time in the file branch (CopyService.java:444, 451-456); the baseline storage has only folders, and New file makes a file in the app
+kept STATE	Ed93930fe	methods 1	an encrypted folder (.aze, made by encrypting a folder) exists and is decrypted, so each child is decrypted in turn (CryptUtil.java:162-177); the baseline storage has none
+kept STATE	Ed3b33215	methods 1	a file with an archive extension is opened (e.g. a zip made with Compress, or a file named x.7z with New file), so the decompressor gets its path (CompressedHelper.java:131; REAUDIT-R4-ARCHIVE name-level)
+kept STATE	Ec91fbf8d	methods 1	a USB OTG location is open: forEachChildrenFile lists through OTGUtil only in OTG mode (HybridFile.java:734, 782-783); the same gate as the other OTG rows (checked case AmazeFileManager-27 is state)
+kept STATE	Ec1759efa	methods 1	entries are selected in the archive viewer (its action mode is open): Extract runs the decompressor on them (CompressedExplorerFragment.java:321-329); a selection is STATE session (Q-R3-1)
+kept STATE	Eb917201c	methods 1	a file named like a tar.gz archive is opened (New file can name it), so the decompressor is chosen by its extension (CompressedHelper.java:117-118; REAUDIT-R4-ARCHIVE name-level)
+kept STATE	Eadca1b8a	methods 1	an image, video or APK file is in the browsed folder (its thumbnail row loads a drawable); the baseline storage has none
+kept STATE	Ead3367e8	methods 1	a folder with the same name exists at the destination (a conflicting directory, :325-326), so its files are listed (:334); the baseline destination has no such folder
+kept STATE	Eabfafee3	methods 1	an archive file exists and was opened in the archive viewer, which extracted files to its cache, so leaving it deletes them (CompressedExplorerFragment.java:361-362)
+kept STATE	Ea9da31aa	methods 1	rows are selected in the archive viewer (its action mode is open): Select all toggles them (CompressedExplorerFragment.java:307-311); a selection is STATE session (Q-R3-1)
+kept STATE	E9fb20090	methods 1	a USB OTG location is open: a file row of an OTG folder opens through its DocumentFile (MainFragment.java:921-923); same gate as the other OTG rows (AmazeFileManager-27)
+kept STATE	E9da72fc3	methods 1	the regular-expression search setting is on and the match-whole-name setting is off: the find lambda runs for each file name (SearchAsyncTask.java:72-73,137-138)
+kept STATE	E9d015600	methods 1	an archive file exists and is open in the archive viewer, so preparing the menu resets the bottom bar's click listener (MainActivity.java:888-892), as for E2a51900c
+kept STATE	E990b8b03	methods 1	the loop runs over saved SMB connections, none on a fresh install; one is saved first (no server is needed)
+kept STATE	E961d6fa8	methods 1	app state: a file named like a compressed tar (.tar.gz and similar) is extracted, so its name is cut at the second dot from the end (CompressedHelper.java:152-154); name-level archive step (REAUDIT-R4-ARCHIVE)
+kept STATE	E902c479a	methods 1	at least two files changed in the last two days are in the media store, so the sort compares them (LoadFilesListTask.java:420-434); the app makes such files (new file, copy)
+kept STATE	E8c89404c	methods 1	an .apk file is opened from the file list, and on API 26 and later without the install permission the request callback is made (FileUtils.java:389-391), as for Ecde372db
+kept STATE	E894a846b	methods 1	a file named like a tar.xz archive is opened, so the decompressor is chosen by its extension (CompressedHelper.java:121-122; REAUDIT-R4-ARCHIVE name-level)
+kept STATE	E894859cb	methods 1	a saved SMB connection is edited: addConnection renames it in the background only in the edit branch (MainActivity.java:1696-1699); a connection is saved in the app first
+kept STATE	E81b498a4	methods 1	an archive is open in the archive viewer and a row is tapped (:262); the baseline storage has none
+kept STATE	E7f136a9c	methods 1	an archive is opened in the archive viewer (a zip made with Compress), so its view is refreshed (CompressedExplorerFragment.java:145)
+kept STATE	E74863a97	methods 1	an archive extraction runs and publishes progress (publishProgress on a password error, :255); the baseline storage has none
+kept STATE	E6a291585	methods 1	an archive file exists in the browsed storage (opened or extracted in the app); the baseline storage has none
+kept STATE	E63a6c858	methods 1	a file named like a tar archive is opened, so the decompressor is chosen by its extension (CompressedHelper.java:115-116; REAUDIT-R4-ARCHIVE name-level)
+kept STATE	E4bbebfee	methods 1	the text file lies in the app's cache folder (a file opened from an archive or a decrypted .aze copy): the read-only snackbar and its dismiss action appear only then (TextEditorActivity.java:300-308)
+kept STATE	E462983d7	methods 1	an archive file exists in the browsed folder: the extract action creates a decompressor for the selected file, and only an archive has one (CompressedHelper.getCompressorInstance); the baseline storage has none (W8)
+kept STATE	E447029bb	methods 1	entries are selected in the archive viewer and extracted, so each selected folder path is normalised (Decompressor.java:56-58)
+kept STATE	E3f86e748	methods 1	a saved SMB connection is deleted: deleteConnection removes it from the database in the background only when it is in the saved list (MainActivity.java:1717-1721); a connection is saved in the app first
+kept STATE	E3e22b605	methods 1	an archive is open in the archive viewer (a zip made with Compress), so the bottom bar shows its root icon (BottomBar.java:190-196)
+kept STATE	E320ef273	methods 1	a file named like a rar archive is opened, so the decompressor is chosen by its extension (CompressedHelper.java:113-114; REAUDIT-R4-ARCHIVE name-level)
+kept STATE	E2ce91f19	methods 1	an FTP user name other than the anonymous default was set earlier, so the login dialog fills it in (FtpServerFragment.java:511-516)
+kept STATE	E24d209e5	methods 1	a zip archive (made with Compress) is opened, so the zip decompressor is built (CompressedHelper.java:111-112)
+kept STATE	E20ce0e33	methods 1	a zip archive is extracted, so the zip extractor is built (CompressedHelper.java:81-82); the app makes zip archives with Compress
+kept STATE	E1bcfe2b9	methods 1	the folder is shown as a grid (View as grid in the menu, stored as a setting; the default is the list): addItem takes the else branch only when IS_LIST is false (RecyclerAdapter.java:341-347)
+kept STATE	E0f9be0b1	methods 1	an archive file exists and is extracted, so its invalid entries are read (ExtractService.java:302), as for E7836345a
+ENV (rule T)	E07594d60	methods 1	a custom drawer header image is set (PREFERENCE_DRAWER_HEADER_PATH, unset by default)

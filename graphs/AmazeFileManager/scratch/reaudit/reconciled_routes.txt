@@ -1,0 +1,8 @@
+AmazeFileManager: reconciled routes
+
+METHOD: UtilsHandler.getSshAuthPrivateKeyColumn
+drawn route problem: listRecent / Properties routes go through the one shared HybridFile node; a recent SFTP path becomes a java.io.File (ssh:/ folded), so exists()/getUsableSpace never take the SFTP branch (HybridFile.java:92-95, :1077).
+reachable: yes
+class: source = env (network); graph = env (network)
+real route: a saved SFTP server is needed. It is saved only after a live SSH connection and host-key fetch (SftpConnectDialog.java:160-185, :343-349; DB write after getConnection succeeds). Then (a) long-press/edit the server in the drawer -> Drawer.java:626 -> MainActivity.showSftpDialog (MainActivity.java:1637, key-auth entry calls getSshAuthPrivateKeyName at :1656 -> UtilsHandler.java:425-427 -> getSshAuthPrivateKeyColumn :435), or (b) open the server entry -> SshClientUtils.execute (:72) -> SshConnectionPool.getConnection -> create(url) (SshConnectionPool.java:193) -> getSshAuthPrivateKey (UtilsHandler.java:430-432). No in-app way creates the saved connection without a reachable SSH server.
+decision: path row stays wrong; label row should be 'correct' (reachable yes, class env holds).

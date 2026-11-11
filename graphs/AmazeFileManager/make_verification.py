@@ -179,6 +179,12 @@ for _m, _s in R3.items():
     if _m != 'CloudIconDataFetcher.cancel':
         _ref = 'Drawer.java:612'
     P[_m] = (_res, _ref, _note + ' ' + _s)
+# Round 3b (Kiro, 2026-11-10; reviewer: Q-R7-12 not intended): step 12 is env network again, now worded for what
+# CloudIconModelLoader really handles: an IMAGE_FROMCLOUD model, which LayoutElementParcelable.java:83-91 builds only for
+# an image, video or apk item of a remote (SMB, SFTP, cloud) listing; such an item exists only after a real server
+# answers. The same 14 steps; new edge id only.
+_res, _ref, _note = P['CloudIconDataFetcher.cancel']
+P['CloudIconDataFetcher.cancel'] = (_res, _ref, _note + ' Round 3b: step 12 (CloudIconModelLoader.buildLoadData) is env network: a remote folder listing with an image, video or apk item, which exists only after a real server answers (CloudIconModelLoader.java:34-40; LayoutElementParcelable.java:83-91); the same 14 steps, new edge id only.')
 
 # ---- edge rows: the B6 added/rewired edges, each checked to exist in the built graph.
 EDGE_NOTES = {}
@@ -238,12 +244,15 @@ for m, (cb, ref, note) in U.items():
     out.append(['label', m, 'correct', cb, ref, '', note])
 
 # reachable labels of the final sample (one per sampled reachable method).
+_2b = {}
+exec(open('tools_dev/reconcile_2b.py', encoding='utf-8').read(), _2b)
 for m in sample:
     r = rows[m]
     cb = 'SOURCE' if all(b.edge_sourced(E[i]) for i in r['route_edge_ids'].split()) else 'INFERRED'
-    out.append(['label', m, P[m][0], cb, P[m][1].split(';')[0], '',
+    _res, _lnote = _2b['label_2b'](APP, m, P[m][0],
                 'REACHABLE confirmed: the route was read step by step (see the path row); gates read: env=%s state=%s'
-                % (r['env_kinds'] or '-', r['state_kinds'] or '-')])
+                % (r['env_kinds'] or '-', r['state_kinds'] or '-'))
+    out.append(['label', m, _res, cb, P[m][1].split(';')[0], '', _lnote])
 # W9 reachable audit (Kiro, 2026-11-08): one label row per drawn method from scratch/reaudit/audit_result.csv
 # (note "reachable audit, class <X>"); a method that already has a label row keeps it.
 _w9 = {}

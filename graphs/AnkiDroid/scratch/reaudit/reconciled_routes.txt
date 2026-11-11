@@ -1,0 +1,36 @@
+AnkiDroid: reconciled routes
+
+METHOD: StudyOptionsActivity.closeStudyOptions(int)
+drawn route problem: path row 'wrong' on the final graph (tablet/fragmented and phone prefixes joined; the route as drawn is not one execution).
+reachable: yes
+class: source = gui; graph = gui (no env/state)
+real route: deck list, tap the counts area of a deck with cards (DeckPicker.java:210-218 -> handleDeckSelection(did,true) :1717, :1734 -> openStudyOptions(false) :1695-1703, phone layout starts StudyOptionsActivity), then Back (StudyOptionsActivity.java:103-111) -> closeStudyOptions() :95-96 -> closeStudyOptions(int) :100. Sample deck in baseline.
+decision: path row stays wrong; label row should be 'correct' (gui holds).
+
+METHOD: Models.validateBrackets
+drawn route problem: step 7/8 guard clash on the shared DatabaseErrorDialog screen (repair value 2 vs restore value 3).
+reachable: yes
+class: source = state (file); graph = state (file)
+real route: deck list menu Restore backup (DeckPicker.java:618) -> confirm -> backup list (DatabaseErrorDialog.java:219-240) -> restoreFromBackup (DeckPicker.java:1248) -> DeckTask importReplace validCollection (DeckTask.java:791) -> Collection.java:1569-1571 -> Models.validateModel :1390-1392 -> validateBrackets :1400. A backup must exist: the app writes one itself at startup (DeckPicker.java:807, BackupManager.java:103-135, needs a restart after the sample deck import, 5 h interval) = in-app state. Alternative .apkg import (AnkiPackageImporter.java:69) needs a file from outside.
+decision: path row stays wrong; label row should be 'correct'.
+
+METHOD: FullSyncer.syncURL
+drawn route problem: not-logged-in dialog and sanity-error dialog joined on the shared S_DLG_SYNC_ERROR screen; steps 7 and 12 need opposite login states.
+reachable: yes
+class: source = env (network); graph = env (network)
+real route: FullSyncer is built only in the full-sync branch of Connection.doInBackgroundSync (Connection.java:318) after a login to a sync server (hkey) and a server answer that needs full upload/download; upload/download -> HttpSyncer.req -> syncURL (HttpSyncer.java:207, FullSyncer.java:64). Needs AnkiWeb or a custom server (userPreferences useCustomSyncServer, FullSyncer.java:64-69) and an account.
+decision: path row stays wrong; label row should be 'correct'.
+
+METHOD: Sched.getToday
+drawn route problem: editor result returns to DeckPicker, not CardBrowser; shared S_NOTEEDITOR screen.
+reachable: yes
+class: source = gui; graph = gui
+real route: nav drawer Statistics (NavigationDrawerActivity.java:266) -> overview tab AnkiStatsTaskHandler.java:157 -> OverviewStatsBuilder.java:118 -> calculateForecastOverview :212 -> getToday :244 (Sched.java:2339). Also card browser search with is:due (Finder.java:466). No state needed.
+decision: path row stays wrong; label row should be 'correct'.
+
+METHOD: Collection.getServer
+drawn route problem: path row marked 'wrong' though the final route (DeckPicker.onCreate -> firstCollectionOpen -> Media.connect) is one real execution; the verdict is a leftover of the first check.
+reachable: yes
+class: source = gui (launch); graph = gui
+real route: first collection open on start: DeckPicker.java:357 -> CollectionHelper.getCol -> Collection ctor -> Media ctor :114-129 -> connect() :133-134 -> Collection.getServer :1589. Storage permission prompt counts as a GUI action.
+decision: path row stays wrong per its stored verdict (nothing to change in the route); label row should be 'correct'.

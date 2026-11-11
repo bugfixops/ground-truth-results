@@ -1,0 +1,11 @@
+Aegis: reconciled routes (path rows 'wrong' vs label rows)
+
+METHOD: AuthActivity.lambda$onCreate$3
+drawn route problem: step 28 lock icon is hidden for an unencrypted vault (MainActivity.java:1155-1160) and step 35 biometric button needs a BiometricSlot + keystore key (AuthActivity.java:132-150); the drawn vault has neither.
+reachable: yes
+class: source = env (hardware, time); graph = env (hardware;time)
+real route: lambda$3 is the OK button of the password-reminder dialog (AuthActivity.java:186-189), shown by the biometrics button (:180-181) when isPasswordReminderNeeded() (Preferences.java:138-146; default BIWEEKLY, needs weeks since last password unlock). Needs a fingerprint-capable device with an enrolled finger so BiometricsHelper.isAvailable (BiometricsHelper.java:27) holds, a biometric slot added in Settings > Security (SecurityPreferencesFragment.java:112-118), lock, relaunch, then 2+ weeks of clock time with no password unlock (or a different vault of that age). Hardware + time are outside the app; no state-only route avoids them (NEVER disables the dialog, shortest period is 1 week).
+decision: path row stays wrong (drawn route is not one execution); label row should be 'correct' (reachable yes, class env holds).
+
+METHOD: GoogleAuthProtos$MigrationPayload.parser
+already dead (no caller of parser(); protobuf-lite parses via dynamicMethod). Label row is correct. Reconciled, no action.

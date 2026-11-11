@@ -663,6 +663,7 @@ def main(argv):
 
     # per-method labels
     labels = {}
+    _noenv_any = {base(n) for n in prev_noenv} if (esr_on and ns.get('ESR_CREATION_ENV')) else set()  # env barred, any edge class
     for m in methods:
         p = info[m]['path']
         if verdict[m] == 'UNREACHABLE':
@@ -676,6 +677,26 @@ def main(argv):
                    'confirmed_by': 'SOURCE' if p and all(edge_sourced(x) for x in p) else 'INFERRED',
                    'source_ref': evidence_ref(p[-1]['evidence']) if p else None,
                    'path_status': 'UNCHECKED'}
+            # ESR_CREATION_ENV (round 3b; off by default): an instance method whose class is created in-app only on a
+            # route with an env gate (an <init> variant is reachable over explicit/standard edges with env edges
+            # allowed, but not with them barred) needs that env action first: the gate is env, not library.
+            if (esr_on and ns.get('ESR_CREATION_ENV') and not lab['env'] and not lab['explicit_standard_route']
+                    and not info[m]['env_gated']):
+                _r = by_name[m]
+                _c = _r.get('class')
+                _k = ('u_env', 'u_noenv') if m in setup_only_methods else ('f_env', 'f_noenv')
+                if ('static' not in (_r.get('flags') or ()) and _r.get('name') not in ('<clinit>', '<init>')
+                        and _c in esr_init_classes[_k[0]] and _c not in esr_init_classes[_k[1]]
+                        and inits.get(_c) and not (inits[_c] & _noenv_any)):
+                    _kinds = []
+                    for _i in sorted(inits.get(_c, ())):
+                        if _i in info and info[_i].get('path'):
+                            for _g in gate_items(info[_i]['path'], 'env', 'env_kinds'):
+                                _kinds += [k for k in _g['kinds'] if k not in _kinds]
+                    lab['env'] = [{'kinds': _kinds or ['other'],
+                                   'text': 'an object of %s is made in the app only on a route with an env gate (no <init> '
+                                           'of the class is reachable without one), so the env action comes first'
+                                           % _c.replace('/', '.').split('.')[-1]}]
         labels[m] = lab
 
     # audit log (verification.csv): confirmations, path status, stored paths, error rates

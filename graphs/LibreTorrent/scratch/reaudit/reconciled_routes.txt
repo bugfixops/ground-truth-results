@@ -1,0 +1,66 @@
+LibreTorrent: reconciled routes
+
+METHOD: FeedDao_Impl$11.finalize
+drawn route problem: step 20 edge $11.<init> -> $11.finalize is not a call; finalize runs only when the object is garbage collected.
+reachable: yes
+class: source = env; graph = state (data)
+real route: $11 is Room's generated Callable<List<FeedItem>> for observeItemsByFeedId (FeedDao.java:97; FeedItemsFragment.java:210). Opening a feed's item list (needs a saved feed = state) creates it; finalize() (releases the query) is run by ART's finalizer daemon after GC once the Flowable is disposed. No app code or GUI action calls it or forces GC; timing is system-controlled. Judgement call: GC finalization counted as env (system), which comes before state in the class rule.
+decision: path row stays wrong; label row should be 'wrong' (class env, not state).
+
+METHOD: PathResolver.join
+drawn route problem: MainFragment's file chooser (FILE_CHOOSER_MODE) does not create a file nor return to CreateTorrentDialog (steps 11-12).
+reachable: yes
+class: source = gui; graph = gui
+real route: main FAB Add link (MainFragment.java:406-419, :523) -> type a URL with a path, e.g. example.com/a.torrent -> OK addLink (AddLinkDialog.java:261-275) -> AddLinkViewModel.normalizeUrl :61-69 -> NormalizeUrl.java:259 -> PathResolver.resolve -> resolve(parts) -> join :108/:113. No network, no state (an empty path returns early).
+decision: path row stays wrong; label row should be 'correct'.
+
+METHOD: SafFileSystem$FakePath.serialize
+drawn route problem: step 13 facade picks SafFsModule only for content:// dirs, but the add/seed dir is file:// (FsModuleResolverImpl.java:42-49).
+reachable: yes (only with a content:// dir URI that the build itself cannot create)
+class: source = env; graph = env (other_app)
+real route: needs a content:// directory in stored prefs/torrent records (saveTorrentsIn SettingsRepositoryImpl.java:708 or torrent.downloadPath) -> TorrentSessionImpl.java:341/407 -> makeFileSystemPath -> SafFsModule.java:151-154 -> FakePath.toString :164. The app has no ACTION_OPEN_DOCUMENT_TREE and its own picker returns file:// (FileManagerDialog.java:74-79), so only data left by an older SAF-using version can supply it = env.
+decision: path row stays wrong; label row should be 'correct' (class env holds).
+
+METHOD: FeedDao_Impl$1.bind
+drawn route problem: mixes ADD prefix, EDIT middle and ADD tail (final path row still 'wrong').
+reachable: yes
+class: source = gui; graph = gui
+real route: menu -> feeds -> add button (FeedFragment.java:187-188) -> AddFeedDialog, type URL, Add (AddFeedDialog.java:379-393) -> AddFeedViewModel.addChannel :106 -> applyParams(true) :164-190 -> repo.addFeed -> FeedDao_Impl.addFeed -> $1.bind. Insert happens before any network refresh.
+decision: path row stays wrong; label row should be 'correct'.
+
+METHOD: BaseElement.getUri
+drawn route problem: FeedFetcherWorker.doWork with ACTION_FETCH_ALL_CHANNELS goes to fetchChannels, not fetchChannel (step 11).
+reachable: yes
+class: source = env (network); graph = env (network)
+real route: saved feed + refresh -> FeedFetcherWorker fetch -> feed parser -> EzRss01Parser.isEzRssElement (EzRss01Parser.java:119-120) or MediaRssParser.java:95-96 -> BaseElement.getUri (BaseElement.java:46). Needs a served RSS feed that has EzRSS/Media RSS extension elements.
+decision: path row stays wrong; label row should be 'correct'.
+
+METHOD: AddTagViewModel$TagAlreadyExistsException.<init>
+drawn route problem: step 12 drew the cancel-button listener; addTag is only on the Add button.
+reachable: yes
+class: source = state (data); graph = state (data)
+real route: drawer add-tag button (MainActivity.java:273-275) -> AddTagDialog, create tag X, then add X again -> Add (AddTagDialog.java:187/addTag) -> AddTagViewModel.saveTag :55 -> getByName finds X -> throw new TagAlreadyExistsException :67. The first tag is in-app stored state.
+decision: path row stays wrong; label row should be 'correct'.
+
+METHOD: SettingsRepositoryImpl.proxyRequiresAuth(boolean)
+drawn route problem: SettingsFragment.openPreference never opens ProxySettingsFragment; the proxy page is opened from Network settings (NetworkSettingsFragment.java:225-236).
+reachable: yes
+class: source = state (non-default setting); graph = none (gui)
+real route: Settings > Network > Proxy -> set proxy type to non-None (default NONE, SessionSettings.java:55) -> ProxySettingsFragment.onPreferenceChange :206-213 enables the switch (:199-202) -> toggle Requires authentication -> :239-240 -> SettingsRepositoryImpl.java:1052. The switch is disabled until a proxy type is chosen (ProxySettingsFragment.java:105-148), so a non-default setting is a gate.
+decision: path row stays wrong; label row should be 'wrong' (class state, not gui).
+
+METHOD: SafFileSystem.getParentDirUri
+drawn route problem: step 17 sends a file:// seed to SafFsModule; the facade picks DefaultFsModule.
+reachable: no (dead)
+class: source = dead; graph = env (other_app) + state (file)
+real route: none. Only caller is CreateTorrentViewModel.downloadTorrent :357 (seed parent). It runs after a successful build (CreateTorrentDialog.java:304-305, handleFinish :380-391), and makeBuilder rejects any non-file seed (CreateTorrentViewModel.java:186-187). Seed comes only from the in-app FileManagerDialog (file://, CreateTorrentDialog.java:513/530). So a content:// seed with a finished build never holds; the SAF branch (SafFileSystem.java:533) cannot run.
+decision: path row stays wrong; label row should be 'wrong' (class dead).
+
+METHOD: SafFileSystem$FakePath.makeRelativePathNodes
+drawn route problem: step 23 resolver never picks SafFsModule for the file:// download path.
+reachable: yes (only with a content:// dir URI that the build itself cannot create)
+class: source = env; graph = env (other_app) + state (data)
+real route: same source of content:// as FakePath.serialize: leftover pref/DB download dir from an older SAF version -> detail screen file tap (DetailTorrentFilesFragment.java:337-340) -> DetailTorrentViewModel.getFilePath -> FileSystemFacadeImpl.getFileUri -> SafFsModule -> SafFileSystem.getFile :262-268 -> makeRelativePathNodes :140. Env comes first in the class rule, so the class is env.
+decision: path row stays wrong; label row should be 'correct' (class env holds).
+
+Omni-Notes: one wrong route row, left open (check_unchanged_apps)

@@ -203,11 +203,15 @@ for _line in _table_lines:
     assert _method not in VERDICT, ('duplicate method in table', _method)
     assert _reason, ('empty reason in table', _method)
     assert _method in rows, ('table method missing from methods.csv', _method)
-    assert rows[_method]['verdict'] == 'REACHABLE', ('table method not reachable', _method)
-    assert int(rows[_method]['steps_from_launch']) == int(_steps), \
-        ('table steps != methods.csv steps', _method, _steps, rows[_method]['steps_from_launch'])
-    assert len(rows[_method]['route_edge_ids'].split()) == int(_steps), \
-        ('table steps != built route length', _method, _steps)
+    # Step 2b (2026-11-10): a sampled method found dead keeps its table row with 0 steps and verdict WRONG
+    if rows[_method]['verdict'] == 'UNREACHABLE':
+        assert int(_steps) == 0 and _vtok == 'wrong', ('dead sampled method needs 0 steps and WRONG', _method)
+    else:
+        assert rows[_method]['verdict'] == 'REACHABLE', ('table method not reachable', _method)
+        assert int(rows[_method]['steps_from_launch']) == int(_steps), \
+            ('table steps != methods.csv steps', _method, _steps, rows[_method]['steps_from_launch'])
+        assert len(rows[_method]['route_edge_ids'].split()) == int(_steps), \
+            ('table steps != built route length', _method, _steps)
     VERDICT[_method] = _vtok
     NOTE[_method] = '%s: %s' % (_verdict_raw, _reason)
     _table_methods.append(_method)
@@ -217,7 +221,7 @@ assert _table_numbers == list(range(1, N + 1)), ('table row numbers', _table_num
 assert len(VERDICT) == N, ('table row count', len(VERDICT))
 assert _table_methods == sample, ('table order != sample order', _table_methods, sample)
 for _m in sample:
-    assert sample_steps[_m] == int(rows[_m]['steps_from_launch']), ('sample steps != methods.csv steps', _m)
+    assert sample_steps[_m] == int(rows[_m]['steps_from_launch'] or 0), ('sample steps != methods.csv steps', _m)
 print('table parsed rows:', len(VERDICT),
       'verdicts:', dict(collections.Counter(VERDICT.values())),
       'total steps:', sum(sample_steps.values()))
@@ -417,6 +421,9 @@ for _m, _n in (('FeedDao_Impl$11.finalize', 'step 8 now needs a feed in the list
 out = [['type', 'item', 'result', 'confirmed_by', 'ref', 'edges', 'note']]
 for m in sample:
     r = rows.get(m)
+    if r is not None and r['verdict'] == 'UNREACHABLE':
+        out.append(['path', m, 'wrong', 'SOURCE', g['labels'][m]['source_ref'] or '', '', NOTE[m]])
+        continue
     assert r is not None and r['verdict'] == 'REACHABLE', ('path row not reachable', m)
     assert all(i in E for i in r['route_edge_ids'].split()), ('path edge missing from fresh graph', m)
     ref = route_ref(m)
@@ -433,13 +440,19 @@ for m in U:
     cb, ref, note = U[m]
     assert note.strip(), ('empty unreachable note', m)
     label_rows.append(['label', m, 'correct', cb, ref, '', note])
+_2b = {}
+exec(open('tools_dev/reconcile_2b.py', encoding='utf-8').read(), _2b)
+_ndead = 0
 for m in sample:
     r = rows[m]
-    label_rows.append(['label', m, VERDICT[m], 'SOURCE' if route_sourced(m) else 'INFERRED',
-                       route_ref(m), '',
+    if r['verdict'] != 'REACHABLE':
+        _ndead += 1
+        continue  # its UNREACHABLE label row is written above (U)
+    _res, _lnote = _2b['label_2b'](APP, m, VERDICT[m],
                        'REACHABLE confirmed: the route was read step by step (see the path row and route_table.md); gates read: env=%s state=%s'
-                       % (r['env_kinds'] or '-', r['state_kinds'] or '-')])
-assert len(label_rows) == len(U) + N, ('label row count', len(label_rows))
+                       % (r['env_kinds'] or '-', r['state_kinds'] or '-'))
+    label_rows.append(['label', m, _res, 'SOURCE' if route_sourced(m) else 'INFERRED', route_ref(m), '', _lnote])
+assert len(label_rows) == len(U) + N - _ndead, ('label row count', len(label_rows))
 assert len({r[1] for r in label_rows}) == len(label_rows), ('duplicate label item', len(label_rows))
 assert not ({r[1] for r in label_rows} & unresolved), ('label row for UNRESOLVED method')
 for _row in sorted(label_rows, key=lambda r: r[1]):
@@ -469,8 +482,9 @@ _W9C_DEVICE_REPOINT = {
         'Ebe0bf90d E9278e2d5 E37e3a4dc E6507c563 Ef969f0d4 Ef2176f7c E3a6833e8 E34c7b5a2 E9b4b24a7 Ed7bad68f Ed9f15dc8 '
         'Ea2db48be Edb748470 E27e8b62f E4d8c9499 E38bcd1c3 E1c77904d E6ac37b87 Ec4d16492 E8756175a',
         'Ebe0bf90d E9278e2d5 E37e3a4dc E6507c563 Ef969f0d4 Ef2176f7c E3a6833e8 E1691dd0f E9b4b24a7 Ed7bad68f Ed9f15dc8 '
-        'Ea2db48be Edb748470 E27e8b62f E4d8c9499 E38bcd1c3 E1c77904d E6ac37b87 Ec4d16492 E8756175a'),
-    'SafFileSystem.getParentDirUri': (
+        'Ea2db48be Edb748470 E27e8b62f E4d8c9499 E38bcd1c3 E1c77904d E6ac37b87 Ec4d16492 Edcc990b3'),  # step 2b: step 20 re-gated (env), was E8756175a
+    # step 2b: SafFileSystem.getParentDirUri is dead (no route), so its unscriptable device row is dropped
+    '_dead_SafFileSystem.getParentDirUri': (
         'Ebe0bf90d Ed8e7f5f9 Ee453d286 E28c54333 E2e46bfdf E17916b8d Ed7e1785e E1ebb5848 Ed745fbc6 E4e7277c1 E4322fd9c '
         'E9bfa7a32 Eee58c113 E8bb4dc4c E5945e3f0 E2cd08e2c Effae07fc Ee28809ba',
         'Ebe0bf90d Ed8e7f5f9 Ee453d286 E28c54333 E2e46bfdf E17916b8d Ed7e1785e E1ebb5848 Ed745fbc6 E4e7277c1 E4322fd9c '

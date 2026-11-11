@@ -163,6 +163,15 @@ _W9B_REPOINT = {
 }
 for _m, _n in _W9B_REPOINT.items():
     NOTE[_m] += ' W9b: gate text changed, edge ids re-pointed, no replay, same steps (%s).' % _n
+# Round 3b (Kiro, 2026-11-10; rule T of tools_dev/round3_rules.py: a state that in-app actions can make only after an
+# env action is env): the media gates are env (the media editor adds a file only from the camera, the gallery picker
+# or the microphone). Both sampled routes keep the same steps; only the re-gated step has a new edge id.
+_R3B_REPOINT = {
+    'Sound.notifyConfigurationChanged': 'step 16 (VideoPlayer.<init> -> onCreate) now carries ENV hardware/other_app: a media file in the collection',
+    'Anki2Importer._mediaPick': 'step 15 (_mungeMedia -> compareMedia) now carries ENV hardware/other_app: a media file of the same name already in the collection',
+}
+for _m, _n in _R3B_REPOINT.items():
+    NOTE[_m] += ' Round 3b: gate text changed, edge ids re-pointed, no replay, same steps (%s).' % _n
 
 
 
@@ -237,12 +246,14 @@ assert set(U) == unre, ('label set != graph unreachable', sorted(unre - set(U)),
 for m in sorted(U):
     cb, ref, note = U[m]
     out.append(['label', m, 'correct', cb, ref, '', note])
+_2b = {}
+exec(open('tools_dev/reconcile_2b.py', encoding='utf-8').read(), _2b)
 for m in sample:
     r = rows[m]
-    out.append(['label', m, VERDICT[m], 'SOURCE' if sourced(m) else 'INFERRED',
-                route_ref(m).split(';')[0], '',
+    _res, _lnote = _2b['label_2b'](APP, m, VERDICT[m],
                 'REACHABLE confirmed: the route was read step by step (see the path row and route_table.md); gates read: env=%s state=%s'
-                % (r['env_kinds'] or '-', r['state_kinds'] or '-')])
+                % (r['env_kinds'] or '-', r['state_kinds'] or '-'))
+    out.append(['label', m, _res, 'SOURCE' if sourced(m) else 'INFERRED', route_ref(m).split(';')[0], '', _lnote])
 # W9 reachable audit (Kiro, 2026-11-08): one label row per drawn method from scratch/reaudit/audit_result.csv
 # (note "reachable audit, class <X>"); a method that already has a label row keeps it.
 _w9 = {}
@@ -292,7 +303,7 @@ _W9B_DEVICE_REPOINT = {
         'E48de6d58 E26d20f74 E1ad4ef9b Efe74add3 Ec0803f80 Ef124bec5 Ef971cdc8 E7207076d E3b62fa3a E1a9a3f49 E8e37bd07 '
         'E444e91f6 E21716df8 Eb9b4b814 Edc863911 Ebc55db92',
         'E48de6d58 E26d20f74 E1ad4ef9b Eb62955c3 Ec0803f80 Ef124bec5 E0bf32c69 E7207076d E43a48f52 E1a9a3f49 E8e37bd07 '
-        'E444e91f6 E21716df8 E302a755f Ef6aca2bf Ebc55db92'),
+        'E444e91f6 E21716df8 E302a755f E0d4fe55e Ebc55db92'),  # round 3b: step 15 re-gated (was Ef6aca2bf)
 }
 # Reviewer rule 2026-11-09 (tools_dev/device_rows.py): a reached row is written only when its replayed edge ids (after
 # the W9b re-point) equal the method's current best route.

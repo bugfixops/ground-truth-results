@@ -291,6 +291,8 @@ for m in sample:
     out.append(['path', m, PATH_RESULT[m], 'SOURCE' if sourced(m) else 'INFERRED',
                 ref, r['route_edge_ids'], NOTE[m]])
 
+_2b = {}
+exec(open('tools_dev/reconcile_2b.py', encoding='utf-8').read(), _2b)
 label_rows = []
 for m in U:
     cb, ref, note = U[m]
@@ -300,10 +302,11 @@ for m in sample:
     r = rows[m]
     if r['verdict'] != 'REACHABLE':
         continue  # its UNREACHABLE label row is written above (U)
-    label_rows.append(['label', m, VERDICT[m], 'SOURCE' if sourced(m) else 'INFERRED',
-                       route_ref(m).split(';')[0], '',
+    _res, _lnote = _2b['label_2b'](APP, m, VERDICT[m],
                        'REACHABLE confirmed: the route was read step by step (see the path row and ROUTE_TABLE_NEW.md); gates read: env=%s state=%s'
-                       % (r['env_kinds'] or '-', r['state_kinds'] or '-')])
+                       % (r['env_kinds'] or '-', r['state_kinds'] or '-'))
+    label_rows.append(['label', m, _res, 'SOURCE' if sourced(m) else 'INFERRED',
+                       route_ref(m).split(';')[0], '', _lnote])
 for _row in sorted(label_rows, key=lambda r: r[1]):
     out.append(_row)
 # W9 reachable audit (Kiro, 2026-11-08): one label row per drawn method from scratch/reaudit/audit_result.csv
