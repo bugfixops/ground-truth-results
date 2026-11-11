@@ -1,0 +1,51 @@
+Held-out half: the final labels (commit 80a2a913, the CI of round 3b) against the held-out half of the sample
+==========================================================================================================
+
+Sample rows: 114 = every row whose id ends in an even number, except the 23 checked cases (built by
+tools_dev/build_holdout.py; counts Aegis 22, AmazeFileManager 22, AnkiDroid 24, LibreTorrent 23, MMEX 23). Measured once,
+after the CI of the last graph change; no graph change was made from it.
+
+1. Agreement of the class (review/measure.py, files in this folder)
+   81 of 114 = 71.1%
+   per app: Aegis 6 of 22, AmazeFileManager 15 of 22, AnkiDroid 23 of 24, LibreTorrent 19 of 23, MMEX 18 of 23.
+   For comparison, the tuning half at the same commit: 115 of 136 = 84.6% (review/rounds/3/).
+
+2. Who is right in the disagreements
+   33 disagreements, all judged blind from the source: two adjudicators per row (all 33 rows each), who did not know
+   which side was the sample; a third decided the 4 rows where the two differed (Aegis-04, AmazeFileManager-26, MMEX-04,
+   MMEX-44). Files: blind.csv, blind_key.csv, adjudicators/A.csv, B.csv, C.csv, adjudication.csv
+   (tools_dev/holdout_adjudicate.py).
+     the source supports the full label:    18   (Aegis 15, AmazeFileManager 1, MMEX 2)
+     the source supports the sample:        12   (Aegis 1, AmazeFileManager 6, AnkiDroid 1, LibreTorrent 4)
+     neither:                                3   (MMEX-04 gui, MMEX-18 state, MMEX-44 gui)
+   The source supports the full label in 81 + 18 = 99 of 114 rows (86.8%) and the sample in 81 + 12 = 93 (81.6%).
+   Per app, rows where the source supports the full label: Aegis 21 of 22, AmazeFileManager 16 of 22, AnkiDroid 23 of 24,
+   LibreTorrent 19 of 23, MMEX 20 of 23.
+   The 15 wrong full labels (12 where the sample is right, 3 where neither is), by (class the source supports | class
+   the full label has):
+     env | gui 3, state | library 2, gui | state 1, dead | gui 1, library | gui 1, gui | dead 1, dead | env 1,
+     config | gui 1, state | env 1 (sample right); gui | library 2, state | library 1 (neither: MMEX-04, -44, -18).
+   Of the 18 rows where the sample is wrong, 15 are rows where the sample says state and the source needs something from
+   outside the app (env): a file from the system picker, an icon pack or a camera, mostly in Aegis, the same pattern as in
+   round 1; 2 more are gui where the sample says state, and 1 library where the sample says env.
+
+3. Rows that depend on an open rule question or an assumption
+   - Dialog rule (an open dialog or selection that the same GUI sequence opens and closes): Aegis-04, AmazeFileManager-22,
+     AmazeFileManager-26, LibreTorrent-44, MMEX-04, MMEX-44 change class if it counts as state.
+   - The 4 rows the third adjudicator decided are medium confidence.
+   - The adjudicators are AI agents, not independent people.
+
+4. Causes of the wrong full labels, left open (the held-out half is a measurement: no graph change from it)
+   - AmazeFileManager (6) and LibreTorrent (4): gates the screens do not see (stored items in lists, a setting read
+     through another object, a library dispatch); see adjudication.csv for each row's gate.
+   - AnkiDroid-40: a method that runs only in another build or API level (config), labelled gui.
+   - MMEX (3, neither): all three are labelled library (the reflection-made fragment page) where the source supports gui
+     (2) or state (1); two are dialog-rule rows.
+   - The blind check pass 2 found the same kinds (stored data the screen misses, error-only paths): see
+     graphs/<App>/scratch/reaudit/blind_r3b/SUMMARY.txt.
+
+5. Class shares weighted with the app weights of the task note (897, 1,012, 1,633, 1,510, 1,495), in %
+                         dead   config   env   state   library   gui
+   114 rows, full labels   27.2    0.7   26.3   21.9     7.7    16.3
+   114 rows, sample        27.9    1.7   18.2   37.3     2.4    12.5
+   all never-run methods in the graphs (final labels)  28.5  1.4  20.0  20.5  7.6  22.1

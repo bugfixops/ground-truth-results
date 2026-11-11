@@ -1,0 +1,46 @@
+Blind check, round 3b (Kiro, 2026-11-10/11; review/blind_check/PROTOCOL.md). Readers are model agents that got only
+INSTRUCTIONS.md and a chunk file (id, app, jvm_class, method, desc), no labels; one reader at a time (host memory).
+Scripts: tools_dev/blind_draw.py (draw, chunk and key files), tools_dev/blind_score.py (score). A miss: the reader's class
+differs from ours (state with dialog_dependent yes against our gui counts as agree). Confirmed: a second blind reader, given
+only the missed rows, finds the same class. Where the two readers differ, Kiro decided from the source.
+
+Pass 1: seed 31013, changed draw against f5eb13ac, labels of the round-3 build plus the two named defects.
+  GUI draw     40 rows, 11 misses (9 confirmed, 2 decided by Kiro), precision 72.5%
+  changed draw 25 rows,  0 misses, precision 100%
+  The second reader did not run for AmazeFileManager and MMEX (memory, then stopped); their 6 missed rows were decided by
+  Kiro from the source: AmazeFileManager SearchView$2.onAnimationRepeat (dead, a miss), RootUtils.mountFileSystemRW (env,
+  a miss), ColorPref$1.<init> (graph right), MMEX RecurringTransaction.hasAccountTo, .hasCategory, AccountListFragment$2
+  .<init> (graph right: library by the reflection rule).
+  Of the 11, the source supports our label in 3 (LibreTorrent LogActivity.lambda$onCreate$2 and SaveLogWorker.<clinit>:
+  logging is on in the debug build, build.gradle:62; AnkiDroid DeckPicker.importReplace: Restore backup with the startup
+  backup, BackupManager.java:103-140); the protocol counts them as misses.
+  Causes and fixes (r3_judged.csv round 3b rows, tools_dev/guard_prescreen_r2.py --r3b, tools_dev/round3_rules.py J and U):
+    a setting read through a settings object into a tested local (LibreTorrent battery control, custom battery control,
+      charge-only; the save-folder switch): state settings
+    error-only paths (Aegis onException after a freshly derived key: dead; vault-load failure and missing documents app:
+      env; AnkiDroid none): the screen flags catch blocks and error callbacks
+    the Aegis icon branch of GlideHelper.loadEntryIcon (entry.hasIcon()): env other_app
+    AmazeFileManager root-mode branches (9 steps): env other
+    onAnimationRepeat of an animator with no repeat count: dead (rule U)
+
+Pass 2 (final estimate): seed 52027, changed draw against 8a00f479 (the round-3 CI head), labels of the pushed build
+bfe6c83b (CI 80a2a913); nothing from pass 1. LibreTorrent had only 2 changed methods.
+  GUI draw     40 rows,  8 misses, 7 confirmed, 1 second reader agrees with us; precision 82.5%
+  changed draw 22 rows,  7 misses, 5 confirmed, 1 second reader agrees with us, 1 readers differ (MMEX ExceptionHandler$1
+               .run: first dead, second state; Kiro: dead, both callers are error messages that the baseline never shows,
+               FormatUtilities.java:106-111, RecurringTransactionListFragment.java:181-186; ours env: a miss);
+               precision 72.7%
+  Confirmed misses by cause (not fixed: pass 2 is the final measurement):
+    stored data the screen does not see: AmazeFileManager PathSwitchPreference.onCreateView and
+      .lambda$setListener$0 (a bookmark), LibreTorrent AddTagViewModel.setInitValues (a tag), AnkiDroid Sched._daysLate
+      and ._answerRevCard (a review card that is due)
+    a class the readers count as dead: AmazeFileManager MimeTypes.<init> (only static members are used)
+    error-only path: AnkiDroid AnkiDroidApp.sendExceptionReport(Throwable,String,String) (env)
+    rule T read as state by both readers: AnkiDroid HebrewFixFilter.regionOverlapsMedia and Sound.makeQuestionAnswerList
+      (a note with a media reference; the readers count a typed [sound:] tag as in-app state), Aegis
+      GoogleAuthInfoException.getMessage (the readers count a clipboard text the app copied as state)
+    MMEX SyncSchedulerBroadcastReceiver.onReceive and .getAlarmManager: our env (sync) is wrong; the readers find an in-app
+      broadcast to the receiver (gui)
+    MMEX ExceptionHandler$1.run: dead, ours env
+Files: pass1/ and pass2/ hold chunk.csv, key.csv (our labels), <App>_reader1.csv and <App>_reader2.csv. Pass 1 reader files
+were recovered from the agents' final messages after a scratch reset (id, class_found, dialog_dependent, confidence only).
